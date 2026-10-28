@@ -161,59 +161,86 @@
         transform-origin: top right;
       }
       #objective-card {
-        top: 3.2rem !important;
-        right: 0.5rem !important;
-        left: auto !important;
+        top: 5.8rem !important;
+        left: 0.5rem !important;
+        right: auto !important;
         bottom: auto !important;
-        max-width: 210px !important;
+        max-width: 225px !important;
         transform: scale(0.88);
-        transform-origin: top right;
+        transform-origin: top left;
       }
       #cam-mode-selector {
         display: none !important;
       }
     }
     @media (max-width: 640px) {
-      .radar-container {
-        transform: scale(0.58);
-        transform-origin: top right;
-      }
-      #top-left-player-hud {
-        transform: scale(0.85);
-        transform-origin: top left;
-      }
       #top-center-bar {
-        top: 0.35rem !important;
-        transform: scale(0.88);
+        top: 0.25rem !important;
+        transform: scale(0.92);
         transform-origin: top center;
       }
-      #objective-card {
-        top: 5.8rem !important;
+      #top-left-player-hud {
+        top: 2.35rem !important;
+        left: 0.35rem !important;
+        transform: scale(0.80);
+        transform-origin: top left;
+      }
+      .radar-container {
+        top: 2.35rem !important;
         right: 0.35rem !important;
-        max-width: 185px !important;
-        transform: scale(0.82);
+        transform: scale(0.56);
         transform-origin: top right;
+      }
+      #objective-card {
+        top: 5.95rem !important;
+        left: 0.35rem !important;
+        right: auto !important;
+        bottom: auto !important;
+        max-width: 215px !important;
+        transform: scale(0.82);
+        transform-origin: top left;
+      }
+      /* On portrait phones, place weapon dock slightly above joystick & fire buttons so nothing overlaps */
+      #touch-weapon-dock {
+        bottom: 6.6rem !important;
+        transform: translateX(-50%) scale(0.92) !important;
+      }
+      #touch-joystick-zone {
+        bottom: 0.65rem !important;
+        left: 0.5rem !important;
+        transform: scale(0.88);
+        transform-origin: bottom left;
+      }
+      #touch-action-cluster {
+        bottom: 0.65rem !important;
+        right: 0.5rem !important;
+        transform: scale(0.90);
+        transform-origin: bottom right;
       }
       #scope-left-telemetry,
       #scope-right-telemetry {
-        transform: scale(0.75) translateY(-50%);
+        transform: scale(0.72) translateY(-50%);
       }
       #scope-left-telemetry {
-        left: 0.35rem !important;
+        left: 0.25rem !important;
         transform-origin: left center;
       }
       #scope-right-telemetry {
-        right: 0.35rem !important;
+        right: 0.25rem !important;
         transform-origin: right center;
       }
     }
     @media (max-height: 540px) {
       .radar-container {
-        transform: scale(0.56);
+        top: 0.35rem !important;
+        right: 0.35rem !important;
+        transform: scale(0.54);
         transform-origin: top right;
       }
       #top-left-player-hud {
-        transform: scale(0.8);
+        top: 0.35rem !important;
+        left: 0.35rem !important;
+        transform: scale(0.76);
         transform-origin: top left;
       }
       #top-center-bar {
@@ -222,24 +249,24 @@
         transform-origin: top center;
       }
       #objective-card {
-        top: 2.6rem !important;
-        left: 0.5rem !important;
+        top: 4.1rem !important;
+        left: 0.35rem !important;
         right: auto !important;
         bottom: auto !important;
-        max-width: 200px !important;
-        transform: scale(0.78);
+        max-width: 210px !important;
+        transform: scale(0.76);
         transform-origin: top left;
       }
       #touch-joystick-zone {
-        bottom: 0.5rem !important;
+        bottom: 0.45rem !important;
         left: 0.5rem !important;
         transform: scale(0.82);
         transform-origin: bottom left;
       }
       #touch-action-cluster {
-        bottom: 0.5rem !important;
+        bottom: 0.45rem !important;
         right: 0.5rem !important;
-        transform: scale(0.82);
+        transform: scale(0.84);
         transform-origin: bottom right;
       }
       #touch-weapon-dock {
@@ -569,26 +596,26 @@
     </div>
   </div>
 
-  <!-- Dynamic 3D Target Indicators -->
+  <!-- Dynamic 3D Target Indicators (Tappable on Mobile to Auto-Aim at Target) -->
   <div id="target-markers-container" class="absolute inset-0 pointer-events-none z-20 overflow-hidden">
-    <div id="marker-0" class="absolute hidden -translate-x-1/2 -translate-y-full flex flex-col items-center pointer-events-none transition-transform duration-75">
-      <div class="px-2 py-0.5 rounded bg-red-600/90 border border-yellow-300 text-white font-mono text-[10px] font-bold shadow-lg flex items-center gap-1 whitespace-nowrap">
+    <div id="marker-0" onclick="snapAimToMarker(0)" class="absolute hidden -translate-x-1/2 -translate-y-full flex flex-col items-center pointer-events-auto cursor-pointer active:scale-95 transition-transform duration-75" title="Chạm để xoay tâm ngắm tới mục tiêu này">
+      <div class="px-2 py-0.5 rounded bg-red-600/95 border border-yellow-300 text-white font-mono text-[10px] font-bold shadow-lg flex items-center gap-1 whitespace-nowrap">
         <i class="fa-solid fa-crosshairs text-yellow-300"></i>
         <span class="m-label">MỤC TIÊU 1</span>
         <span class="m-dist text-yellow-200">45m</span>
       </div>
       <div class="w-2 h-2 rotate-45 bg-red-600 border-r border-b border-yellow-300 -mt-1"></div>
     </div>
-    <div id="marker-1" class="absolute hidden -translate-x-1/2 -translate-y-full flex flex-col items-center pointer-events-none transition-transform duration-75">
-      <div class="px-2 py-0.5 rounded bg-red-600/90 border border-yellow-300 text-white font-mono text-[10px] font-bold shadow-lg flex items-center gap-1 whitespace-nowrap">
+    <div id="marker-1" onclick="snapAimToMarker(1)" class="absolute hidden -translate-x-1/2 -translate-y-full flex flex-col items-center pointer-events-auto cursor-pointer active:scale-95 transition-transform duration-75" title="Chạm để xoay tâm ngắm tới mục tiêu này">
+      <div class="px-2 py-0.5 rounded bg-red-600/95 border border-yellow-300 text-white font-mono text-[10px] font-bold shadow-lg flex items-center gap-1 whitespace-nowrap">
         <i class="fa-solid fa-crosshairs text-yellow-300"></i>
         <span class="m-label">MỤC TIÊU 2</span>
         <span class="m-dist text-yellow-200">85m</span>
       </div>
       <div class="w-2 h-2 rotate-45 bg-red-600 border-r border-b border-yellow-300 -mt-1"></div>
     </div>
-    <div id="marker-2" class="absolute hidden -translate-x-1/2 -translate-y-full flex flex-col items-center pointer-events-none transition-transform duration-75">
-      <div class="px-2 py-0.5 rounded bg-red-600/90 border border-yellow-300 text-white font-mono text-[10px] font-bold shadow-lg flex items-center gap-1 whitespace-nowrap">
+    <div id="marker-2" onclick="snapAimToMarker(2)" class="absolute hidden -translate-x-1/2 -translate-y-full flex flex-col items-center pointer-events-auto cursor-pointer active:scale-95 transition-transform duration-75" title="Chạm để xoay tâm ngắm tới mục tiêu này">
+      <div class="px-2 py-0.5 rounded bg-red-600/95 border border-yellow-300 text-white font-mono text-[10px] font-bold shadow-lg flex items-center gap-1 whitespace-nowrap">
         <i class="fa-solid fa-crosshairs text-yellow-300"></i>
         <span class="m-label">MỤC TIÊU 3</span>
         <span class="m-dist text-yellow-200">55m</span>
@@ -872,12 +899,16 @@
   <!-- Mission Objective Card (Compact & Collapsed by Default for Clean Screen) -->
   <div id="objective-card" class="collapsed absolute bottom-3 right-3 pointer-events-auto select-none max-w-xs z-20 transition-all">
     <div class="hud-glass rounded-xl px-3 py-2 shadow-xl border-l-4 border-l-amber-500">
-      <div class="flex items-center justify-between gap-2 mb-0.5">
-        <div class="flex items-center gap-1.5 text-[10px] font-military tracking-wider text-amber-400">
+      <div class="flex items-center justify-between gap-1.5 mb-0.5">
+        <div class="flex items-center gap-1 text-[10px] font-military tracking-wider text-amber-400">
           <i class="fa-solid fa-bullseye text-xs"></i> NHIỆM VỤ
         </div>
         <div class="flex items-center gap-1">
-          <span id="obj-dist-badge" class="text-[9px] font-mono bg-red-950/80 border border-red-500/50 px-1.5 py-0.2 rounded text-red-300 font-bold">
+          <button onclick="snapAimToBestTarget(false)" class="px-1.5 py-0.5 rounded bg-emerald-700 hover:bg-emerald-600 active:scale-95 text-[8px] font-mono font-bold text-yellow-200 border border-emerald-400/70 cursor-pointer flex items-center gap-1 shadow" title="Tự động xoay tâm ngắm về phía mục tiêu nhiệm vụ">
+            <i class="fa-solid fa-location-crosshairs text-yellow-300"></i>
+            <span>XOAY TỚI</span>
+          </button>
+          <span id="obj-dist-badge" class="hidden sm:inline text-[9px] font-mono bg-red-950/80 border border-red-500/50 px-1.5 py-0.2 rounded text-red-300 font-bold">
             2 Mục Tiêu
           </span>
           <button id="toggle-obj-btn" class="px-1.5 py-0.2 rounded bg-slate-800 text-[9px] font-mono text-slate-300 hover:text-white border border-slate-700 cursor-pointer flex items-center gap-1" title="Mở rộng / Thu gọn chi tiết nhiệm vụ">
@@ -900,36 +931,32 @@
     </div>
   </div>
 
-  <!-- ================= MOBILE TOUCH CONTROLS INTERFACE ================= -->
+  <!-- ================= MOBILE TOUCH CONTROLS INTERFACE (CLEAN & EASY-TO-USE) ================= -->
   <div id="mobile-touch-interface" class="hidden fixed inset-0 pointer-events-none z-30 select-none">
     <!-- Left: Virtual Movement Joystick Zone -->
-    <div id="touch-joystick-zone" class="absolute bottom-4 left-4 w-36 h-36 rounded-full pointer-events-auto touch-none flex items-center justify-center">
-      <div id="joystick-base" class="relative w-32 h-32 rounded-full border-2 border-amber-400/60 bg-slate-950/75 backdrop-blur-md shadow-[0_0_30px_rgba(0,0,0,0.8)] flex items-center justify-center">
-        <!-- Subtle inner tactical ring -->
-        <div class="w-20 h-20 rounded-full border border-dashed border-amber-500/30 pointer-events-none"></div>
-        <!-- Directional indicators -->
-        <span class="absolute top-1.5 text-[8px] font-mono font-bold text-amber-300/90">▲ TIẾN</span>
-        <span class="absolute bottom-1.5 text-[8px] font-mono font-bold text-amber-300/80">▼ LÙI</span>
-        <span class="absolute left-2 text-[8px] font-mono font-bold text-amber-300/80">◄</span>
-        <span class="absolute right-2 text-[8px] font-mono font-bold text-amber-300/80">►</span>
-        <!-- Inner Thumb Knob -->
-        <div id="joystick-knob" class="w-14 h-14 rounded-full bg-gradient-to-br from-amber-300 via-amber-500 to-yellow-600 shadow-[0_0_20px_rgba(245,158,11,0.85)] border-2 border-yellow-100 flex items-center justify-center text-slate-950 text-xs font-black transition-transform duration-75">
+    <div id="touch-joystick-zone" class="absolute bottom-4 left-4 w-32 h-32 rounded-full pointer-events-auto touch-none flex items-center justify-center">
+      <div id="joystick-base" class="relative w-28 h-28 rounded-full border-2 border-amber-400/60 bg-slate-950/75 backdrop-blur-md shadow-[0_0_25px_rgba(0,0,0,0.8)] flex items-center justify-center">
+        <div class="w-16 h-16 rounded-full border border-dashed border-amber-500/30 pointer-events-none"></div>
+        <span class="absolute top-1 text-[7px] font-mono font-bold text-amber-300/90">▲ TIẾN</span>
+        <span class="absolute bottom-1 text-[7px] font-mono font-bold text-amber-300/80">▼ LÙI</span>
+        <span class="absolute left-1.5 text-[7px] font-mono font-bold text-amber-300/80">◄</span>
+        <span class="absolute right-1.5 text-[7px] font-mono font-bold text-amber-300/80">►</span>
+        <div id="joystick-knob" class="w-12 h-12 rounded-full bg-gradient-to-br from-amber-300 via-amber-500 to-yellow-600 shadow-[0_0_18px_rgba(245,158,11,0.85)] border-2 border-yellow-100 flex items-center justify-center text-slate-950 text-xs font-black transition-transform duration-75">
           <i class="fa-solid fa-arrows-up-down-left-right"></i>
         </div>
       </div>
     </div>
 
     <!-- Bottom-Center: Sleek Mobile Weapon & Ammo Dock -->
-    <div id="touch-weapon-dock" class="absolute bottom-3 left-1/2 -translate-x-1/2 pointer-events-auto flex items-center gap-1.5 hud-glass px-2.5 py-1.5 rounded-2xl border border-amber-500/40 shadow-2xl">
-      <!-- Live Mobile Ammo Readout -->
-      <div class="flex items-center gap-1 pr-2 border-r border-slate-700">
-        <i class="fa-solid fa-crosshairs text-amber-400 text-xs"></i>
-        <span id="touch-ammo-badge" class="font-military text-sm text-yellow-300 tracking-wider">5/35</span>
+    <div id="touch-weapon-dock" class="absolute bottom-3 left-1/2 -translate-x-1/2 pointer-events-auto flex items-center gap-1 hud-glass px-2 py-1 rounded-2xl border border-amber-500/40 shadow-2xl">
+      <div class="flex items-center gap-1 pr-1.5 border-r border-slate-700">
+        <i class="fa-solid fa-crosshairs text-amber-400 text-[10px]"></i>
+        <span id="touch-ammo-badge" class="font-military text-xs text-yellow-300 tracking-wider">5/35</span>
       </div>
-      <button id="touch-w-1" class="px-2 py-1 rounded-lg bg-amber-500 text-slate-950 font-mono text-[10px] font-bold cursor-pointer active:scale-95">1:K-44</button>
-      <button id="touch-w-2" class="px-2 py-1 rounded-lg bg-slate-800 text-slate-300 font-mono text-[10px] font-bold cursor-pointer active:scale-95">2:K-50M</button>
-      <button id="touch-w-3" class="px-2 py-1 rounded-lg bg-slate-800 text-slate-300 font-mono text-[10px] font-bold cursor-pointer active:scale-95">3:LỰU</button>
-      <button id="touch-w-4" class="px-2 py-1 rounded-lg bg-slate-800 text-slate-300 font-mono text-[10px] font-bold cursor-pointer active:scale-95">4:NHÒM</button>
+      <button id="touch-w-1" class="px-2 py-1 rounded-lg bg-amber-500 text-slate-950 font-mono text-[10px] font-bold cursor-pointer active:scale-95">🎯 K-44</button>
+      <button id="touch-w-2" class="px-2 py-1 rounded-lg bg-slate-800 text-slate-300 font-mono text-[10px] font-bold cursor-pointer active:scale-95">🔥 K-50M</button>
+      <button id="touch-w-3" class="px-2 py-1 rounded-lg bg-slate-800 text-slate-300 font-mono text-[10px] font-bold cursor-pointer active:scale-95">💣 LỰU</button>
+      <button id="touch-w-4" class="hidden sm:inline-block px-2 py-1 rounded-lg bg-slate-800 text-slate-300 font-mono text-[10px] font-bold cursor-pointer active:scale-95">🔭 NHÒM</button>
       <button id="touch-btn-heal" class="px-2 py-1 rounded-lg bg-cyan-950/90 border border-cyan-400/60 text-cyan-200 font-mono text-[10px] font-bold cursor-pointer active:scale-95 flex items-center gap-1" title="Uống nước bình tông hồi máu">
         <i class="fa-solid fa-bottle-water text-cyan-300"></i>
         <span id="touch-canteen-text">2/2</span>
@@ -937,51 +964,45 @@
     </div>
 
     <!-- Right: Touch-Swipe Camera Look Zone -->
-    <div id="touch-aim-zone" class="absolute top-14 right-0 w-[58vw] h-[68vh] pointer-events-auto touch-none"></div>
+    <div id="touch-aim-zone" class="absolute top-14 right-0 w-[62vw] h-[68vh] pointer-events-auto touch-none"></div>
 
-    <!-- Bottom-Right: Ergonomic Action Buttons Cluster -->
+    <!-- Bottom-Right: Clean, Streamlined Action Cluster (Zero Clutter) -->
     <div id="touch-action-cluster" class="absolute bottom-4 right-4 pointer-events-auto flex flex-col items-end gap-2">
-      <!-- Upper Support Row (Mine, Reload, Stance, Breath/Sprint, Zoom 4X/8X, Camera) -->
+      <!-- Compact Top Row: Auto-Target Lock, Reload, Stance, Jump -->
       <div class="flex items-center gap-1.5">
-        <button id="touch-btn-mine" class="w-11 h-11 rounded-full bg-red-950/90 border-2 border-red-500 shadow-lg text-white flex flex-col items-center justify-center active:scale-90 transition-transform cursor-pointer" title="Kích nổ mìn bộc phá Cầu Cái Sơn [F]">
-          <i class="fa-solid fa-burst text-xs text-yellow-300"></i>
-          <span class="text-[7px] font-mono font-bold text-red-200 uppercase">MÌN</span>
+        <button id="touch-btn-autotarget" onclick="snapAimToBestTarget(false)" class="px-2.5 h-10 rounded-full bg-emerald-800/95 border-2 border-yellow-300 shadow-[0_0_15px_rgba(16,185,129,0.6)] text-yellow-200 flex items-center gap-1 active:scale-90 transition-transform cursor-pointer" title="Khóa tâm ngắm vào mục tiêu gần nhất">
+          <i class="fa-solid fa-location-crosshairs text-xs text-yellow-300"></i>
+          <span class="text-[8px] font-mono font-black uppercase">MỤC TIÊU</span>
         </button>
-        <button id="touch-btn-reload" class="w-11 h-11 rounded-full bg-slate-900/90 border border-slate-500 text-slate-200 flex flex-col items-center justify-center active:scale-90 transition-transform cursor-pointer" title="Nạp đạn [R]">
+        <button id="touch-btn-reload" class="w-10 h-10 rounded-full bg-slate-900/90 border border-slate-500 text-slate-200 flex flex-col items-center justify-center active:scale-90 transition-transform cursor-pointer" title="Nạp đạn [R]">
           <i class="fa-solid fa-rotate-right text-xs text-amber-400"></i>
-          <span class="text-[7px] font-mono font-bold">NẠP</span>
+          <span class="text-[6px] font-mono font-bold">NẠP</span>
         </button>
-        <button id="touch-btn-stance" class="w-11 h-11 rounded-full bg-slate-900/90 border border-slate-500 text-slate-200 flex flex-col items-center justify-center active:scale-90 transition-transform cursor-pointer" title="Đổi tư thế: Đứng / Ngồi / Nằm [X]">
+        <button id="touch-btn-stance" class="w-10 h-10 rounded-full bg-slate-900/90 border border-slate-500 text-slate-200 flex flex-col items-center justify-center active:scale-90 transition-transform cursor-pointer" title="Đổi tư thế: Đứng / Ngồi / Nằm [X]">
           <i id="touch-stance-icon" class="fa-solid fa-person text-xs text-emerald-400"></i>
-          <span id="touch-stance-text" class="text-[7px] font-mono font-bold">ĐỨNG</span>
+          <span id="touch-stance-text" class="text-[6px] font-mono font-bold">ĐỨNG</span>
         </button>
-        <button id="touch-btn-breath" class="w-11 h-11 rounded-full bg-sky-950/90 border border-sky-400 text-sky-200 flex flex-col items-center justify-center active:scale-90 transition-transform cursor-pointer" title="Giữ để nín thở / chạy nhanh [Shift]">
-          <i class="fa-solid fa-lungs text-xs text-cyan-300"></i>
-          <span class="text-[7px] font-mono font-bold">NÍN THỞ</span>
-        </button>
-        <button id="touch-btn-zoom" class="w-11 h-11 rounded-full bg-amber-950/90 border border-amber-400 text-amber-200 flex flex-col items-center justify-center active:scale-90 transition-transform cursor-pointer" title="Đổi độ phóng đại 4X / 8X [E]">
-          <i class="fa-solid fa-magnifying-glass-plus text-xs text-yellow-300"></i>
-          <span id="touch-zoom-label" class="text-[7px] font-mono font-bold">4X/8X</span>
-        </button>
-        <button id="touch-btn-cam" class="w-11 h-11 rounded-full bg-slate-900/90 border border-slate-500 text-slate-200 flex flex-col items-center justify-center active:scale-90 transition-transform cursor-pointer" title="Đổi góc nhìn [V]">
-          <i class="fa-solid fa-camera text-xs text-yellow-400"></i>
-          <span class="text-[7px] font-mono font-bold">GÓC</span>
+        <button id="touch-btn-jump" class="w-10 h-10 rounded-full bg-slate-900/90 border border-emerald-400/70 text-emerald-300 flex flex-col items-center justify-center active:scale-90 transition-transform cursor-pointer" title="Nhảy [Space]">
+          <i class="fa-solid fa-angles-up text-xs text-emerald-300"></i>
+          <span class="text-[6px] font-mono font-bold">NHẢY</span>
         </button>
       </div>
 
-      <!-- Main Action Row: Jump + Scope Toggle + Big Fire Button -->
+      <!-- Hidden legacy buttons kept in DOM for safe JS binding -->
+      <button id="touch-btn-mine" class="hidden"></button>
+      <button id="touch-btn-breath" class="hidden"></button>
+      <button id="touch-btn-zoom" class="hidden"></button>
+      <button id="touch-btn-cam" class="hidden"></button>
+
+      <!-- Main Combat Row: Big Scope Toggle + Big Fire Button -->
       <div class="flex items-center gap-2.5">
-        <button id="touch-btn-jump" class="w-12 h-12 rounded-full bg-emerald-950/90 border border-emerald-400/80 shadow-lg text-emerald-300 flex flex-col items-center justify-center active:scale-90 transition-transform cursor-pointer" title="Nhảy vượt chướng ngại vật [Space]">
-          <i class="fa-solid fa-angles-up text-sm text-emerald-300"></i>
-          <span class="text-[7px] font-mono font-bold uppercase">NHẢY</span>
-        </button>
-        <button id="touch-btn-scope" class="w-14 h-14 rounded-full bg-slate-900/95 border-2 border-amber-400 shadow-xl text-amber-300 flex flex-col items-center justify-center active:scale-90 transition-transform cursor-pointer" title="Bật / Tắt Kính Ngắm [Q]">
-          <i class="fa-solid fa-crosshairs text-base text-yellow-400"></i>
+        <button id="touch-btn-scope" class="w-14 h-14 rounded-full bg-slate-900/95 border-2 border-amber-400 shadow-xl text-amber-300 flex flex-col items-center justify-center active:scale-90 transition-transform cursor-pointer" title="Bật / Tắt Kính Ngắm (Tự động hỗ trợ ngắm mục tiêu)">
+          <i class="fa-solid fa-crosshairs text-lg text-yellow-400"></i>
           <span class="text-[8px] font-mono font-bold uppercase">NGẮM</span>
         </button>
-        <button id="touch-btn-fire" class="rounded-full bg-gradient-to-br from-red-600 via-amber-600 to-red-700 border-4 border-yellow-300 shadow-[0_0_25px_rgba(239,68,68,0.75)] text-white flex flex-col items-center justify-center active:scale-90 transition-transform cursor-pointer" style="width: 72px; height: 72px;" title="Bắn súng!">
+        <button id="touch-btn-fire" class="rounded-full bg-gradient-to-br from-red-600 via-amber-600 to-red-700 border-4 border-yellow-300 shadow-[0_0_25px_rgba(239,68,68,0.8)] text-white flex flex-col items-center justify-center active:scale-90 transition-transform cursor-pointer" style="width: 74px; height: 74px;" title="Bắn súng!">
           <i class="fa-solid fa-bullseye text-2xl text-yellow-200"></i>
-          <span class="text-[9px] font-mono font-black tracking-wider uppercase mt-0.5">BẮN</span>
+          <span class="text-[10px] font-mono font-black tracking-wider uppercase mt-0.5">BẮN</span>
         </button>
       </div>
     </div>
@@ -989,60 +1010,60 @@
 
   <!-- ================= INSTRUCTION BRIEFING OVERLAY (GAME START - HISTORICAL CAMPAIGN ONLY) ================= -->
   <div id="briefing-modal" class="absolute inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center z-50 p-3 sm:p-4">
-    <div class="hud-glass max-w-2xl w-full max-h-[92vh] overflow-y-auto rounded-3xl p-5 sm:p-7 border-2 border-amber-500/50 shadow-[0_0_65px_rgba(234,179,8,0.28)] relative">
+    <div class="hud-glass max-w-2xl w-full max-h-[92vh] overflow-y-auto rounded-3xl p-4 sm:p-7 border-2 border-amber-500/50 shadow-[0_0_65px_rgba(234,179,8,0.28)] relative">
       <!-- Top Heritage Ribbon -->
-      <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-amber-500/30">
+      <div class="flex flex-wrap items-center justify-between gap-2 pb-2.5 mb-2.5 border-b border-amber-500/30">
         <div class="flex items-center gap-2 text-amber-400">
           <div class="w-8 h-8 rounded-full bg-red-700 border border-yellow-300 flex items-center justify-center shadow-md shrink-0">
             <i class="fa-solid fa-star text-yellow-300 text-sm"></i>
           </div>
           <div>
-            <div class="text-[10px] font-mono text-amber-300/90 uppercase tracking-widest font-bold">Di Tích Lịch Sử Chiến Thắng Cầu Cái Sơn</div>
-            <div class="text-xs font-military tracking-wider text-yellow-400 uppercase">Xã Song Phú • Tam Bình • Vĩnh Long (16/06/1960)</div>
+            <div class="text-[10px] font-mono text-amber-300/90 uppercase tracking-widest font-bold">Đoàn TNCS Hồ Chí Minh Xã Song Phú</div>
+            <div class="text-xs font-military tracking-wider text-yellow-400 uppercase">Chiến Thắng Cầu Cái Sơn (16/06/1960)</div>
           </div>
         </div>
         <span class="px-2.5 py-1 rounded-full bg-emerald-950/90 border border-emerald-400/50 text-emerald-300 font-mono text-[10px] font-bold">
-          <i class="fa-solid fa-mobile-screen-button mr-1"></i> HỖ TRỢ PC & MOBILE
+          <i class="fa-solid fa-mobile-screen-button mr-1"></i> DỄ CHƠI TRÊN ĐIỆN THOẠI & PC
         </span>
       </div>
 
-      <h1 class="text-xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-amber-400 to-yellow-200 mb-2 tracking-wide uppercase">
+      <h1 class="text-lg sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-amber-400 to-yellow-200 mb-2 tracking-wide uppercase">
         CHIẾN DỊCH LỊCH SỬ CẦU CÁI SƠN
       </h1>
-      <p class="text-slate-200 text-xs sm:text-sm leading-relaxed mb-4">
-        Đúng <strong class="text-yellow-300">16 giờ 15 phút ngày 16/06/1960</strong>, bạn vào vai xạ thủ bắn tỉa chủ lực phối hợp cùng tổ du kích <strong class="text-emerald-300">Út Hoa, Ba Đen, Hai Dũng, Anh Năm</strong> khóa chặt hai đầu dốc <strong class="text-amber-300">Cầu Cái Sơn</strong>, tiêu diệt tên ác ôn đầu sỏ <strong class="text-red-400">Tỉnh trưởng Khưu Văn Ba</strong> ngay trên đường hắn rút chạy!
+      <p class="text-slate-200 text-xs sm:text-sm leading-relaxed mb-3">
+        Đúng <strong class="text-yellow-300">16 giờ 15 phút ngày 16/06/1960</strong>, bạn cùng tổ du kích <strong class="text-emerald-300">Út Hoa, Ba Đen, Hai Dũng, Anh Năm</strong> phục kích tại <strong class="text-amber-300">Cầu Cái Sơn</strong>, bắn nổ xe Jeep và tiêu diệt tên ác ôn <strong class="text-red-400">Tỉnh trưởng Khưu Văn Ba</strong>!
       </p>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 text-xs">
-        <div class="bg-slate-900/90 border border-amber-500/30 rounded-2xl p-3.5 shadow-inner">
-          <div class="font-mono text-amber-400 font-bold mb-1.5 flex items-center gap-1.5">
-            <i class="fa-solid fa-flag-checkered text-yellow-300"></i> 3 GIAI ĐOẠN CHIẾN DỊCH LỊCH SỬ
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-3.5 text-xs">
+        <div class="bg-slate-900/90 border border-amber-500/30 rounded-2xl p-3 shadow-inner">
+          <div class="font-mono text-amber-400 font-bold mb-1 flex items-center gap-1.5">
+            <i class="fa-solid fa-flag-checkered text-yellow-300"></i> 3 NHIỆM VỤ CHIẾN DỊCH
           </div>
-          <div class="text-slate-300 space-y-1.5 text-[11px] leading-snug">
-            <div class="flex items-start gap-1.5"><span class="text-amber-400 font-bold">1.</span> <span>Hạ gục 2 lính gác trên chòi canh bờ sông Cái Sơn để mở hành lang phục kích.</span></div>
-            <div class="flex items-start gap-1.5"><span class="text-amber-400 font-bold">2.</span> <span>Bắn nổ xe Jeep hoặc điểm hỏa Mìn [F], truy sát <b>Khưu Văn Ba</b> khi hắn nhảy khỏi xe bỏ chạy!</span></div>
-            <div class="flex items-start gap-1.5"><span class="text-amber-400 font-bold">3.</span> <span>Cùng tiểu đội du kích tiêu diệt toán lính Bảo An hộ tống và thắp hương tại Bia Chiến Thắng.</span></div>
+          <div class="text-slate-300 space-y-1 text-[11px] leading-snug">
+            <div><b class="text-amber-400">1.</b> Bắn hạ <b>2 tên lính gác chòi canh</b> ven sông Cái Sơn.</div>
+            <div><b class="text-amber-400">2.</b> Bắn trúng <b>xe Jeep Khưu Văn Ba đủ 3 viên</b> cho nổ xe, rồi bắn hạ <b>Khưu Văn Ba</b> khi hắn bỏ chạy!</div>
+            <div><b class="text-amber-400">3.</b> Diệt toán lính hộ tống và nhận <b>Giấy Chứng Nhận Xã Đoàn Song Phú</b>.</div>
           </div>
         </div>
-        <div class="bg-slate-900/90 border border-cyan-500/30 rounded-2xl p-3.5 shadow-inner">
-          <div class="font-mono text-cyan-300 font-bold mb-1.5 flex items-center gap-1.5">
-            <i class="fa-solid fa-gamepad text-cyan-400"></i> ĐIỀU KHIỂN TRÊN ĐIỆN THOẠI & MÁY TÍNH
+        <div class="bg-slate-900/90 border border-cyan-500/30 rounded-2xl p-3 shadow-inner">
+          <div class="font-mono text-cyan-300 font-bold mb-1 flex items-center gap-1.5">
+            <i class="fa-solid fa-gamepad text-cyan-400"></i> CÁCH CHƠI CỰC DỄ TRÊN ĐIỆN THOẠI
           </div>
-          <div class="text-slate-300 space-y-1.5 text-[11px] leading-snug">
-            <div>📱 <b class="text-amber-300">Trên Điện Thoại / Máy Tính Bảng:</b> Kéo <b>Joystick (Trái)</b> để di chuyển; <b>Vuốt màn hình (Phải)</b> để xoay tâm ngắm; bấm nút <b>[NGẮM]</b>, <b>[BẮN]</b>, <b>[MÌN]</b> cảm ứng.</div>
-            <div>💻 <b class="text-cyan-300">Trên Máy Tính (PC):</b> <b>WASD</b> di chuyển, <b>Chuột Phải / Q</b> bật kính ngắm K-44, giữ <b>SHIFT</b> nín thở, <b>F</b> nổ mìn, <b>K</b> thắp hương, <b>T</b> mở Sách Sử.</div>
+          <div class="text-slate-300 space-y-1 text-[11px] leading-snug">
+            <div>🎯 Bấm nút <b class="text-emerald-300">[MỤC TIÊU]</b> (hoặc chạm vào nhãn đỏ <b class="text-red-400">MỤC TIÊU</b>) để tâm ngắm tự động quay thẳng vào địch!</div>
+            <div>🔥 Bấm <b class="text-amber-300">[NGẮM]</b> rồi bấm <b class="text-red-400">[BẮN]</b> để khai hỏa (súng tự động nín thở & tự nạp đạn khi hết).</div>
           </div>
         </div>
       </div>
 
-      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-slate-700/80">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-2.5 border-t border-slate-700/80">
         <button onclick="openSongPhuModal()" class="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-amber-200 border border-amber-500/50 font-bold rounded-xl uppercase text-xs tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer">
           <i class="fa-solid fa-book-open text-yellow-400"></i>
           <span>XEM SÁCH SỬ CẦU CÁI SƠN</span>
         </button>
         <button id="start-btn" class="px-7 py-3 bg-gradient-to-r from-red-600 via-amber-500 to-yellow-500 hover:from-red-500 hover:via-amber-400 hover:to-yellow-400 text-slate-950 font-black tracking-wider rounded-xl uppercase text-xs sm:text-sm shadow-[0_0_25px_rgba(245,158,11,0.5)] transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
           <i class="fa-solid fa-crosshairs text-red-950 text-base"></i>
-          <span>BẮT ĐẦU CHIẾN DỊCH LỊCH SỬ</span>
+          <span>VÀO TRẬN NGAY</span>
           <i class="fa-solid fa-arrow-right"></i>
         </button>
       </div>
@@ -8306,6 +8327,11 @@
       const fireNow = () => {
         audio.init();
         isMouseDown = true;
+        const curW = weapons[currentWeaponSlot];
+        if (curW && curW.ammoMag <= 0 && curW.reserve > 0) {
+          reloadWeapon();
+          return;
+        }
         if (currentWeaponSlot === WEAPON_TYPES.SNIPER) {
           fireSniperRifle();
         } else if (currentWeaponSlot === WEAPON_TYPES.SMG) {
@@ -8341,8 +8367,20 @@
       if (typeof player !== 'undefined' && player.jump) player.jump();
     });
     bindTouchActionButton('touch-btn-scope', () => {
-      if (currentWeaponSlot === WEAPON_TYPES.BINOCULARS) toggleBinoculars();
-      else toggleScopeMode();
+      if (currentWeaponSlot === WEAPON_TYPES.BINOCULARS) {
+        toggleBinoculars();
+      } else {
+        const wasAiming = player && player.isAiming;
+        if (!wasAiming && typeof snapAimToBestTarget === 'function') {
+          snapAimToBestTarget(true);
+        }
+        toggleScopeMode();
+        if (player && player.isAiming) {
+          keys.ShiftLeft = true; // Auto-stabilize breath on mobile when scoped in
+        } else {
+          keys.ShiftLeft = false;
+        }
+      }
     });
     bindTouchActionButton('touch-btn-mine', () => {
       detonateBridgeMine();
@@ -10519,8 +10557,95 @@
     });
 
     /* ==========================================================================
-       TARGET 3D MARKERS POSITIONING
+       TARGET 3D MARKERS POSITIONING & 1-TAP SMART TARGET LOCK (MOBILE & PC)
        ========================================================================== */
+    let lastActiveMarkerTargets = [];
+
+    function snapAimToPoint(aimPos, labelText = "MỤC TIÊU", silent = false) {
+      if (!aimPos || !player || !player.mesh) return;
+      const eyeOffset = (playerStance === 'crouch' ? 1.1 : (playerStance === 'prone' ? 0.55 : 1.68));
+      const fromPos = (player.isAiming || currentCamMode === CAM_MODES.FPP)
+        ? player.mesh.position.clone().add(new THREE.Vector3(0, eyeOffset, 0))
+        : camera.position.clone();
+      const toT = aimPos.clone().sub(fromPos);
+      mouseYaw = Math.atan2(toT.x, -toT.z);
+      const hDist = Math.hypot(toT.x, toT.z);
+      mousePitch = Math.atan2(toT.y, Math.max(0.1, hDist));
+      mousePitch = Math.max(-0.40, Math.min(0.50, mousePitch));
+
+      if (!silent) {
+        if (typeof audio !== 'undefined' && audio.playClick) audio.playClick();
+        showTacticalBanner(`🎯 ĐÃ KHÓA TÂM NGẮM VÀO: ${labelText}! BẤM [NGẮM] HOẶC [BẮN] NGAY!`, "bg-emerald-800/95 border-yellow-300 text-yellow-100 font-bold");
+      }
+    }
+    window.snapAimToPoint = snapAimToPoint;
+
+    function snapAimToMarker(markerIdx) {
+      const t = lastActiveMarkerTargets[markerIdx];
+      if (!t) {
+        snapAimToBestTarget(false);
+        return;
+      }
+      snapAimToPoint(t.aimPos || t.pos, t.label, false);
+    }
+    window.snapAimToMarker = snapAimToMarker;
+
+    function snapAimToBestTarget(silent = false) {
+      if (!player || !player.mesh) return;
+
+      // Priority 1: In Mission 1, prioritize alive watchtower guards first
+      if (currentMission === MISSIONS.M1_SNIPE_TOWERS) {
+        const aliveGuards = [];
+        if (typeof guard1 !== 'undefined' && guard1 && guard1.userData.alive) {
+          aliveGuards.push({ pos: guard1.position.clone().add(new THREE.Vector3(0, 1.35, 0)), label: 'LÍNH GÁC THÁP CANH 1' });
+        }
+        if (typeof guard2 !== 'undefined' && guard2 && guard2.userData.alive) {
+          aliveGuards.push({ pos: guard2.position.clone().add(new THREE.Vector3(0, 1.35, 0)), label: 'LÍNH GÁC THÁP CANH 2' });
+        }
+        if (aliveGuards.length > 0) {
+          aliveGuards.sort((a, b) => player.mesh.position.distanceTo(a.pos) - player.mesh.position.distanceTo(b.pos));
+          snapAimToPoint(aliveGuards[0].pos, aliveGuards[0].label, silent);
+          return;
+        }
+      }
+
+      // Priority 2: Running Governor Khưu Văn Ba on foot
+      if (typeof khuuVanBaBoss !== 'undefined' && khuuVanBaBoss && khuuVanBaBoss.userData && khuuVanBaBoss.userData.alive) {
+        snapAimToPoint(
+          khuuVanBaBoss.position.clone().add(new THREE.Vector3(0, 1.30, 0)),
+          'TỈNH TRƯỞNG KHƯU VĂN BA (ĐANG CHẠY!)',
+          silent
+        );
+        return;
+      }
+
+      // Priority 3: Lead Jeep of Khưu Văn Ba (if not yet destroyed by 3 player hits)
+      if (typeof convoy !== 'undefined' && !convoy.isDestroyed && (!khuuVanBaBoss || !khuuVanBaBoss.userData.killed)) {
+        snapAimToPoint(
+          convoy.leadJeep.group.position.clone().add(new THREE.Vector3(0, 1.15, 0)),
+          `XE JEEP KHƯU VĂN BA (${convoy.hitsTaken || 0}/${convoy.maxHits || 3} VIÊN)`,
+          silent
+        );
+        return;
+      }
+
+      // Priority 4: Any alive ground enemy / escort soldier
+      if (typeof targetEnemies !== 'undefined') {
+        const aliveGround = targetEnemies.filter(eg => eg && eg.userData && eg.userData.alive);
+        if (aliveGround.length > 0) {
+          aliveGround.sort((a, b) => player.mesh.position.distanceTo(a.position) - player.mesh.position.distanceTo(b.position));
+          const best = aliveGround[0];
+          snapAimToPoint(
+            best.position.clone().add(new THREE.Vector3(0, 1.30, 0)),
+            best.userData.label || 'LÍNH BẢO AN HỘ TỐNG',
+            silent
+          );
+          return;
+        }
+      }
+    }
+    window.snapAimToBestTarget = snapAimToBestTarget;
+
     function updateTargetMarkers() {
       const markers = [
         document.getElementById('marker-0'),
@@ -10536,21 +10661,47 @@
       const activeTargets = [];
       // Always highlight Governor Khưu Văn Ba (either running on foot or riding in Lead Jeep)
       if (typeof khuuVanBaBoss !== 'undefined' && khuuVanBaBoss && khuuVanBaBoss.userData && khuuVanBaBoss.userData.alive) {
-        activeTargets.push({ pos: khuuVanBaBoss.position.clone().add(new THREE.Vector3(0, 2.3, 0)), label: '🏃 KHƯU VĂN BA (ĐANG CHẠY!)' });
+        activeTargets.push({
+          pos: khuuVanBaBoss.position.clone().add(new THREE.Vector3(0, 2.3, 0)),
+          aimPos: khuuVanBaBoss.position.clone().add(new THREE.Vector3(0, 1.3, 0)),
+          label: '🏃 KHƯU VĂN BA (ĐANG CHẠY!)'
+        });
       } else if (!convoy.isDestroyed && (!khuuVanBaBoss || !khuuVanBaBoss.userData.killed)) {
-        activeTargets.push({ pos: convoy.leadJeep.group.position.clone().add(new THREE.Vector3(0, 2.2, 0)), label: '🎯 XE JEEP KHƯU VĂN BA' });
+        activeTargets.push({
+          pos: convoy.leadJeep.group.position.clone().add(new THREE.Vector3(0, 2.2, 0)),
+          aimPos: convoy.leadJeep.group.position.clone().add(new THREE.Vector3(0, 1.15, 0)),
+          label: '🎯 XE JEEP KHƯU VĂN BA'
+        });
       }
 
       if (currentMission === MISSIONS.M1_SNIPE_TOWERS) {
-        if (guard1.userData.alive) activeTargets.push({ pos: guard1.position.clone().add(new THREE.Vector3(0, 2.5, 0)), label: 'THÁP CANH 1' });
-        if (guard2.userData.alive) activeTargets.push({ pos: guard2.position.clone().add(new THREE.Vector3(0, 2.5, 0)), label: 'THÁP CANH 2' });
+        if (guard1.userData.alive) {
+          activeTargets.push({
+            pos: guard1.position.clone().add(new THREE.Vector3(0, 2.5, 0)),
+            aimPos: guard1.position.clone().add(new THREE.Vector3(0, 1.35, 0)),
+            label: 'THÁP CANH 1'
+          });
+        }
+        if (guard2.userData.alive) {
+          activeTargets.push({
+            pos: guard2.position.clone().add(new THREE.Vector3(0, 2.5, 0)),
+            aimPos: guard2.position.clone().add(new THREE.Vector3(0, 1.35, 0)),
+            label: 'THÁP CANH 2'
+          });
+        }
       } else if (currentMission === MISSIONS.M3_COUNTER_SNIPER || isEndlessMode) {
         targetEnemies.forEach((eg) => {
           if (eg.userData.alive && !eg.userData.isKhuuVanBa && eg.userData.role === 'ground_guard') {
-            activeTargets.push({ pos: eg.position.clone().add(new THREE.Vector3(0, 1.8, 0)), label: eg.userData.label || 'LÍNH BẢO AN' });
+            activeTargets.push({
+              pos: eg.position.clone().add(new THREE.Vector3(0, 1.8, 0)),
+              aimPos: eg.position.clone().add(new THREE.Vector3(0, 1.3, 0)),
+              label: eg.userData.label || 'LÍNH BẢO AN'
+            });
           }
         });
       }
+
+      lastActiveMarkerTargets = activeTargets;
 
       activeTargets.forEach((t, i) => {
         if (i >= markers.length) return;
