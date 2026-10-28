@@ -1,0 +1,2083 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trận Chiến Cái Sơn (16/06/1960) - Game Bắn Tỉa Lịch Sử 3D (Tạo Nhân Vật AI)</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            caison: {
+              gold: '#e5b958',
+              red: '#d93829',
+              green: '#2ecc71',
+              cyan: '#3498db',
+              dark: '#0e130d',
+              panel: 'rgba(16, 22, 14, 0.96)'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Three.js (r128 CDN) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap');
+    
+    body {
+      font-family: 'Montserrat', sans-serif;
+      user-select: none;
+      overflow: hidden;
+      background-color: #0e130d;
+    }
+    
+    .font-serif-title {
+      font-family: 'Playfair Display', serif;
+    }
+
+    .crosshair-line {
+      position: absolute;
+      background-color: rgba(229, 185, 88, 0.75);
+      box-shadow: 0 0 8px rgba(229, 185, 88, 0.9);
+    }
+
+    @keyframes screenShake {
+      0% { transform: translate(1px, 1px) rotate(0deg); }
+      20% { transform: translate(-3px, 0px) rotate(0.5deg); }
+      40% { transform: translate(2px, -2px) rotate(-0.5deg); }
+      60% { transform: translate(-2px, 2px) rotate(0deg); }
+      80% { transform: translate(1px, -1px) rotate(0.5deg); }
+      100% { transform: translate(0px, 0px) rotate(0deg); }
+    }
+    .shake-active {
+      animation: screenShake 0.45s ease-in-out;
+    }
+
+    /* Hiệu ứng quét tia Laser AI Hologram */
+    @keyframes aiScanLaser {
+      0% { top: 0%; opacity: 0.8; }
+      50% { top: 100%; opacity: 1; }
+      100% { top: 0%; opacity: 0.8; }
+    }
+    .ai-scanner-beam {
+      position: absolute;
+      left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, transparent, #2ecc71, #e5b958, #2ecc71, transparent);
+      box-shadow: 0 0 15px #2ecc71;
+      animation: aiScanLaser 1.8s infinite ease-in-out;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.3);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #e5b958;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="w-full h-full text-gray-100">
+
+  <!-- 3D Canvas -->
+  <div id="canvas-container" class="absolute inset-0 z-0 cursor-crosshair"></div>
+
+  <!-- ========================================================================= -->
+  <!-- MÀN HÌNH 1: AI GENERATOR & TẠO NHÂN VẬT DU KÍCH 3D -->
+  <!-- ========================================================================= -->
+  <div id="screen-char-creator" class="fixed inset-0 z-40 flex flex-col md:flex-row items-center justify-between p-3 md:p-6 pointer-events-none">
+    
+    <!-- Cột trái: Bục xoay 3D nhân vật & Khung quét AI Scanner (Trong suốt, sắc nét, tương tác 3D) -->
+    <div class="w-full md:w-7/12 h-full flex flex-col justify-between p-2 md:p-4 relative pointer-events-auto">
+      <!-- Header Badge -->
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2 bg-black/80 backdrop-blur-md border border-caison-gold/60 px-4 py-2 rounded-xl shadow-xl">
+          <span class="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse"></span>
+          <span class="text-xs md:text-sm font-bold text-caison-gold uppercase tracking-wider">🤖 3D AI CHARACTER STUDIO</span>
+        </div>
+        <div class="hidden sm:flex items-center gap-2 bg-black/75 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-white/10 text-[11px] text-gray-300 shadow">
+          <span>🖱️ Giữ chuột trái & rê để xoay 360°</span>
+        </div>
+      </div>
+
+      <!-- AI Laser Scanner Overlay -->
+      <div id="ai-scanner-box" class="hidden absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 md:w-72 h-88 md:h-96 border-2 border-green-400/80 rounded-2xl pointer-events-none overflow-hidden bg-green-950/20 shadow-[0_0_35px_rgba(46,204,113,0.35)]">
+        <div class="ai-scanner-beam"></div>
+        <div class="absolute top-2 left-3 text-[10px] font-mono text-green-300 font-bold uppercase tracking-widest flex items-center gap-1.5">
+          <span class="inline-block w-2 h-2 rounded-full bg-green-400 animate-ping"></span>
+          AI NEURAL SYNTHESIS...
+        </div>
+        <div id="ai-scan-status-text" class="absolute bottom-2 left-3 right-3 text-[11px] font-mono text-green-300 bg-black/80 px-2.5 py-1.5 rounded border border-green-500/30">
+          > Khởi tạo ma trận 3D chiến sĩ...
+        </div>
+      </div>
+
+      <!-- Bottom controls bar on the 3D viewport -->
+      <div class="bg-black/85 backdrop-blur-md border border-caison-gold/40 p-3 rounded-2xl flex flex-wrap items-center justify-between gap-3 max-w-lg shadow-2xl">
+        <div>
+          <div class="text-[10px] uppercase font-bold text-gray-400">Chiến dịch lịch sử</div>
+          <div class="text-xs md:text-sm font-bold text-yellow-300">Trận Phục Kích Cái Sơn (16/06/1960)</div>
+          <div class="text-[11px] text-gray-300">Cầu Cái Sơn, Song Phú, Vĩnh Long</div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="btn-toggle-walk-preview" type="button" class="bg-yellow-600/30 hover:bg-yellow-600/50 active:scale-95 text-yellow-300 border border-yellow-500/50 text-xs px-2.5 py-1.5 rounded-lg transition font-bold flex items-center gap-1 shadow">
+            <span id="walk-icon">🏃</span> <span id="walk-label">Chạy thử</span>
+          </button>
+          <button id="btn-spin-char" type="button" class="bg-white/10 hover:bg-white/20 active:scale-95 text-xs px-2.5 py-1.5 rounded-lg border border-white/20 text-gray-200 transition flex items-center gap-1">
+            <span>🔄</span> Xoay 180°
+          </button>
+          <button id="btn-random-ai" type="button" class="bg-green-600/30 hover:bg-green-600/60 active:scale-95 text-green-300 border border-green-500/50 text-xs px-2.5 py-1.5 rounded-lg transition font-bold flex items-center gap-1">
+            <span>⚡</span> AI Ngẫu Nhiên
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cột phải: Bảng Tạo Nhân Vật Bằng AI / Tùy Chỉnh -->
+    <div class="w-full md:w-5/12 bg-caison-panel/95 backdrop-blur-xl border-2 border-caison-gold rounded-2xl p-5 md:p-6 shadow-[0_0_50px_rgba(0,0,0,0.9)] max-h-[92vh] overflow-y-auto space-y-4 pointer-events-auto">
+      
+      <!-- Tiêu đề Studio -->
+      <div class="border-b border-white/10 pb-3">
+        <div class="inline-flex items-center gap-1.5 text-[10px] font-bold text-green-400 uppercase tracking-widest bg-green-950/80 px-2.5 py-0.5 rounded-full border border-green-500/40 mb-1.5">
+          <span>✨</span> CÔNG NGHỆ GEN AI 3D LỊCH SỬ
+        </div>
+        <h1 class="text-xl md:text-2xl font-black text-caison-gold uppercase font-serif-title tracking-wide">
+          Dựng Chiến Sĩ Du Kích 3D
+        </h1>
+        <p class="text-xs text-gray-300 mt-1">
+          Dùng AI để phục dựng diện mạo, bí danh, áo bà ba, khăn rằn và vũ khí chiến đấu năm 1960.
+        </p>
+      </div>
+
+      <!-- Tab chuyển đổi: AI Prompt vs Thủ công vs Hướng dẫn AI ngoài -->
+      <div class="flex border-b border-white/15 pb-2.5 gap-1.5">
+        <button id="tab-btn-ai" class="flex-1 py-2 px-2.5 rounded-xl bg-caison-gold text-black font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-1 shadow">
+          <span>✨</span> AI Prompt
+        </button>
+        <button id="tab-btn-manual" class="flex-1 py-2 px-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1 border border-white/10">
+          <span>🛠️</span> Thủ Công
+        </button>
+        <button id="tab-btn-guide" class="py-2 px-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1 border border-white/10" title="Hướng dẫn dùng Tripo3D / Meshy / Unity">
+          <span>ℹ️</span> 3D Pipeline
+        </button>
+      </div>
+
+      <!-- PANEL 1: AI PROMPT GENERATOR -->
+      <div id="panel-ai-gen" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-bold text-caison-gold uppercase tracking-wider mb-1.5">
+            Nhập mô tả cho AI (Prompt tiếng Việt):
+          </label>
+          <textarea id="ai-prompt-input" rows="2" class="w-full bg-black/70 border border-caison-gold/60 rounded-xl p-3 text-xs md:text-sm text-white focus:outline-none focus:border-yellow-400 shadow-inner" placeholder="VD: Nữ du kích Tam Bình dũng cảm áo bà ba đen nón lá, hoặc Chiến sĩ xạ thủ bắn tỉa áo nâu mũ tai bèo...">Nữ du kích Tam Bình dũng cảm, áo bà ba đen tuyền, đội nón lá Nam Bộ, quàng khăn rằn, súng trường K-44 bắn tỉa.</textarea>
+        </div>
+
+        <!-- Các gợi ý Prompt nhanh (Quick Presets) -->
+        <div>
+          <span class="text-[11px] text-gray-400 font-semibold block mb-1.5">Chọn nhanh gợi ý lịch sử (1 chạm):</span>
+          <div class="grid grid-cols-2 gap-1.5">
+            <button type="button" class="preset-tag text-left bg-white/5 hover:bg-caison-gold/20 border border-white/15 hover:border-caison-gold text-gray-300 hover:text-caison-gold text-[11px] p-2 rounded-lg transition" data-prompt="Nữ du kích bắn tỉa Tam Bình Út Hoa, áo bà ba đen, nón lá Nam Bộ, khăn rằn, súng trường K-44">
+              🎯 <b>Út Hoa - Bắn tỉa</b>
+              <span class="block text-[10px] text-gray-400">Áo bà ba đen, nón lá, K-44</span>
+            </button>
+            <button type="button" class="preset-tag text-left bg-white/5 hover:bg-caison-gold/20 border border-white/15 hover:border-caison-gold text-gray-300 hover:text-caison-gold text-[11px] p-2 rounded-lg transition" data-prompt="Chiến sĩ du kích Cái Sơn Hai Lúa áo bà ba đen nón lá, súng Carbine M1 linh hoạt">
+              🌾 <b>Hai Lúa - Du kích</b>
+              <span class="block text-[10px] text-gray-400">Áo bà ba đen, Carbine M1</span>
+            </button>
+            <button type="button" class="preset-tag text-left bg-white/5 hover:bg-caison-gold/20 border border-white/15 hover:border-caison-gold text-gray-300 hover:text-caison-gold text-[11px] p-2 rounded-lg transition" data-prompt="Đặc công Ba Rằn áo nâu sồng mũ tai bèo, xạ thủ kiên cường đột kích phục kích">
+              🪖 <b>Ba Rằn - Đặc công</b>
+              <span class="block text-[10px] text-gray-400">Áo nâu sồng, mũ tai bèo</span>
+            </button>
+            <button type="button" class="preset-tag text-left bg-white/5 hover:bg-caison-gold/20 border border-white/15 hover:border-caison-gold text-gray-300 hover:text-caison-gold text-[11px] p-2 rounded-lg transition" data-prompt="Xạ thủ Năm Đất áo xanh rêu nón lá, thiện xạ ngắm bắn cự ly xa chặn đoàn xe">
+              ⚡ <b>Năm Đất - Xạ thủ</b>
+              <span class="block text-[10px] text-gray-400">Áo xanh rêu, súng K-44</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Nút Kích hoạt AI Sinh Nhân Vật -->
+        <button id="btn-generate-ai" class="w-full bg-gradient-to-r from-emerald-600 via-green-500 to-yellow-500 hover:from-emerald-500 hover:to-yellow-400 text-black font-black py-3 rounded-xl shadow-lg uppercase text-xs md:text-sm tracking-wider flex items-center justify-center gap-2 transform active:scale-95 transition">
+          <span class="text-base">⚡</span> BẮT ĐẦU CHO AI SINH NHÂN VẬT 3D
+        </button>
+
+        <!-- Hộp Nhật Ký AI Terminal -->
+        <div id="ai-log-terminal" class="bg-black/80 border border-green-500/30 rounded-xl p-2.5 font-mono text-[11px] text-green-400 space-y-0.5">
+          <div class="text-[10px] text-gray-500 font-bold border-b border-white/10 pb-1 flex justify-between">
+            <span>TERMINAL: AI SYNTHESIZER 1960</span>
+            <span class="text-green-500">READY</span>
+          </div>
+          <div id="ai-log-content" class="text-gray-300 pt-1 space-y-0.5">
+            <p>✔ Sẵn sàng tiếp nhận mô tả prompt từ chiến sĩ.</p>
+          </div>
+        </div>
+
+        <!-- Thẻ Căn Cước Chiến Sĩ AI Sinh Ra (AI Output Dossier) -->
+        <div id="ai-dossier-card" class="bg-black/70 border border-green-500/50 rounded-xl p-3.5 space-y-2 text-xs">
+          <div class="flex justify-between items-center text-green-400 font-bold border-b border-white/10 pb-1">
+            <span class="flex items-center gap-1.5"><span>🎖️</span> HỒ SƠ CHIẾN SĨ DO AI KHỞI TẠO:</span>
+            <span class="text-[10px] bg-green-950 border border-green-500/60 text-green-300 px-2 py-0.5 rounded font-mono">AI ONLINE</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-gray-300 pt-1">
+            <p>• <b>Bí danh:</b> <span id="ai-res-name" class="text-yellow-400 font-bold">Út Hoa - Bắn Tỉa</span></p>
+            <p>• <b>Vai trò:</b> <span id="ai-res-role" class="text-white">Nữ Du Kích</span></p>
+            <p>• <b>Trang phục:</b> <span id="ai-res-cloth" class="text-white">Áo Bà Ba Đen</span></p>
+            <p>• <b>Nón:</b> <span id="ai-res-hat" class="text-white">Nón Lá Nam Bộ</span></p>
+            <p class="col-span-2">• <b>Vũ khí:</b> <span id="ai-res-gun" class="text-yellow-300 font-semibold">Súng trường K-44 Bắn Tỉa</span></p>
+            <p class="col-span-2 text-[11px] text-green-300 italic">"Quyết tâm diệt ác phá kềm, chặn đứng đoàn xe Khưu Văn Ba!"</p>
+          </div>
+          
+          <!-- Tactical Stats Bar -->
+          <div class="pt-2 border-t border-white/10 space-y-1.5">
+            <div class="flex justify-between text-[10px] font-semibold text-gray-300">
+              <span>ĐỘ CHUẨN XÁC:</span>
+              <span id="stat-accuracy" class="text-green-400 font-bold">98%</span>
+            </div>
+            <div class="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden">
+              <div id="bar-accuracy" class="bg-green-500 h-full w-[98%]"></div>
+            </div>
+            <div class="flex justify-between text-[10px] font-semibold text-gray-300">
+              <span>ẨN NẤP / NGỤY TRANG:</span>
+              <span id="stat-stealth" class="text-yellow-400 font-bold">95%</span>
+            </div>
+            <div class="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden">
+              <div id="bar-stealth" class="bg-yellow-400 h-full w-[95%]"></div>
+            </div>
+          </div>
+
+          <!-- Bộ Ảnh AI Tạo Hình Nhân Vật Lịch Sử (AI Character Concept Art Gallery) -->
+          <div class="pt-2.5 border-t border-white/10 space-y-2">
+            <div class="text-[10px] font-bold text-yellow-300 uppercase tracking-wider flex items-center justify-between">
+              <span class="flex items-center gap-1.5"><span>🖼️</span> BỘ ẢNH AI TẠO HÌNH NHÂN VẬT (1960):</span>
+              <span class="text-[9px] bg-yellow-950 text-yellow-400 px-1.5 py-0.5 rounded border border-yellow-500/40">4 ẢNH 3D & AI HD</span>
+            </div>
+            
+            <div class="grid grid-cols-3 gap-2">
+              <div class="relative rounded-lg overflow-hidden border-2 border-green-500/60 hover:border-green-400 group cursor-pointer aspect-video bg-black shadow col-span-3" onclick="openZoomImage('gameplay_3d_di_chuyen.jpg', 'Hình ảnh nhân vật 3D trong game di chuyển: Góc nhìn thứ 3 chạy dọc đường đất Cái Sơn, nón lá, khăn rằn, súng ngắm K-44 và đoàn xe địch phía trước.')">
+                <img src="gameplay_3d_di_chuyen.jpg" alt="Nhân vật 3D trong game di chuyển" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent flex items-end p-2 justify-between">
+                  <span class="text-[10px] text-green-300 font-extrabold flex items-center gap-1">
+                    <span>🎮</span> NHÂN VẬT 3D TRONG GAME DI CHUYỂN
+                  </span>
+                  <span class="text-[9px] bg-green-950 text-green-400 px-1.5 py-0.5 rounded border border-green-500/40">GAMEPLAY 3D</span>
+                </div>
+              </div>
+
+              <div class="relative rounded-lg overflow-hidden border border-yellow-500/40 hover:border-yellow-300 group cursor-pointer aspect-square bg-black shadow" onclick="openZoomImage('ut_hoa_portrait.jpg', 'Chân dung Nữ du kích Út Hoa (1960) - Áo bà ba đen, nón lá, khăn rằn Nam Bộ, súng trường K-44.')">
+                <img src="ut_hoa_portrait.jpg" alt="Chân dung Út Hoa" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent flex items-end p-1.5">
+                  <span class="text-[9px] text-yellow-300 font-bold truncate">👤 Chân dung</span>
+                </div>
+              </div>
+
+              <div class="relative rounded-lg overflow-hidden border border-yellow-500/40 hover:border-yellow-300 group cursor-pointer aspect-square bg-black shadow" onclick="openZoomImage('ut_hoa_fullbody.jpg', 'Tạo hình toàn thân Chiến sĩ Út Hoa - Áo bà ba đen, nón lá, dép lốp, thắt lưng đạn và súng trường bắn tỉa.')">
+                <img src="ut_hoa_fullbody.jpg" alt="Toàn thân Út Hoa" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent flex items-end p-1.5">
+                  <span class="text-[9px] text-yellow-300 font-bold truncate">🧍 Toàn thân</span>
+                </div>
+              </div>
+
+              <div class="relative rounded-lg overflow-hidden border border-yellow-500/40 hover:border-yellow-300 group cursor-pointer aspect-square bg-black shadow" onclick="openZoomImage('du_kich_caison_action.jpg', 'Chiến sĩ du kích di chuyển thần tốc bên bờ kênh Cái Sơn, súng trường K-44 sẵn sàng phục kích.')">
+                <img src="du_kich_caison_action.jpg" alt="Chiến sĩ di chuyển" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent flex items-end p-1.5">
+                  <span class="text-[9px] text-yellow-300 font-bold truncate">⚡ Hành động</span>
+                </div>
+              </div>
+            </div>
+            <div class="text-[10px] text-gray-400 italic text-center">💡 Bấm vào ảnh bất kỳ để phóng to chi tiết Full-HD</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL 2: TÙY CHỈNH THỦ CÔNG (MANUAL CUSTOMIZATION) -->
+      <div id="panel-manual-gen" class="space-y-3.5 hidden">
+        <div>
+          <label class="block text-xs font-bold text-caison-gold uppercase tracking-wider mb-1.5">
+            Bí danh chiến sĩ:
+          </label>
+          <input id="input-char-name" type="text" value="Út Hoa - Bắn Tỉa Tam Bình" maxlength="30" class="w-full bg-black/70 border border-caison-gold/60 rounded-xl px-3.5 py-2 text-xs md:text-sm text-white font-semibold focus:outline-none focus:border-yellow-400 shadow-inner" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-caison-gold uppercase tracking-wider mb-1.5">
+            Vai trò chiến đấu:
+          </label>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" class="btn-role p-2 rounded-xl border border-white/20 bg-white/5 text-gray-300 text-xs font-bold flex items-center justify-center gap-1.5" data-role="nam">
+              <span>👨</span> Nam Du Kích
+            </button>
+            <button type="button" class="btn-role active p-2 rounded-xl border border-caison-gold bg-caison-gold/20 text-yellow-300 text-xs font-bold flex items-center justify-center gap-1.5" data-role="nu">
+              <span>👩</span> Nữ Du Kích
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-caison-gold uppercase tracking-wider mb-1.5">
+            Màu áo bà ba:
+          </label>
+          <div class="grid grid-cols-3 gap-2">
+            <button type="button" class="btn-color active p-2 rounded-xl border border-caison-gold bg-black/80 text-yellow-300 text-xs font-semibold flex items-center justify-center gap-1" data-color="black">
+              <span class="w-2.5 h-2.5 rounded-full bg-neutral-900 border border-white/30"></span> Đen Tuyền
+            </button>
+            <button type="button" class="btn-color p-2 rounded-xl border border-white/20 bg-white/5 text-gray-300 text-xs font-semibold flex items-center justify-center gap-1" data-color="brown">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-900 border border-white/30"></span> Nâu Sồng
+            </button>
+            <button type="button" class="btn-color p-2 rounded-xl border border-white/20 bg-white/5 text-gray-300 text-xs font-semibold flex items-center justify-center gap-1" data-color="green">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-950 border border-white/30"></span> Xanh Rêu
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-caison-gold uppercase tracking-wider mb-1.5">
+            Mũ nón che nắng:
+          </label>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" class="btn-hat active p-2 rounded-xl border border-caison-gold bg-caison-gold/20 text-yellow-300 text-xs font-bold flex items-center justify-center gap-1.5" data-hat="nonla">
+              <span>👒</span> Nón Lá Nam Bộ
+            </button>
+            <button type="button" class="btn-hat p-2 rounded-xl border border-white/20 bg-white/5 text-gray-300 text-xs font-bold flex items-center justify-center gap-1.5" data-hat="taibeo">
+              <span>🪖</span> Mũ Tai Bèo
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-caison-gold uppercase tracking-wider mb-1.5">
+            Khẩu súng trường:
+          </label>
+          <div class="space-y-1.5">
+            <button type="button" class="btn-gun active w-full text-left p-2 rounded-xl border border-caison-gold bg-caison-gold/20 text-yellow-300 text-xs font-bold flex justify-between items-center" data-gun="rifle">
+              <span>🎯 Súng trường Bắn tỉa K-44</span>
+              <span class="text-[10px] text-yellow-400">Sát thương cao</span>
+            </button>
+            <button type="button" class="btn-gun w-full text-left p-2 rounded-xl border border-white/20 bg-white/5 text-gray-300 text-xs font-bold flex justify-between items-center" data-gun="carbine">
+              <span>⚡ Súng trường Carbine M1</span>
+              <span class="text-[10px] text-gray-400">Cơ động cao</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL 3: 3D PIPELINE GUIDE (TRIPO3D / BLENDER MCP / UNITY 6) -->
+      <div id="panel-guide-gen" class="space-y-3 text-xs text-gray-300 leading-relaxed hidden">
+        <div class="bg-black/60 border border-caison-gold/40 p-3 rounded-xl">
+          <div class="font-bold text-caison-gold text-sm mb-1">🎮 Pipeline 3D AI & Game Engine:</div>
+          <p class="text-[11px] text-gray-300 mb-2">
+            Game đã hỗ trợ sẵn cả phiên bản Web 3D (chạy ngay) và mã nguồn C# Unity 6 URP hoàn chỉnh trong thư mục dự án!
+          </p>
+          <ul class="space-y-1.5 text-[11px]">
+            <li>• <b>3D AI Generator (Tripo3D/Meshy):</b> Nhập prompt tiếng Việt/Anh để sinh mesh GLB nhân vật Khưu Văn Ba, Du kích.</li>
+            <li>• <b>Blender MCP:</b> Script tự động tại <code class="text-yellow-300">blender_scripts/cai_son_environment_generator.py</code> xuất cảnh quan ra FBX/GLB.</li>
+            <li>• <b>Unity 6:</b> Mở project trong Unity Hub, chọn <code class="text-yellow-300">Tools -> Cái Sơn Game -> Khởi tạo Dữ liệu</code>.</li>
+          </ul>
+        </div>
+        <div class="text-[11px] text-gray-400 italic">
+          💡 Bạn có thể chơi ngay trên trình duyệt bằng cách bấm nút xác nhận màu vàng bên dưới!
+        </div>
+      </div>
+
+      <!-- Nút xác nhận xuất quân (CỰC KỲ NỔI BẬT & CÓ ANIMATION PULSE) -->
+      <div class="pt-2 border-t border-white/10">
+        <button id="btn-confirm-character" class="w-full bg-gradient-to-r from-yellow-500 via-caison-gold to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-black font-black py-3.5 rounded-xl shadow-[0_0_25px_rgba(229,185,88,0.7)] uppercase text-xs md:text-sm tracking-widest transition-all transform active:scale-95 flex flex-col items-center justify-center gap-0.5 animate-pulse hover:animate-none">
+          <div class="flex items-center gap-2">
+            <span>🎖️</span> XÁC NHẬN - VÀO TRẬN CHIẾN CÁI SƠN ➔
+          </div>
+          <span class="text-[10px] text-yellow-950 font-bold lowercase tracking-normal">Bắt đầu trận phục kích xe Tỉnh trưởng Khưu Văn Ba</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- GIAO DIỆN TRẬN CHIẾN (GAMEPLAY HUD) -->
+  <!-- ========================================================================= -->
+  <div id="ui-gameplay" class="hidden absolute inset-0 z-10 pointer-events-none flex flex-col justify-between p-3 md:p-6">
+    
+    <header class="flex justify-between items-start pointer-events-auto bg-black/70 backdrop-blur-md border border-caison-gold/30 rounded-xl px-4 md:px-5 py-2.5 shadow-2xl">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+          <h1 class="text-xs md:text-lg font-black tracking-widest text-caison-gold uppercase font-serif-title">
+            Trận Phục Kích Cái Sơn (16/06/1960)
+          </h1>
+        </div>
+        <p class="text-[11px] md:text-xs text-gray-300 mt-0.5 flex items-center gap-2">
+          <span>Chiến sĩ: <b id="hud-soldier-name" class="text-yellow-400">Hai Lúa</b></span> •
+          <span>Cầu Cái Sơn, Song Phú, Vĩnh Long</span>
+        </p>
+      </div>
+
+      <div class="flex items-center gap-2 md:gap-3">
+        <button id="btn-camera-toggle" class="bg-blue-600/30 hover:bg-blue-600 border border-blue-400 text-blue-300 hover:text-white text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow">
+          <span>📷</span> <span class="hidden sm:inline">GÓC NHÌN:</span> <span id="camera-label">1ST PERSON</span>
+        </button>
+
+        <div class="bg-caison-dark/90 border border-caison-gold/50 px-3 md:px-4 py-1 rounded-lg shadow-inner text-right">
+          <div class="text-[9px] text-gray-400 uppercase tracking-wider font-semibold">Thời khắc lịch sử</div>
+          <div id="mission-clock" class="text-xs md:text-sm font-mono font-bold text-yellow-400">16:14:52</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Crosshair HUD -->
+    <div id="crosshair-hud" class="absolute inset-0 flex items-center justify-center pointer-events-none transition-opacity duration-300 opacity-0">
+      <div class="relative w-60 h-60 md:w-80 md:h-80 rounded-full border border-caison-gold/40 flex items-center justify-center">
+        <div class="w-32 h-32 md:w-40 md:h-40 rounded-full border border-dashed border-caison-gold/50"></div>
+        <div class="crosshair-line w-full h-[1px]"></div>
+        <div class="crosshair-line h-full w-[1px]"></div>
+        <div class="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_10px_#f00]"></div>
+
+        <div class="absolute -top-9 bg-red-600/90 text-white text-[10px] md:text-[11px] font-bold px-3 py-1 rounded shadow-lg tracking-wider uppercase border border-red-400">
+          MỤC TIÊU: XE JEEP KHƯU VĂN BA
+        </div>
+
+        <div id="distance-readout" class="absolute -bottom-9 bg-black/80 text-caison-gold font-mono text-xs px-3 py-1 rounded border border-caison-gold/40">
+          CỰ LY: 38M • VÙNG HỎA LỰC
+        </div>
+      </div>
+    </div>
+
+    <!-- Visual Feedback Banner -->
+    <div id="popup-text" class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-all duration-300 opacity-0 transform scale-50">
+      <div class="bg-black/90 border-2 border-green-400 text-green-300 font-black px-6 py-3 rounded-2xl text-lg md:text-2xl shadow-2xl tracking-widest uppercase">
+        ★ TRÚNG ĐÍCH! TIÊU DIỆT XE ĐẦU! ★
+      </div>
+    </div>
+
+    <!-- Hướng dẫn điều khiển di chuyển ở góc dưới bên trái -->
+    <div class="tactical-box pointer-events-auto bg-black/75 backdrop-blur-md border border-white/20 p-3 rounded-xl max-w-xs text-xs text-gray-200 space-y-1 shadow-2xl">
+      <div class="font-bold text-caison-gold flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
+        <span>🕹️</span> ĐIỀU KHIỂN CHIẾN SĨ:
+      </div>
+      <p>• <kbd class="bg-gray-800 px-1.5 py-0.5 rounded border border-gray-600 text-yellow-300">W</kbd><kbd class="bg-gray-800 px-1.5 py-0.5 rounded border border-gray-600 text-yellow-300">A</kbd><kbd class="bg-gray-800 px-1.5 py-0.5 rounded border border-gray-600 text-yellow-300">S</kbd><kbd class="bg-gray-800 px-1.5 py-0.5 rounded border border-gray-600 text-yellow-300">D</kbd>: <b>Di chuyển tự do</b></p>
+      <p>• <kbd class="bg-gray-800 px-1.5 py-0.5 rounded border border-gray-600 text-yellow-300">Space</kbd>: <b>Nhảy</b> | <kbd class="bg-gray-800 px-1.5 py-0.5 rounded border border-gray-600 text-yellow-300">C</kbd>: <b>Ngồi thụp nấp</b></p>
+      <p>• <kbd class="bg-gray-800 px-1.5 py-0.5 rounded border border-gray-600 text-yellow-300">V</kbd>: <b>Đổi góc nhìn 1st / 3rd</b></p>
+      <p>• <b>Rê chuột:</b> Ngắm bắn quanh trận địa</p>
+    </div>
+
+    <!-- D-Pad Di chuyển ảo (cho di chuột hoặc cảm ứng) -->
+    <div class="absolute bottom-24 right-5 pointer-events-auto grid grid-cols-3 gap-1 w-32 h-20 sm:hidden">
+      <div></div>
+      <button id="dpad-w" class="bg-black/80 border border-caison-gold text-yellow-400 font-bold rounded flex items-center justify-center">▲</button>
+      <div></div>
+      <button id="dpad-a" class="bg-black/80 border border-caison-gold text-yellow-400 font-bold rounded flex items-center justify-center">◄</button>
+      <button id="dpad-s" class="bg-black/80 border border-caison-gold text-yellow-400 font-bold rounded flex items-center justify-center">▼</button>
+      <button id="dpad-d" class="bg-black/80 border border-caison-gold text-yellow-400 font-bold rounded flex items-center justify-center">►</button>
+    </div>
+
+    <!-- Bottom Controls & Action Bar -->
+    <footer class="pointer-events-auto flex flex-col items-center gap-2.5">
+      <div id="timing-bar-container" class="w-full max-w-md bg-black/60 backdrop-blur-md border border-white/20 p-2 rounded-xl flex flex-col gap-1 transition-opacity duration-300 opacity-0">
+        <div class="flex justify-between text-[10px] md:text-[11px] font-bold text-gray-300 px-1">
+          <span class="text-yellow-400">ĐANG TIẾN VÀO</span>
+          <span class="text-green-400">VÙNG DIỆT ĐỊCH (KILL ZONE)</span>
+          <span class="text-red-400">THOÁT TẦM</span>
+        </div>
+        <div class="w-full h-2.5 bg-gray-800 rounded-full overflow-hidden relative border border-white/10">
+          <div class="absolute left-1/3 w-1/3 h-full bg-green-500/30 border-x border-green-400"></div>
+          <div id="timing-indicator" class="absolute top-0 bottom-0 w-2.5 bg-yellow-400 rounded-full shadow-[0_0_8px_#ff0] transition-all"></div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button id="btn-fire" disabled class="pointer-events-auto bg-gradient-to-r from-red-700 via-red-600 to-yellow-600 text-white font-black text-base md:text-xl px-10 md:px-14 py-3.5 rounded-full shadow-[0_0_35px_rgba(217,56,41,0.8)] border-2 border-yellow-300 uppercase tracking-widest transform transition active:scale-95 hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100">
+          💥 NỔ SÚNG! (KHAI HỎA)
+        </button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: TỔNG KẾT CHIẾN CÔNG & Ý NGHĨA LỊCH SỬ -->
+  <!-- ========================================================================= -->
+  <div id="modal-impact" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md hidden">
+    <div class="bg-caison-panel border-2 border-green-500 rounded-2xl max-w-xl w-full p-6 md:p-8 shadow-2xl text-gray-100">
+      <div class="flex items-center gap-3 text-green-400 mb-3">
+        <span class="text-3xl">★</span>
+        <h2 class="text-xl md:text-2xl font-black uppercase font-serif-title tracking-wider">
+          Chiến Thắng Vang Dội Cái Sơn!
+        </h2>
+      </div>
+
+      <div class="bg-green-950/60 border border-green-500/50 p-4 rounded-xl text-sm leading-relaxed text-green-100 mb-5">
+        Phát súng phục kích chuẩn xác của chiến sĩ <b id="impact-soldier-name" class="text-yellow-400">Hai Lúa</b> đã bắn trúng xe Jeep đi đầu, <b>tiêu diệt tại chỗ Tỉnh trưởng Khưu Văn Ba</b>. Hai xe tải hộ tống hoảng loạn mất phương hướng, tạo nên thắng lợi giòn giã cho quân dân Tam Bình!
+      </div>
+
+      <div class="space-y-3 text-xs md:text-sm text-gray-300 leading-relaxed mb-6">
+        <p>
+          📌 <b>Tỉnh trưởng đầu tiên bị đền tội:</b> Khưu Văn Ba là tên Tỉnh trưởng đầu tiên của chính quyền tay sai Sài Gòn bị tiêu diệt ngay tại chiến trường ở miền Nam.
+        </p>
+        <p>
+          📌 <b>Rung chuyển đồng bằng:</b> Thắng lợi Cái Sơn giáng một đòn chí mạng vào bộ máy kìm kẹp ngụy quyền toàn tỉnh Vĩnh Long và Đồng bằng sông Cửu Long.
+        </p>
+        <p>
+          📌 <b>Mở đường Đồng Khởi:</b> Thắng lợi này cổ vũ mạnh mẽ phong trào Đồng Khởi nổi dậy của quần chúng nhân dân phá tan các khu trù mật.
+        </p>
+      </div>
+
+      <div class="flex justify-end">
+        <button id="btn-go-to-quiz" class="bg-green-500 hover:bg-green-400 text-black font-extrabold px-8 py-3 rounded-xl shadow-lg transition-transform transform hover:-translate-y-0.5 text-sm md:text-base uppercase tracking-wider">
+          LÀM BÀI TRẮC NGHIỆM LỊCH SỬ ➔
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: TRẮC NGHIỆM LỊCH SỬ (QUIZ) -->
+  <!-- ========================================================================= -->
+  <div id="modal-quiz" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md hidden">
+    <div class="bg-caison-panel border-2 border-caison-gold rounded-2xl max-w-xl w-full p-6 md:p-8 shadow-2xl text-gray-100">
+      
+      <div id="quiz-question-box">
+        <div class="flex justify-between items-center mb-4 pb-2 border-b border-white/10">
+          <span id="quiz-progress-text" class="text-xs font-mono font-bold text-caison-gold uppercase tracking-wider">CÂU HỎI 1 / 3</span>
+          <span id="quiz-score-text" class="text-xs font-mono font-bold text-green-400">ĐIỂM: 0</span>
+        </div>
+
+        <h3 id="quiz-prompt" class="text-base md:text-lg font-bold text-white mb-5 leading-snug">
+          Câu hỏi đang tải...
+        </h3>
+
+        <div id="quiz-options-list" class="space-y-2.5 mb-5"></div>
+
+        <div id="quiz-explanation" class="hidden bg-white/5 border-l-4 border-caison-gold p-3 rounded text-xs md:text-sm text-yellow-200 mb-5 leading-relaxed"></div>
+
+        <div class="flex justify-end">
+          <button id="btn-next-question" class="hidden bg-caison-gold hover:bg-yellow-400 text-black font-extrabold px-6 py-2.5 rounded-xl text-sm tracking-wider uppercase">
+            CÂU TIẾP THEO ➔
+          </button>
+        </div>
+      </div>
+
+      <div id="quiz-victory-box" class="hidden text-center py-4">
+        <div class="text-6xl mb-3 drop-shadow-[0_0_20px_#e5b958]">🎖️</div>
+        <h2 class="text-2xl font-black text-caison-gold uppercase font-serif-title mb-2">
+          Huy Hiệu Dũng Sĩ Cái Sơn!
+        </h2>
+        <div class="text-sm text-yellow-300 font-bold mb-1">
+          Trao tặng đồng chí: <span id="victory-soldier-name" class="text-white text-base">Hai Lúa</span>
+        </div>
+        <div id="final-score-display" class="text-lg font-mono font-bold text-green-400 mb-4">
+          TỔNG ĐIỂM: 300 / 300
+        </div>
+        <p class="text-sm text-gray-300 leading-relaxed mb-6 max-w-md mx-auto">
+          Chúc mừng bạn đã xuất sắc nhập vai chiến sĩ du kích, điều khiển trận phục kích tiêu diệt Tỉnh trưởng Khưu Văn Ba và nắm vững trọn vẹn những mốc son lịch sử hào hùng của quân dân Vĩnh Long năm 1960!
+        </p>
+        <button id="btn-replay-game" class="bg-caison-gold hover:bg-yellow-400 text-black font-extrabold px-8 py-3 rounded-xl shadow-lg uppercase text-sm tracking-wider">
+          CHƠI LẠI TRẬN ĐÁNH 🔄
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: PHÓNG TO ẢNH AI CHIẾN SĨ DI CHUYỂN -->
+  <!-- ========================================================================= -->
+  <div id="modal-img-zoom" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-3 md:p-6 hidden pointer-events-auto">
+    <div class="relative max-w-4xl w-full bg-[#121712] border-2 border-caison-gold rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.9)]">
+      <div class="flex justify-between items-center px-4 py-3 bg-black/80 border-b border-white/10">
+        <div id="zoom-title" class="text-xs md:text-sm font-bold text-yellow-300 flex items-center gap-2">
+          <span>🎖️</span> TẠO HÌNH CHIẾN SĨ DU KÍCH NAM BỘ (CÁI SƠN, 16/06/1960)
+        </div>
+        <button id="btn-close-zoom" class="text-gray-400 hover:text-white text-xl font-bold px-2 py-0.5 rounded hover:bg-white/10 transition">✕</button>
+      </div>
+      <div class="bg-black flex items-center justify-center p-2">
+        <img id="zoom-img" src="ut_hoa_portrait.jpg" alt="Ảnh chiến sĩ lịch sử phóng to" class="w-full max-h-[72vh] object-contain rounded-lg" />
+      </div>
+      <div class="p-3.5 text-xs text-gray-300 bg-black/80 border-t border-white/10 flex flex-wrap justify-between items-center gap-2">
+        <span id="zoom-caption" class="max-w-xl text-[11px] md:text-xs text-yellow-100">
+          Chân dung Nữ du kích Út Hoa (1960) - Áo bà ba đen, nón lá, khăn rằn Nam Bộ, súng trường K-44.
+        </span>
+        <a id="zoom-download" href="ut_hoa_portrait.jpg" download="chien_si_cai_son_1960.jpg" class="bg-caison-gold hover:bg-yellow-400 text-black font-extrabold text-xs px-3.5 py-1.5 rounded-lg transition flex items-center gap-1 shadow">
+          <span>💾</span> Tải Ảnh Về Máy
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT: ENGINE 3D, NHẬP VAI, TẠO NHÂN VẬT & GAMEPLAY -->
+  <!-- ========================================================================= -->
+  <script>
+    // 1. ÂM THANH
+    let audioCtx = null;
+    function initAudio() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    let lastStepTime = 0;
+    function playFootstep() {
+      const now = Date.now();
+      if (now - lastStepTime < 290) return;
+      lastStepTime = now;
+      if (!audioCtx) return;
+      try {
+        const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.08, audioCtx.sampleRate);
+        const d = buf.getChannelData(0);
+        for (let i = 0; i < buf.length; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.02));
+        const src = audioCtx.createBufferSource();
+        src.buffer = buf;
+        const f = audioCtx.createBiquadFilter();
+        f.type = 'lowpass'; f.frequency.value = 450;
+        const g = audioCtx.createGain();
+        g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+        src.connect(f); f.connect(g); g.connect(audioCtx.destination);
+        src.start();
+      } catch(e) {}
+    }
+
+    function playGunshotSFX() {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(480, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.8, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+
+      const bufSize = audioCtx.sampleRate * 0.4;
+      const buffer = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.08));
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass'; filter.frequency.value = 1800;
+      const noiseGain = audioCtx.createGain();
+      noiseGain.gain.setValueAtTime(1.2, audioCtx.currentTime);
+      noiseGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+      noise.connect(filter); filter.connect(noiseGain); noiseGain.connect(audioCtx.destination);
+      noise.start();
+    }
+
+    function playExplosionSFX() {
+      if (!audioCtx) return;
+      const bufSize = audioCtx.sampleRate * 1.4;
+      const buffer = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.35));
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(600, audioCtx.currentTime);
+      filter.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 1.2);
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(1.4, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.4);
+      noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+      noise.start();
+    }
+
+    function playTone(freq, dur, type='sine') {
+      if (!audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + dur);
+      } catch(e) {}
+    }
+
+    // 2. KHỞI TẠO THREE.JS SCENE
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xa7c2c9);
+    scene.fog = new THREE.FogExp2(0xa7c2c9, 0.012);
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 300);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    container.appendChild(renderer.domElement);
+
+    const hemiLight = new THREE.HemisphereLight(0xfff4e0, 0x3d5a38, 0.85);
+    scene.add(hemiLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffdfa0, 1.4);
+    dirLight.position.set(35, 25, -20);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.width = 1024;
+    dirLight.shadow.mapSize.height = 1024;
+    scene.add(dirLight);
+
+    // 3. VẬT LIỆU PROCEDURAL
+    // 3. VẬT LIỆU PROCEDURAL
+    function createScarfTexture() {
+      const c = document.createElement('canvas');
+      c.width = 64; c.height = 64;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#f5f5f5';
+      ctx.fillRect(0, 0, 64, 64);
+      ctx.fillStyle = '#1c1c1c';
+      for (let y = 0; y < 64; y += 8) {
+        for (let x = 0; x < 64; x += 8) {
+          if ((x / 8 + y / 8) % 2 === 0) ctx.fillRect(x, y, 8, 8);
+        }
+      }
+      const t = new THREE.CanvasTexture(c);
+      t.wrapS = THREE.RepeatWrapping;
+      t.wrapT = THREE.RepeatWrapping;
+      t.repeat.set(4, 4);
+      return t;
+    }
+
+    const mats = {
+      grass: new THREE.MeshLambertMaterial({ color: 0x4a7330 }),
+      dirtRoad: new THREE.MeshLambertMaterial({ color: 0x965a38 }),
+      water: new THREE.MeshLambertMaterial({ color: 0x5a7566, transparent: true, opacity: 0.85 }),
+      thatch: new THREE.MeshLambertMaterial({ color: 0xb59458 }),
+      wood: new THREE.MeshLambertMaterial({ color: 0x6e4d2e }),
+      palmStem: new THREE.MeshLambertMaterial({ color: 0x52412c }),
+      palmFrond: new THREE.MeshLambertMaterial({ color: 0x2e6620 }),
+      bush: new THREE.MeshLambertMaterial({ color: 0x23521b }),
+      jeepOlive: new THREE.MeshLambertMaterial({ color: 0x3d4734 }),
+      truckOlive: new THREE.MeshLambertMaterial({ color: 0x2f3828 }),
+      canvasCover: new THREE.MeshLambertMaterial({ color: 0x7a6f52 }),
+      wheelRubber: new THREE.MeshLambertMaterial({ color: 0x1a1a1a }),
+      glass: new THREE.MeshLambertMaterial({ color: 0x9bb7c7, transparent: true, opacity: 0.7 }),
+      // Màu nhân vật chiến sĩ 1960
+      charBaBa: new THREE.MeshLambertMaterial({ color: 0x161616 }),
+      charPants: new THREE.MeshLambertMaterial({ color: 0x141414 }),
+      charScarf: new THREE.MeshLambertMaterial({ map: createScarfTexture() }),
+      skin: new THREE.MeshLambertMaterial({ color: 0xcc9a73 }),
+      hair: new THREE.MeshLambertMaterial({ color: 0x111111 }),
+      strawHat: new THREE.MeshLambertMaterial({ color: 0xd9be77 }),
+      taiBeoHat: new THREE.MeshLambertMaterial({ color: 0x2d4726 }),
+      beltLeather: new THREE.MeshLambertMaterial({ color: 0x422a18 }),
+      canteenGreen: new THREE.MeshLambertMaterial({ color: 0x375432 }),
+      sandalRubber: new THREE.MeshLambertMaterial({ color: 0x181818 }),
+      gunMetal: new THREE.MeshLambertMaterial({ color: 0x262626 })
+    };
+
+    // ĐỊA HÌNH NAM BỘ
+    const envGroup = new THREE.Group();
+    const groundGeo = new THREE.PlaneGeometry(160, 160);
+    const groundMesh = new THREE.Mesh(groundGeo, mats.grass);
+    groundMesh.rotation.x = -Math.PI / 2;
+    groundMesh.receiveShadow = true;
+    envGroup.add(groundMesh);
+
+    const roadGeo = new THREE.BoxGeometry(6.5, 0.08, 140);
+    const roadMesh = new THREE.Mesh(roadGeo, mats.dirtRoad);
+    roadMesh.position.set(0, 0.04, 0);
+    roadMesh.receiveShadow = true;
+    envGroup.add(roadMesh);
+
+    const canalGeo = new THREE.BoxGeometry(9.0, 0.3, 140);
+    const canalMesh = new THREE.Mesh(canalGeo, mats.water);
+    canalMesh.position.set(-9.5, -0.05, 0);
+    envGroup.add(canalMesh);
+
+    function createNipaPalm(x, z) {
+      const palm = new THREE.Group();
+      palm.position.set(x, 0, z);
+      const stemGeo = new THREE.CylinderGeometry(0.2, 0.3, 2.0, 6);
+      const stem = new THREE.Mesh(stemGeo, mats.palmStem);
+      stem.position.y = 1.0;
+      palm.add(stem);
+
+      const frondGeo = new THREE.BoxGeometry(0.4, 0.08, 3.2);
+      for (let i = 0; i < 6; i++) {
+        const frond = new THREE.Mesh(frondGeo, mats.palmFrond);
+        const angle = (i / 6) * Math.PI * 2;
+        frond.position.set(Math.cos(angle) * 0.9, 1.8, Math.sin(angle) * 0.9);
+        frond.rotation.y = angle;
+        frond.rotation.x = 0.45;
+        frond.castShadow = true;
+        palm.add(frond);
+      }
+      return palm;
+    }
+
+    for (let z = -55; z <= 55; z += 9) {
+      const px = -7.2 + Math.sin(z * 0.2) * 0.8;
+      envGroup.add(createNipaPalm(px, z));
+    }
+
+    for (let z of [-28, -14, 2, 18, 32]) {
+      const bushGeo = new THREE.DodecahedronGeometry(1.3, 1);
+      const bush = new THREE.Mesh(bushGeo, mats.bush);
+      bush.scale.set(1.4, 0.9, 1.8);
+      bush.position.set(-4.8, 0.6, z);
+      bush.castShadow = true;
+      envGroup.add(bush);
+    }
+
+    function createThatchHouse(x, z, rotY) {
+      const house = new THREE.Group();
+      house.position.set(x, 0, z);
+      house.rotation.y = rotY;
+      const wall = new THREE.Mesh(new THREE.BoxGeometry(5.5, 2.2, 7.0), mats.wood);
+      wall.position.y = 1.1;
+      wall.castShadow = true;
+      house.add(wall);
+
+      const roof = new THREE.Mesh(new THREE.ConeGeometry(5.2, 2.0, 4), mats.thatch);
+      roof.position.y = 2.9;
+      roof.rotation.y = Math.PI / 4;
+      roof.scale.set(1.1, 1.0, 1.4);
+      roof.castShadow = true;
+      house.add(roof);
+      return house;
+    }
+    envGroup.add(createThatchHouse(11.0, 15, -0.15));
+    envGroup.add(createThatchHouse(12.5, -20, 0.2));
+    scene.add(envGroup);
+
+    // =========================================================================
+    // 4. MÔ HÌNH NHÂN VẬT DU KÍCH 3D (ĐẦY ĐỦ ANATOMY, KHĂN RẰN & DÉP LỐP)
+    // =========================================================================
+    const player = {
+      name: "Út Hoa - Bắn Tỉa Tam Bình",
+      role: "nu",
+      color: "black",
+      hat: "nonla",
+      gun: "rifle",
+      x: -5.2,
+      z: 22.0,
+      y: 0.0,
+      velX: 0.0,
+      velZ: 0.0,
+      velY: 0.0,
+      isGrounded: true,
+      isCrouched: false,
+      yaw: -0.45,
+      pitch: -0.08,
+      walkTimer: 0.0,
+      cameraMode: 0
+    };
+
+    const guerrillaMeshGroup = new THREE.Group();
+
+    // Thân áo bà ba
+    const torsoMesh = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.62, 0.28), mats.charBaBa);
+    torsoMesh.position.y = 0.88;
+    torsoMesh.castShadow = true;
+    guerrillaMeshGroup.add(torsoMesh);
+
+    // Thắt lưng & Bao xe đạn
+    const beltMesh = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.09, 0.3), mats.beltLeather);
+    beltMesh.position.y = 0.60;
+    guerrillaMeshGroup.add(beltMesh);
+
+    const pouchMesh = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.1, 0.08), mats.beltLeather);
+    pouchMesh.position.set(0.12, 0.60, 0.16);
+    guerrillaMeshGroup.add(pouchMesh);
+
+    // Bình tông nước đeo hông
+    const canteenMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.075, 0.16, 8), mats.canteenGreen);
+    canteenMesh.position.set(-0.24, 0.58, 0.05);
+    guerrillaMeshGroup.add(canteenMesh);
+
+    // Đầu & Gương mặt
+    const headGroup = new THREE.Group();
+    headGroup.position.y = 1.32;
+
+    const headMesh = new THREE.Mesh(new THREE.SphereGeometry(0.165, 12, 10), mats.skin);
+    headMesh.scale.set(0.9, 1.0, 0.95);
+    headMesh.castShadow = true;
+    headGroup.add(headMesh);
+
+    // Mắt
+    const eyeMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
+    const eyeL = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.015, 0.02), eyeMat);
+    eyeL.position.set(-0.055, 0.015, 0.155);
+    const eyeR = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.015, 0.02), eyeMat);
+    eyeR.position.set(0.055, 0.015, 0.155);
+    headGroup.add(eyeL);
+    headGroup.add(eyeR);
+
+    // Mái tóc
+    const hairMesh = new THREE.Mesh(new THREE.SphereGeometry(0.17, 8, 8), mats.hair);
+    hairMesh.position.set(0, 0.04, -0.02);
+    headGroup.add(hairMesh);
+
+    // Khăn Rằn Nam Bộ quấn cổ và vạt trước ngực
+    const scarfMesh = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.05, 8, 16), mats.charScarf);
+    scarfMesh.rotation.x = Math.PI / 2;
+    scarfMesh.position.set(0, -0.12, 0.02);
+    headGroup.add(scarfMesh);
+
+    const scarfTailMesh = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.28, 0.03), mats.charScarf);
+    scarfTailMesh.position.set(-0.06, -0.28, 0.15);
+    scarfTailMesh.rotation.z = -0.15;
+    headGroup.add(scarfTailMesh);
+
+    // Nón Lá Nam Bộ
+    const hatNonLaMesh = new THREE.Mesh(new THREE.ConeGeometry(0.52, 0.22, 16), mats.strawHat);
+    hatNonLaMesh.position.set(0, 0.20, 0);
+    hatNonLaMesh.castShadow = true;
+    headGroup.add(hatNonLaMesh);
+
+    // Mũ Tai Bèo Giải Phóng
+    const hatTaiBeoGroup = new THREE.Group();
+    hatTaiBeoGroup.position.set(0, 0.14, 0);
+    const taiBeoCrown = new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.21, 0.12, 12), mats.taiBeoHat);
+    const taiBeoBrim = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.38, 0.03, 16), mats.taiBeoHat);
+    taiBeoBrim.position.y = -0.04;
+    hatTaiBeoGroup.add(taiBeoCrown);
+    hatTaiBeoGroup.add(taiBeoBrim);
+    hatTaiBeoGroup.visible = false;
+    headGroup.add(hatTaiBeoGroup);
+
+    guerrillaMeshGroup.add(headGroup);
+
+    // Cánh tay & Bàn tay
+    // Tay trái
+    const leftArmGroup = new THREE.Group();
+    leftArmGroup.position.set(-0.3, 1.12, 0);
+    const leftArm = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.46, 0.13), mats.charBaBa);
+    leftArm.position.y = -0.2;
+    leftArmGroup.add(leftArm);
+    const leftHand = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 6), mats.skin);
+    leftHand.position.y = -0.45;
+    leftArmGroup.add(leftHand);
+    guerrillaMeshGroup.add(leftArmGroup);
+
+    // Tay phải (cầm súng)
+    const rightArmGroup = new THREE.Group();
+    rightArmGroup.position.set(0.3, 1.12, 0);
+    const rightArm = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.46, 0.13), mats.charBaBa);
+    rightArm.position.y = -0.2;
+    rightArmGroup.add(rightArm);
+    const rightHand = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 6), mats.skin);
+    rightHand.position.y = -0.45;
+    rightArmGroup.add(rightHand);
+    guerrillaMeshGroup.add(rightArmGroup);
+
+    // Đôi chân quần bà ba & Dép lốp cao su
+    // Chân trái
+    const leftLegGroup = new THREE.Group();
+    leftLegGroup.position.set(-0.13, 0.54, 0);
+    const leftLeg = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.52, 0.15), mats.charPants);
+    leftLeg.position.y = -0.24;
+    leftLegGroup.add(leftLeg);
+    const leftFoot = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.05, 0.22), mats.sandalRubber);
+    leftFoot.position.set(0, -0.52, 0.03);
+    leftLegGroup.add(leftFoot);
+    guerrillaMeshGroup.add(leftLegGroup);
+
+    // Chân phải
+    const rightLegGroup = new THREE.Group();
+    rightLegGroup.position.set(0.13, 0.54, 0);
+    const rightLeg = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.52, 0.15), mats.charPants);
+    rightLeg.position.y = -0.24;
+    rightLegGroup.add(rightLeg);
+    const rightFoot = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.05, 0.22), mats.sandalRubber);
+    rightFoot.position.set(0, -0.52, 0.03);
+    rightLegGroup.add(rightFoot);
+    guerrillaMeshGroup.add(rightLegGroup);
+
+    // Nhóm súng trên người chiến sĩ
+    const charRifleGroup = new THREE.Group();
+
+    // 1. Súng trường K-44 Bắn Tỉa
+    const rifleK44Mesh = new THREE.Group();
+    const k44Stock = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.09, 0.95), mats.wood);
+    const k44Barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 1.1, 8), mats.gunMetal);
+    k44Barrel.rotation.x = Math.PI / 2;
+    k44Barrel.position.set(0, 0.03, -0.2);
+    const k44Scope = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.32, 8), mats.gunMetal);
+    k44Scope.rotation.x = Math.PI / 2;
+    k44Scope.position.set(0, 0.075, 0.0);
+    rifleK44Mesh.add(k44Stock);
+    rifleK44Mesh.add(k44Barrel);
+    rifleK44Mesh.add(k44Scope);
+    charRifleGroup.add(rifleK44Mesh);
+
+    // 2. Súng trường Carbine M1
+    const rifleCarbineMesh = new THREE.Group();
+    const carbineStock = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.08, 0.72), mats.wood);
+    const carbineBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.78, 8), mats.gunMetal);
+    carbineBarrel.rotation.x = Math.PI / 2;
+    carbineBarrel.position.set(0, 0.02, -0.15);
+    const carbineMag = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.12, 0.06), mats.gunMetal);
+    carbineMag.position.set(0, -0.07, 0.04);
+    rifleCarbineMesh.add(carbineStock);
+    rifleCarbineMesh.add(carbineBarrel);
+    rifleCarbineMesh.add(carbineMag);
+    rifleCarbineMesh.visible = false;
+    charRifleGroup.add(rifleCarbineMesh);
+
+    charRifleGroup.position.set(0.22, 0.85, 0.22);
+    charRifleGroup.rotation.set(-0.35, -0.25, 0.35);
+    guerrillaMeshGroup.add(charRifleGroup);
+
+    scene.add(guerrillaMeshGroup);
+
+    // Bục xoay nhân vật & Vòng Hologram trong Studio
+    const pedestalMesh = new THREE.Group();
+    const pedestalBase = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.2, 1.35, 0.18, 32),
+      new THREE.MeshLambertMaterial({ color: 0x221a12 })
+    );
+    pedestalBase.position.y = 0.09;
+    pedestalBase.receiveShadow = true;
+    pedestalMesh.add(pedestalBase);
+
+    const pedestalRim = new THREE.Mesh(
+      new THREE.TorusGeometry(1.22, 0.03, 8, 32),
+      new THREE.MeshBasicMaterial({ color: 0xe5b958 })
+    );
+    pedestalRim.rotation.x = Math.PI / 2;
+    pedestalRim.position.y = 0.18;
+    pedestalMesh.add(pedestalRim);
+
+    const holoRing = new THREE.Mesh(
+      new THREE.RingGeometry(1.35, 1.55, 32),
+      new THREE.MeshBasicMaterial({ color: 0x2ecc71, side: THREE.DoubleSide, transparent: true, opacity: 0.65 })
+    );
+    holoRing.rotation.x = -Math.PI / 2;
+    holoRing.position.y = 0.02;
+    pedestalMesh.add(holoRing);
+
+    scene.add(pedestalMesh);
+
+    // Đèn Studio cho bục nhân vật
+    const studioSpot = new THREE.SpotLight(0xfffae0, 2.4, 14, Math.PI / 4, 0.4);
+    studioSpot.position.set(1.5, 4.0, 3.0);
+    studioSpot.target = guerrillaMeshGroup;
+    scene.add(studioSpot);
+
+    const studioRim = new THREE.PointLight(0x3498db, 1.5, 9);
+    studioRim.position.set(-2.0, 2.5, -2.0);
+    scene.add(studioRim);
+
+    // Súng trường góc nhìn thứ nhất (FPS Viewmodel)
+    const fpsRifle = new THREE.Group();
+    const fpsStock = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.12, 0.6), mats.wood);
+    const fpsBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.8, 6), mats.gunMetal);
+    fpsBarrel.rotation.x = Math.PI / 2;
+    fpsBarrel.position.set(0, 0.04, -0.4);
+    fpsRifle.add(fpsStock);
+    fpsRifle.add(fpsBarrel);
+    fpsRifle.position.set(0.24, -0.22, -0.6);
+    scene.add(fpsRifle);
+
+    // =========================================================================
+    // 5. ĐOÀN XE QUÂN SỰ PROCEDURAL
+    // =========================================================================
+    function createJeep() {
+      const jeep = new THREE.Group();
+      const chassis = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.65, 3.6), mats.jeepOlive);
+      chassis.position.y = 0.65;
+      chassis.castShadow = true;
+      jeep.add(chassis);
+
+      const hood = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.45, 1.4), mats.jeepOlive);
+      hood.position.set(0, 0.9, 0.9);
+      hood.castShadow = true;
+      jeep.add(hood);
+
+      const glass = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.6, 0.08), mats.glass);
+      glass.position.set(0, 1.35, 0.2);
+      jeep.add(glass);
+
+      const ant = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.6, 6), mats.gunMetal);
+      ant.position.set(0.75, 1.5, -1.5);
+      jeep.add(ant);
+
+      jeep.wheels = [];
+      const wheelOffsets = [[-0.95, 0.38, 1.1], [0.95, 0.38, 1.1], [-0.95, 0.38, -1.1], [0.95, 0.38, -1.1]];
+      wheelOffsets.forEach(pos => {
+        const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.38, 0.32, 12), mats.wheelRubber);
+        wheel.rotation.z = Math.PI / 2;
+        wheel.position.set(pos[0], pos[1], pos[2]);
+        wheel.castShadow = true;
+        jeep.add(wheel);
+        jeep.wheels.push(wheel);
+      });
+      return jeep;
+    }
+
+    function createMilitaryTruck() {
+      const truck = new THREE.Group();
+      const cab = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.6, 1.8), mats.truckOlive);
+      cab.position.set(0, 1.25, 1.4);
+      cab.castShadow = true;
+      truck.add(cab);
+
+      const bed = new THREE.Mesh(new THREE.BoxGeometry(2.3, 1.9, 3.8), mats.canvasCover);
+      bed.position.set(0, 1.45, -1.4);
+      bed.castShadow = true;
+      truck.add(bed);
+
+      truck.wheels = [];
+      const wheelOffsets = [
+        [-1.15, 0.48, 1.4], [1.15, 0.48, 1.4],
+        [-1.15, 0.48, -0.6], [1.15, 0.48, -0.6],
+        [-1.15, 0.48, -2.1], [1.15, 0.48, -2.1]
+      ];
+      wheelOffsets.forEach(pos => {
+        const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.48, 0.38, 12), mats.wheelRubber);
+        wheel.rotation.z = Math.PI / 2;
+        wheel.position.set(pos[0], pos[1], pos[2]);
+        wheel.castShadow = true;
+        truck.add(wheel);
+        truck.wheels.push(wheel);
+      });
+      return truck;
+    }
+
+    const convoy = {
+      jeep: createJeep(),
+      truck1: createMilitaryTruck(),
+      truck2: createMilitaryTruck(),
+      speed: 4.8,
+      z: -38.0,
+      destroyed: false,
+      skidRot: 0,
+      truck1Dodge: 0,
+      truck2Dodge: 0
+    };
+    scene.add(convoy.jeep);
+    scene.add(convoy.truck1);
+    scene.add(convoy.truck2);
+
+    // HẠT NỔ
+    const particleCount = 120;
+    const particleGeo = new THREE.BufferGeometry();
+    const particlePositions = new Float32Array(particleCount * 3);
+    const particleColors = new Float32Array(particleCount * 3);
+    const particleVelocities = [];
+
+    for (let i = 0; i < particleCount; i++) {
+      particlePositions[i * 3] = 0;
+      particlePositions[i * 3 + 1] = -100;
+      particlePositions[i * 3 + 2] = 0;
+      particleColors[i * 3] = 1.0;
+      particleColors[i * 3 + 1] = 0.5;
+      particleColors[i * 3 + 2] = 0.1;
+      particleVelocities.push(new THREE.Vector3());
+    }
+    particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+    particleGeo.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
+
+    const explosionSystem = new THREE.Points(particleGeo, new THREE.PointsMaterial({
+      size: 0.9, vertexColors: true, transparent: true, opacity: 0.95
+    }));
+    scene.add(explosionSystem);
+
+    let isExplosionActive = false;
+    function triggerExplosion(x, y, z) {
+      isExplosionActive = true;
+      const pos = explosionSystem.geometry.attributes.position.array;
+      const cols = explosionSystem.geometry.attributes.color.array;
+      for (let i = 0; i < particleCount; i++) {
+        pos[i * 3] = x + (Math.random() - 0.5) * 1.5;
+        pos[i * 3 + 1] = y + Math.random() * 0.8;
+        pos[i * 3 + 2] = z + (Math.random() - 0.5) * 1.5;
+        particleVelocities[i].set((Math.random() - 0.5) * 11, Math.random() * 9 + 4, (Math.random() - 0.5) * 11);
+        if (Math.random() > 0.4) {
+          cols[i * 3] = 1.0; cols[i * 3 + 1] = 0.3; cols[i * 3 + 2] = 0.05;
+        } else {
+          cols[i * 3] = 0.2; cols[i * 3 + 1] = 0.2; cols[i * 3 + 2] = 0.2;
+        }
+      }
+      explosionSystem.geometry.attributes.position.needsUpdate = true;
+      explosionSystem.geometry.attributes.color.needsUpdate = true;
+    }
+
+    // =========================================================================
+    // 6. THUẬT TOÁN 3D AI GENERATOR: TỰ ĐỘNG PHÂN TÍCH PROMPT & SINH NHÂN VẬT
+    // =========================================================================
+    let gameState = "CHAR_CREATOR";
+
+    const colorMap = {
+      black: 0x141414,
+      brown: 0x5c3317,
+      green: 0x1f3b20
+    };
+
+    function applyCharacterConfig() {
+      const hex = colorMap[player.color] || 0x141414;
+      mats.charBaBa.color.setHex(hex);
+      leftArm.material.color.setHex(hex);
+      rightArm.material.color.setHex(hex);
+
+      if (player.hat === 'nonla') {
+        hatNonLaMesh.visible = true;
+        hatTaiBeoGroup.visible = false;
+      } else {
+        hatNonLaMesh.visible = false;
+        hatTaiBeoGroup.visible = true;
+      }
+
+      if (player.gun === 'rifle') {
+        rifleK44Mesh.visible = true;
+        rifleCarbineMesh.visible = false;
+        fpsStock.scale.set(1.0, 1.0, 1.0);
+      } else {
+        rifleK44Mesh.visible = false;
+        rifleCarbineMesh.visible = true;
+        fpsStock.scale.set(0.9, 0.9, 0.85);
+      }
+
+      if (player.role === 'nu') {
+        torsoMesh.scale.set(0.92, 0.96, 0.92);
+        leftArmGroup.scale.set(0.92, 0.95, 0.92);
+        rightArmGroup.scale.set(0.92, 0.95, 0.92);
+      } else {
+        torsoMesh.scale.set(1.0, 1.0, 1.0);
+        leftArmGroup.scale.set(1.0, 1.0, 1.0);
+        rightArmGroup.scale.set(1.0, 1.0, 1.0);
+      }
+    }
+
+    // Tabs chuyển đổi AI vs Manual vs Guide
+    const tabBtnAi = document.getElementById('tab-btn-ai');
+    const tabBtnManual = document.getElementById('tab-btn-manual');
+    const tabBtnGuide = document.getElementById('tab-btn-guide');
+    const panelAiGen = document.getElementById('panel-ai-gen');
+    const panelManualGen = document.getElementById('panel-manual-gen');
+    const panelGuideGen = document.getElementById('panel-guide-gen');
+
+    function resetTabs() {
+      tabBtnAi.className = "flex-1 py-2 px-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1 border border-white/10";
+      tabBtnManual.className = "flex-1 py-2 px-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1 border border-white/10";
+      if (tabBtnGuide) tabBtnGuide.className = "py-2 px-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1 border border-white/10";
+      panelAiGen.classList.add('hidden');
+      panelManualGen.classList.add('hidden');
+      if (panelGuideGen) panelGuideGen.classList.add('hidden');
+    }
+
+    tabBtnAi.addEventListener('click', () => {
+      resetTabs();
+      tabBtnAi.className = "flex-1 py-2 px-2.5 rounded-xl bg-caison-gold text-black font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-1 shadow";
+      panelAiGen.classList.remove('hidden');
+    });
+
+    tabBtnManual.addEventListener('click', () => {
+      resetTabs();
+      tabBtnManual.className = "flex-1 py-2 px-2.5 rounded-xl bg-caison-gold text-black font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-1 shadow";
+      panelManualGen.classList.remove('hidden');
+    });
+
+    if (tabBtnGuide) {
+      tabBtnGuide.addEventListener('click', () => {
+        resetTabs();
+        tabBtnGuide.className = "py-2 px-2.5 rounded-xl bg-caison-gold text-black font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-1 shadow";
+        panelGuideGen.classList.remove('hidden');
+      });
+    }
+
+    // Nút chạy thử, xoay nhanh và AI ngẫu nhiên trên bục 3D
+    let isPreviewWalking = false;
+    let previewWalkTimer = 0;
+    const btnToggleWalkPreview = document.getElementById('btn-toggle-walk-preview');
+    const walkIcon = document.getElementById('walk-icon');
+    const walkLabel = document.getElementById('walk-label');
+
+    btnToggleWalkPreview?.addEventListener('click', () => {
+      isPreviewWalking = !isPreviewWalking;
+      if (isPreviewWalking) {
+        if (walkIcon) walkIcon.textContent = "🧍";
+        if (walkLabel) walkLabel.textContent = "Đứng yên";
+        btnToggleWalkPreview.className = "bg-green-600/40 hover:bg-green-600/60 active:scale-95 text-green-300 border border-green-400 text-xs px-2.5 py-1.5 rounded-lg transition font-bold flex items-center gap-1 shadow animate-pulse";
+        playTone(600, 0.1);
+      } else {
+        if (walkIcon) walkIcon.textContent = "🏃";
+        if (walkLabel) walkLabel.textContent = "Chạy thử";
+        btnToggleWalkPreview.className = "bg-yellow-600/30 hover:bg-yellow-600/50 active:scale-95 text-yellow-300 border border-yellow-500/50 text-xs px-2.5 py-1.5 rounded-lg transition font-bold flex items-center gap-1 shadow";
+        leftLegGroup.rotation.x = 0;
+        rightLegGroup.rotation.x = 0;
+        leftArmGroup.rotation.x = 0;
+        torsoMesh.position.y = 0.88;
+        headGroup.position.y = 1.32;
+        playTone(400, 0.1);
+      }
+    });
+
+    document.getElementById('btn-spin-char')?.addEventListener('click', () => {
+      guerrillaMeshGroup.rotation.y += Math.PI;
+      playTone(480, 0.08);
+    });
+
+    // Modal phóng to bộ ảnh AI Concept Art
+    const modalImgZoom = document.getElementById('modal-img-zoom');
+    const zoomImg = document.getElementById('zoom-img');
+    const zoomCaption = document.getElementById('zoom-caption');
+    const zoomDownload = document.getElementById('zoom-download');
+    const btnCloseZoom = document.getElementById('btn-close-zoom');
+
+    window.openZoomImage = function(src, caption) {
+      if (zoomImg) zoomImg.src = src;
+      if (zoomCaption) zoomCaption.textContent = caption;
+      if (zoomDownload) {
+        zoomDownload.href = src;
+        zoomDownload.download = src;
+      }
+      modalImgZoom?.classList.remove('hidden');
+      playTone(520, 0.1);
+    };
+
+    btnCloseZoom?.addEventListener('click', () => {
+      modalImgZoom?.classList.add('hidden');
+      playTone(380, 0.08);
+    });
+
+    modalImgZoom?.addEventListener('click', (e) => {
+      if (e.target === modalImgZoom) {
+        modalImgZoom.classList.add('hidden');
+      }
+    });
+
+    const aiPromptInput = document.getElementById('ai-prompt-input');
+    const btnGenerateAi = document.getElementById('btn-generate-ai');
+
+    document.getElementById('btn-random-ai')?.addEventListener('click', () => {
+      const presets = [
+        "Nữ du kích bắn tỉa Tam Bình Út Hoa, áo bà ba đen, nón lá Nam Bộ, khăn rằn, súng trường K-44",
+        "Chiến sĩ du kích Cái Sơn Hai Lúa áo bà ba đen nón lá, súng Carbine M1 linh hoạt",
+        "Đặc công Ba Rằn áo nâu sồng mũ tai bèo, xạ thủ kiên cường đột kích phục kích",
+        "Xạ thủ Năm Đất áo xanh rêu nón lá, thiện xạ ngắm bắn cự ly xa chặn đoàn xe"
+      ];
+      aiPromptInput.value = presets[Math.floor(Math.random() * presets.length)];
+      btnGenerateAi.click();
+    });
+
+    // Preset tag buttons
+    document.querySelectorAll('.preset-tag').forEach(tag => {
+      tag.addEventListener('click', () => {
+        aiPromptInput.value = tag.dataset.prompt;
+        playTone(550, 0.08);
+        btnGenerateAi.click();
+      });
+    });
+
+    // THUẬT TOÁN AI GENERATE TỪ PROMPT VỚI TIẾN TRÌNH STEP-BY-STEP
+    const aiScannerBox = document.getElementById('ai-scanner-box');
+    const aiScanStatusText = document.getElementById('ai-scan-status-text');
+    const aiLogContent = document.getElementById('ai-log-content');
+    const aiResName = document.getElementById('ai-res-name');
+    const aiResRole = document.getElementById('ai-res-role');
+    const aiResCloth = document.getElementById('ai-res-cloth');
+    const aiResHat = document.getElementById('ai-res-hat');
+    const aiResGun = document.getElementById('ai-res-gun');
+    const statAccuracy = document.getElementById('stat-accuracy');
+    const barAccuracy = document.getElementById('bar-accuracy');
+    const statStealth = document.getElementById('stat-stealth');
+    const barStealth = document.getElementById('bar-stealth');
+
+    btnGenerateAi.addEventListener('click', () => {
+      initAudio();
+      const prompt = aiPromptInput.value.toLowerCase();
+      
+      // Kích hoạt hiệu ứng quét laser AI Hologram
+      aiScannerBox.classList.remove('hidden');
+      btnGenerateAi.disabled = true;
+      btnGenerateAi.innerHTML = `<span>⏳</span> AI ĐANG QUÉT & TỔNG HỢP 3D...`;
+
+      aiLogContent.innerHTML = `<p class="text-yellow-400 font-bold">> [AI SYNTHESIZER] Bắt đầu tổng hợp từ mô tả: "${aiPromptInput.value.slice(0, 32)}..."</p>`;
+      if (aiScanStatusText) aiScanStatusText.textContent = "> Đang phân tích cú pháp ngôn ngữ tự nhiên...";
+
+      playTone(380, 0.12, 'sawtooth');
+
+      // Bước 1: Phân tích và tạo khung
+      setTimeout(() => {
+        playTone(520, 0.12, 'sawtooth');
+        aiLogContent.innerHTML += `<p>✔ [1/3] Nhận diện bối cảnh: Chiến sĩ Vĩnh Long năm 1960.</p>`;
+        if (aiScanStatusText) aiScanStatusText.textContent = "> Khởi tạo topology mesh Áo bà ba & Khăn rằn...";
+        guerrillaMeshGroup.rotation.y += 0.8;
+      }, 350);
+
+      // Bước 2: Dệt vải & cân chỉnh
+      setTimeout(() => {
+        playTone(660, 0.15, 'sawtooth');
+        aiLogContent.innerHTML += `<p>✔ [2/3] Dệt họa tiết Khăn rằn Nam Bộ, gán Dép lốp cao su Bác Hồ.</p>`;
+        if (aiScanStatusText) aiScanStatusText.textContent = "> Cân chỉnh súng trường bắn tỉa & thông số sát thương...";
+        guerrillaMeshGroup.rotation.y += 1.2;
+      }, 750);
+
+      // Bước 3: Hoàn tất
+      setTimeout(() => {
+        aiScannerBox.classList.add('hidden');
+        btnGenerateAi.disabled = false;
+        btnGenerateAi.innerHTML = `<span>⚡</span> BẮT ĐẦU CHO AI SINH NHÂN VẬT 3D`;
+
+        // 1. Phân tích giới tính & Tên
+        if (prompt.includes('nữ') || prompt.includes('gái') || prompt.includes('chị') || prompt.includes('cô') || prompt.includes('út')) {
+          player.role = "nu";
+          const femaleNames = ["Út Hoa", "Ba Phượng", "Sáu Nhàn", "Tư Lan", "Tám Điệp"];
+          const name = femaleNames[Math.floor(Math.random() * femaleNames.length)];
+          player.name = `${name} - Nữ Bắn Tỉa Tam Bình`;
+        } else if (prompt.includes('hai lúa') || prompt.includes('lúa')) {
+          player.role = "nam";
+          player.name = "Hai Lúa - Dũng Sĩ Cái Sơn";
+        } else if (prompt.includes('ba rằn') || prompt.includes('đặc công')) {
+          player.role = "nam";
+          player.name = "Ba Rằn - Đặc Công Song Phú";
+        } else if (prompt.includes('năm đất') || prompt.includes('thiện xạ')) {
+          player.role = "nam";
+          player.name = "Năm Đất - Xạ Thủ Thiện Xạ";
+        } else {
+          player.role = "nam";
+          const maleNames = ["Hai Lúa", "Ba Rằn", "Năm Đất", "Bảy Súng", "Tư Rừng", "Sáu Kiên"];
+          const name = maleNames[Math.floor(Math.random() * maleNames.length)];
+          player.name = `${name} - Du Kích Cái Sơn`;
+        }
+
+        // 2. Phân tích màu áo
+        if (prompt.includes('nâu') || prompt.includes('sồng')) {
+          player.color = "brown";
+        } else if (prompt.includes('xanh') || prompt.includes('rêu')) {
+          player.color = "green";
+        } else {
+          player.color = "black";
+        }
+
+        // 3. Phân tích mũ nón
+        if (prompt.includes('tai bèo') || prompt.includes('giải phóng')) {
+          player.hat = "taibeo";
+        } else {
+          player.hat = "nonla";
+        }
+
+        // 4. Phân tích súng
+        if (prompt.includes('carbine') || prompt.includes('cơ động') || prompt.includes('m1')) {
+          player.gun = "carbine";
+        } else {
+          player.gun = "rifle";
+        }
+
+        // Cập nhật 3D Model trực quan
+        applyCharacterConfig();
+
+        // Cập nhật hồ sơ & Thống kê
+        aiResName.textContent = player.name;
+        aiResRole.textContent = player.role === 'nu' ? "Nữ Du Kích" : "Nam Du Kích";
+        aiResCloth.textContent = player.color === 'black' ? "Áo Bà Ba Đen Tuyền" : (player.color === 'brown' ? "Áo Bà Ba Nâu Sồng" : "Áo Bà Ba Xanh Rêu");
+        aiResHat.textContent = player.hat === 'nonla' ? "Nón Lá Nam Bộ" : "Mũ Tai Bèo Giải Phóng";
+        aiResGun.textContent = player.gun === 'rifle' ? "Súng trường Bắn tỉa K-44" : "Súng trường Carbine M1";
+
+        const acc = player.gun === 'rifle' ? 98 : 92;
+        const stl = player.color === 'black' ? 96 : (player.color === 'green' ? 94 : 91);
+        if (statAccuracy) statAccuracy.textContent = `${acc}%`;
+        if (barAccuracy) barAccuracy.style.width = `${acc}%`;
+        if (statStealth) statStealth.textContent = `${stl}%`;
+        if (barStealth) barStealth.style.width = `${stl}%`;
+
+        aiLogContent.innerHTML += `<p class="text-green-400 font-bold">✔ [3/3] HOÀN TẤT: Nhân vật "${player.name}" đã sẵn sàng xuất kích!</p>`;
+        
+        // Đồng bộ trường nhập thủ công
+        document.getElementById('input-char-name').value = player.name;
+
+        // Âm báo hoàn tất anh dũng
+        playTone(659.25, 0.18);
+        setTimeout(() => playTone(880.0, 0.3), 180);
+      }, 1150);
+    });
+
+    // Nút thủ công: Màu áo
+    document.querySelectorAll('.btn-color').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.btn-color').forEach(b => {
+          b.classList.remove('active', 'border-caison-gold', 'bg-black/80', 'text-yellow-300');
+          b.classList.add('border-white/20', 'bg-white/5', 'text-gray-300');
+        });
+        btn.classList.add('active', 'border-caison-gold', 'bg-black/80', 'text-yellow-300');
+        player.color = btn.dataset.color;
+        applyCharacterConfig();
+        playTone(450, 0.08);
+      });
+    });
+
+    // Nút thủ công: Nón
+    document.querySelectorAll('.btn-hat').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.btn-hat').forEach(b => {
+          b.classList.remove('active', 'border-caison-gold', 'bg-caison-gold/20', 'text-yellow-300');
+          b.classList.add('border-white/20', 'bg-white/5', 'text-gray-300');
+        });
+        btn.classList.add('active', 'border-caison-gold', 'bg-caison-gold/20', 'text-yellow-300');
+        player.hat = btn.dataset.hat;
+        applyCharacterConfig();
+        playTone(480, 0.08);
+      });
+    });
+
+    // Nút thủ công: Vai trò
+    document.querySelectorAll('.btn-role').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.btn-role').forEach(b => {
+          b.classList.remove('active', 'border-caison-gold', 'bg-caison-gold/20', 'text-yellow-300');
+          b.classList.add('border-white/20', 'bg-white/5', 'text-gray-300');
+        });
+        btn.classList.add('active', 'border-caison-gold', 'bg-caison-gold/20', 'text-yellow-300');
+        player.role = btn.dataset.role;
+        applyCharacterConfig();
+        playTone(500, 0.08);
+      });
+    });
+
+    // Nút thủ công: Súng
+    document.querySelectorAll('.btn-gun').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.btn-gun').forEach(b => {
+          b.classList.remove('active', 'border-caison-gold', 'bg-caison-gold/20', 'text-yellow-300');
+          b.classList.add('border-white/20', 'bg-white/5', 'text-gray-300');
+        });
+        btn.classList.add('active', 'border-caison-gold', 'bg-caison-gold/20', 'text-yellow-300');
+        player.gun = btn.dataset.gun;
+        applyCharacterConfig();
+        playTone(420, 0.08);
+      });
+    });
+
+    // XÁC NHẬN TẠO NHÂN VẬT & XUẤT QUÂN VÀO TRẬN CHIẾN
+    const screenCharCreator = document.getElementById('screen-char-creator');
+    const uiGameplay = document.getElementById('ui-gameplay');
+    const inputCharName = document.getElementById('input-char-name');
+    const hudSoldierName = document.getElementById('hud-soldier-name');
+    const impactSoldierName = document.getElementById('impact-soldier-name');
+    const victorySoldierName = document.getElementById('victory-soldier-name');
+
+    document.getElementById('btn-confirm-character').addEventListener('click', () => {
+      initAudio();
+      const val = inputCharName.value.trim();
+      if (val) player.name = val;
+
+      hudSoldierName.textContent = player.name;
+      impactSoldierName.textContent = player.name;
+      victorySoldierName.textContent = player.name;
+
+      screenCharCreator.classList.add('hidden');
+      uiGameplay.classList.remove('hidden');
+
+      // Tắt bục và đèn studio, đưa nhân vật vào vị trí phục kích thực địa
+      pedestalMesh.visible = false;
+      studioSpot.visible = false;
+      studioRim.visible = false;
+      player.x = -5.2;
+      player.z = 22.0;
+      guerrillaMeshGroup.position.set(player.x, 0, player.z);
+
+      gameState = "RUNNING";
+      crosshairHud.style.opacity = '1';
+      timingBarContainer.style.opacity = '1';
+      btnFire.disabled = false;
+
+      playTone(523.25, 0.2);
+    });
+
+    // =========================================================================
+    // 7. HỆ THỐNG DI CHUYỂN NGƯỜI LÍNH
+    // =========================================================================
+    const keys = { w: false, a: false, s: false, d: false, shift: false };
+
+    window.addEventListener('keydown', (e) => {
+      if (gameState === "CHAR_CREATOR") return;
+      const c = e.code;
+      if (c === 'KeyW' || c === 'ArrowUp') keys.w = true;
+      if (c === 'KeyA' || c === 'ArrowLeft') keys.a = true;
+      if (c === 'KeyS' || c === 'ArrowDown') keys.s = true;
+      if (c === 'KeyD' || c === 'ArrowRight') keys.d = true;
+      if (c === 'ShiftLeft' || c === 'ShiftRight') keys.shift = true;
+      if (c === 'KeyC') toggleCrouch();
+      if (c === 'KeyV') toggleCamera();
+      if (c === 'Space') {
+        if (player.isGrounded) {
+          player.velY = 5.6;
+          player.isGrounded = false;
+          playTone(300, 0.08);
+        }
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      const c = e.code;
+      if (c === 'KeyW' || c === 'ArrowUp') keys.w = false;
+      if (c === 'KeyA' || c === 'ArrowLeft') keys.a = false;
+      if (c === 'KeyS' || c === 'ArrowDown') keys.s = false;
+      if (c === 'KeyD' || c === 'ArrowRight') keys.d = false;
+      if (c === 'ShiftLeft' || c === 'ShiftRight') keys.shift = false;
+    });
+
+    function toggleCrouch() {
+      player.isCrouched = !player.isCrouched;
+    }
+
+    function toggleCamera() {
+      player.cameraMode = (player.cameraMode + 1) % 2;
+      document.getElementById('camera-label').textContent = player.cameraMode === 0 ? "1ST PERSON" : "3RD PERSON";
+      playTone(520, 0.1);
+    }
+    document.getElementById('btn-camera-toggle').addEventListener('click', toggleCamera);
+
+    // Touch D-Pad
+    function bindDpad(btnId, keyName) {
+      const btn = document.getElementById(btnId);
+      if (!btn) return;
+      const onStart = (e) => { keys[keyName] = true; e.preventDefault(); };
+      const onEnd = (e) => { keys[keyName] = false; e.preventDefault(); };
+      btn.addEventListener('mousedown', onStart);
+      btn.addEventListener('mouseup', onEnd);
+      btn.addEventListener('mouseleave', onEnd);
+      btn.addEventListener('touchstart', onStart);
+      btn.addEventListener('touchend', onEnd);
+    }
+    bindDpad('dpad-w', 'w');
+    bindDpad('dpad-s', 's');
+    bindDpad('dpad-a', 'a');
+    bindDpad('dpad-d', 'd');
+
+    // Mouse Look
+    let isDragging = false, lastMouseX = 0, lastMouseY = 0;
+    renderer.domElement.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+    });
+    window.addEventListener('mouseup', () => isDragging = false);
+    window.addEventListener('mousemove', (e) => {
+      if (gameState === "CHAR_CREATOR") {
+        if (isDragging) {
+          const dx = e.clientX - lastMouseX;
+          lastMouseX = e.clientX;
+          lastMouseY = e.clientY;
+          guerrillaMeshGroup.rotation.y += dx * 0.015;
+        }
+        return;
+      }
+
+      if (!isDragging) {
+        const dx = (e.clientX - window.innerWidth / 2) / window.innerWidth;
+        const dy = (e.clientY - window.innerHeight / 2) / window.innerHeight;
+        player.yaw = -0.45 - dx * 0.45;
+        player.pitch = -0.08 - dy * 0.25;
+        return;
+      }
+      const dx = e.clientX - lastMouseX;
+      const dy = e.clientY - lastMouseY;
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+
+      player.yaw -= dx * 0.0035;
+      player.pitch -= dy * 0.0035;
+      player.pitch = Math.max(-0.45, Math.min(0.35, player.pitch));
+      player.yaw = Math.max(-1.5, Math.min(0.5, player.yaw));
+    });
+
+    // =========================================================================
+    // 8. VÒNG LẶP RENDER & CẬP NHẬT GAMEPLAY
+    // =========================================================================
+    let missionTimeSec = 0;
+    const startHour = 16, startMin = 14, startSec = 52;
+    const clockElem = document.getElementById('mission-clock');
+    const timingIndicator = document.getElementById('timing-indicator');
+    const distanceReadout = document.getElementById('distance-readout');
+    const popupText = document.getElementById('popup-text');
+    const crosshairHud = document.getElementById('crosshair-hud');
+    const timingBarContainer = document.getElementById('timing-bar-container');
+    const btnFire = document.getElementById('btn-fire');
+
+    let clockTick = 0;
+    function updateClock(dt) {
+      clockTick += dt;
+      if (clockTick >= 1.0) {
+        clockTick = 0;
+        missionTimeSec++;
+        const totalSec = startSec + missionTimeSec;
+        const curSec = totalSec % 60;
+        const curMin = (startMin + Math.floor(totalSec / 60)) % 60;
+        const curHour = startHour + Math.floor((startMin + Math.floor(totalSec / 60)) / 60);
+        const pad = (n) => n.toString().padStart(2, '0');
+        clockElem.textContent = `${pad(curHour)}:${pad(curMin)}:${pad(curSec)}`;
+      }
+    }
+
+    function updatePlayerPhysics(dt) {
+      const maxSpeed = player.isCrouched ? 2.2 : (keys.shift ? 6.5 : 4.0);
+      let targetVx = 0, targetVz = 0;
+
+      const fX = Math.sin(player.yaw);
+      const fZ = Math.cos(player.yaw);
+      const rX = Math.cos(player.yaw);
+      const rZ = -Math.sin(player.yaw);
+
+      if (keys.w) { targetVx += fX; targetVz += fZ; }
+      if (keys.s) { targetVx -= fX; targetVz -= fZ; }
+      if (keys.d) { targetVx += rX; targetVz += rZ; }
+      if (keys.a) { targetVx -= rX; targetVz -= rZ; }
+
+      const len = Math.hypot(targetVx, targetVz);
+      if (len > 0.01) {
+        targetVx = (targetVx / len) * maxSpeed;
+        targetVz = (targetVz / len) * maxSpeed;
+        player.walkTimer += dt * (keys.shift ? 14 : 9);
+        if (player.isGrounded) playFootstep();
+      }
+
+      player.velX += (targetVx - player.velX) * 12.0 * dt;
+      player.velZ += (targetVz - player.velZ) * 12.0 * dt;
+
+      player.x += player.velX * dt;
+      player.z += player.velZ * dt;
+
+      if (!player.isGrounded) {
+        player.velY -= 16.0 * dt;
+        player.y += player.velY * dt;
+        if (player.y <= 0.0) {
+          player.y = 0.0;
+          player.velY = 0.0;
+          player.isGrounded = true;
+          playFootstep();
+        }
+      }
+
+      // Giới hạn biên độ di chuyển
+      player.x = Math.max(-12.5, Math.min(-2.8, player.x));
+      player.z = Math.max(-28.0, Math.min(38.0, player.z));
+    }
+
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = clock.getDelta();
+
+      if (gameState === "CHAR_CREATOR") {
+        camera.position.set(-0.7, 1.25, 2.9);
+        camera.lookAt(-0.1, 0.85, 0);
+        fpsRifle.visible = false;
+        guerrillaMeshGroup.position.set(0, 0.15, 0);
+        if (!isDragging) {
+          guerrillaMeshGroup.rotation.y += 0.007;
+        }
+        holoRing.rotation.z += 0.015;
+
+        if (isPreviewWalking) {
+          previewWalkTimer += dt * 11;
+          leftLegGroup.rotation.x = Math.sin(previewWalkTimer) * 0.65;
+          rightLegGroup.rotation.x = -Math.sin(previewWalkTimer) * 0.65;
+          leftArmGroup.rotation.x = -Math.sin(previewWalkTimer) * 0.45;
+          torsoMesh.position.y = 0.88 + Math.abs(Math.sin(previewWalkTimer * 2)) * 0.03;
+          headGroup.position.y = 1.32 + Math.abs(Math.sin(previewWalkTimer * 2)) * 0.03;
+        }
+      }
+      else if (gameState === "RUNNING") {
+        updateClock(dt);
+        updatePlayerPhysics(dt);
+
+        guerrillaMeshGroup.position.set(player.x, player.y, player.z);
+        guerrillaMeshGroup.rotation.y = player.yaw;
+
+        // Hoạt ảnh di chuyển chân và tay khi chạy
+        if (Math.hypot(player.velX, player.velZ) > 0.2) {
+          leftLegGroup.rotation.x = Math.sin(player.walkTimer) * 0.6;
+          rightLegGroup.rotation.x = -Math.sin(player.walkTimer) * 0.6;
+          leftArmGroup.rotation.x = -Math.sin(player.walkTimer) * 0.45;
+        } else {
+          leftLegGroup.rotation.x = 0;
+          rightLegGroup.rotation.x = 0;
+          leftArmGroup.rotation.x = 0;
+        }
+
+        const eyeHeight = (player.isCrouched ? 0.85 : 1.45) + player.y;
+        const lookDir = new THREE.Vector3(
+          Math.sin(player.yaw) * Math.cos(player.pitch),
+          Math.sin(player.pitch),
+          Math.cos(player.yaw) * Math.cos(player.pitch)
+        );
+
+        if (player.cameraMode === 0) {
+          guerrillaMeshGroup.visible = false;
+          fpsRifle.visible = true;
+
+          camera.position.set(player.x, eyeHeight, player.z);
+          camera.lookAt(player.x + lookDir.x, eyeHeight + lookDir.y, player.z + lookDir.z);
+
+          fpsRifle.position.copy(camera.position);
+          fpsRifle.rotation.copy(camera.rotation);
+          fpsRifle.translateZ(-0.6);
+          fpsRifle.translateX(0.22);
+          fpsRifle.translateY(-0.22 + (Math.sin(player.walkTimer) * 0.03));
+        } else {
+          guerrillaMeshGroup.visible = true;
+          fpsRifle.visible = false;
+
+          const distBehind = 3.6;
+          camera.position.set(
+            player.x - lookDir.x * distBehind,
+            eyeHeight + 0.6 - lookDir.y * distBehind,
+            player.z - lookDir.z * distBehind
+          );
+        }
+
+        // Đoàn xe tiến về phía trước theo trục Z
+        convoy.z += convoy.speed * dt;
+        convoy.jeep.position.set(0, Math.sin(convoy.z * 1.5) * 0.03, convoy.z);
+        convoy.truck1.position.set(0, Math.sin(convoy.z * 1.5 + 1) * 0.03, convoy.z - 13.5);
+        convoy.truck2.position.set(0, Math.sin(convoy.z * 1.5 + 2) * 0.03, convoy.z - 27.0);
+
+        const wheelRot = (convoy.speed * dt) / 0.38;
+        convoy.jeep.wheels.forEach(w => w.rotation.x += wheelRot);
+        convoy.truck1.wheels.forEach(w => w.rotation.x += wheelRot);
+        convoy.truck2.wheels.forEach(w => w.rotation.x += wheelRot);
+
+        const progress = Math.min(1.0, Math.max(0.0, (convoy.z + 35) / 50));
+        timingIndicator.style.left = `${progress * 98}%`;
+
+        const dist = Math.round(Math.hypot(player.x - 0, player.z - convoy.z));
+        distanceReadout.textContent = `CỰ LY: ${dist}M • VÙNG HỎA LỰC`;
+
+        if (convoy.z > 22.0) triggerAmbushMiss();
+      } 
+      else if (gameState === "HIT") {
+        if (convoy.skidRot < 0.65) {
+          convoy.skidRot += dt * 1.8;
+          convoy.jeep.rotation.y += dt * 1.2;
+          convoy.jeep.rotation.z += dt * 0.8;
+          convoy.jeep.position.x += dt * 1.5;
+        }
+        if (convoy.truck1Dodge < 2.5) {
+          convoy.truck1Dodge += dt * 2.5;
+          convoy.truck1.position.x += dt * 2.2;
+          convoy.truck1.rotation.y += dt * 0.25;
+        }
+        if (convoy.truck2Dodge < 2.2) {
+          convoy.truck2Dodge += dt * 2.2;
+          convoy.truck2.position.x -= dt * 2.0;
+          convoy.truck2.rotation.y -= dt * 0.25;
+        }
+      }
+
+      if (isExplosionActive) {
+        const pos = explosionSystem.geometry.attributes.position.array;
+        for (let i = 0; i < particleCount; i++) {
+          pos[i * 3] += particleVelocities[i].x * dt;
+          pos[i * 3 + 1] += particleVelocities[i].y * dt;
+          pos[i * 3 + 2] += particleVelocities[i].z * dt;
+          particleVelocities[i].y -= 9.8 * dt;
+        }
+        explosionSystem.geometry.attributes.position.needsUpdate = true;
+      }
+
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // 9. KHAI HỎA & KẾT QUẢ
+    const modalImpact = document.getElementById('modal-impact');
+    const btnGoToQuiz = document.getElementById('btn-go-to-quiz');
+    const modalQuiz = document.getElementById('modal-quiz');
+
+    btnFire.addEventListener('click', executeFireCommand);
+
+    function executeFireCommand() {
+      if (gameState !== "RUNNING") return;
+      gameState = "HIT";
+      btnFire.disabled = true;
+
+      playGunshotSFX();
+      setTimeout(playExplosionSFX, 120);
+
+      document.body.classList.add('shake-active');
+      setTimeout(() => document.body.classList.remove('shake-active'), 500);
+
+      triggerExplosion(convoy.jeep.position.x, 1.2, convoy.jeep.position.z);
+      mats.jeepOlive.color.setHex(0x1a1612);
+
+      const hitZ = convoy.z;
+      if (hitZ >= -5.0 && hitZ <= 9.0) {
+        popupText.innerHTML = `
+          <div class="bg-black/90 border-2 border-green-400 text-green-300 font-black px-6 py-3 rounded-2xl text-xl md:text-3xl shadow-2xl tracking-widest uppercase">
+            ★ BÁCH PHÁT BÁCH TRÚNG! TIÊU DIỆT XE ĐẦU! ★
+          </div>
+        `;
+      } else {
+        popupText.innerHTML = `
+          <div class="bg-black/90 border-2 border-yellow-400 text-yellow-300 font-black px-6 py-3 rounded-2xl text-xl md:text-3xl shadow-2xl tracking-widest uppercase">
+            💥 ĐẠN TRÚNG ĐÍCH! ĐOÀN XE HOẢNG LOẠN! 💥
+          </div>
+        `;
+      }
+
+      popupText.style.opacity = '1';
+      popupText.style.transform = 'translate(-50%, -50%) scale(1)';
+      crosshairHud.style.opacity = '0';
+      timingBarContainer.style.opacity = '0';
+
+      setTimeout(() => {
+        popupText.style.opacity = '0';
+        modalImpact.classList.remove('hidden');
+      }, 3500);
+    }
+
+    function triggerAmbushMiss() {
+      gameState = "HIT";
+      btnFire.disabled = true;
+      popupText.innerHTML = `
+        <div class="bg-black/90 border-2 border-red-500 text-red-400 font-black px-6 py-3 rounded-2xl text-xl shadow-2xl tracking-widest uppercase">
+          ⚠️ ĐOÀN XE ĐÃ VƯỢT QUA TẦM HỎA LỰC!
+        </div>
+      `;
+      popupText.style.opacity = '1';
+      popupText.style.transform = 'translate(-50%, -50%) scale(1)';
+
+      setTimeout(() => {
+        popupText.style.opacity = '0';
+        modalImpact.classList.remove('hidden');
+      }, 2500);
+    }
+
+    // 10. TRẮC NGHIỆM LỊCH SỬ
+    const quizDatabase = [
+      {
+        question: "Trận phục kích tại Cầu Cái Sơn diễn ra vào thời điểm lịch sử nào?",
+        options: [
+          "16h15 ngày 16/06/1960",
+          "19/08/1945",
+          "01/01/1960",
+          "30/04/1975"
+        ],
+        correct: 0,
+        explanation: "Vào đúng 16h15 ngày 16 tháng 6 năm 1960, lực lượng vũ trang cách mạng đã bí mật phục kích thành công tại cầu Cái Sơn (Song Phú, Tam Bình, Vĩnh Long)."
+      },
+      {
+        question: "Tên chỉ huy đầu sỏ khét tiếng nào của đối phương đã bị tiêu diệt trong trận đánh?",
+        options: [
+          "Tướng Dương Văn Minh",
+          "Tỉnh trưởng Khưu Văn Ba",
+          "Cố vấn Ngô Đình Nhu",
+          "Đại sứ Nolting"
+        ],
+        correct: 1,
+        explanation: "Đại tá Khưu Văn Ba – Tỉnh trưởng Vĩnh Long của chính quyền Ngô Đình Diệm – đã bị tiêu diệt ngay trên chiếc xe Jeep dẫn đầu."
+      },
+      {
+        question: "Ý nghĩa nổi bật nhất của Chiến thắng Cái Sơn đối với phong trào cách mạng miền Nam là gì?",
+        options: [
+          "Kết thúc hoàn toàn chiến dịch Hồ Chí Minh",
+          "Tiêu diệt tên Tỉnh trưởng đầu tiên của chính quyền Sài Gòn, mở toang thế trận Đồng Khởi",
+          "Buộc quân đội Mỹ rút toàn bộ cố vấn quân sự",
+          "Giải phóng toàn bộ các đô thị lớn tại miền Tây"
+        ],
+        correct: 1,
+        explanation: "Khưu Văn Ba là tên Tỉnh trưởng đầu tiên bị đền tội tại chiến trường Nam Bộ, làm rung chuyển hệ thống tề ngụy và cổ vũ phong trào Đồng Khởi."
+      }
+    ];
+
+    let currentQ = 0;
+    let quizScore = 0;
+
+    btnGoToQuiz.addEventListener('click', () => {
+      modalImpact.classList.add('hidden');
+      modalQuiz.classList.remove('hidden');
+      currentQ = 0;
+      quizScore = 0;
+      loadQuizQuestion();
+    });
+
+    const quizProgressText = document.getElementById('quiz-progress-text');
+    const quizScoreText = document.getElementById('quiz-score-text');
+    const quizPrompt = document.getElementById('quiz-prompt');
+    const quizOptionsList = document.getElementById('quiz-options-list');
+    const quizExplanation = document.getElementById('quiz-explanation');
+    const btnNextQuestion = document.getElementById('btn-next-question');
+    const quizQuestionBox = document.getElementById('quiz-question-box');
+    const quizVictoryBox = document.getElementById('quiz-victory-box');
+    const finalScoreDisplay = document.getElementById('final-score-display');
+    const btnReplayGame = document.getElementById('btn-replay-game');
+
+    function loadQuizQuestion() {
+      const q = quizDatabase[currentQ];
+      quizProgressText.textContent = `CÂU HỎI ${currentQ + 1} / ${quizDatabase.length}`;
+      quizScoreText.textContent = `ĐIỂM: ${quizScore}`;
+      quizPrompt.textContent = q.question;
+      quizExplanation.classList.add('hidden');
+      btnNextQuestion.classList.add('hidden');
+      quizOptionsList.innerHTML = '';
+
+      const letters = ['A', 'B', 'C', 'D'];
+      q.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = "w-full text-left p-3.5 rounded-xl border border-white/15 bg-white/5 hover:bg-caison-gold/20 hover:border-caison-gold text-sm font-semibold transition flex items-center gap-3";
+        btn.innerHTML = `<span class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold text-caison-gold">${letters[idx]}</span> <span>${opt}</span>`;
+        btn.addEventListener('click', () => selectQuizAnswer(idx, q.correct, q.explanation));
+        quizOptionsList.appendChild(btn);
+      });
+    }
+
+    function selectQuizAnswer(selectedIdx, correctIdx, explanation) {
+      const allBtns = quizOptionsList.querySelectorAll('button');
+      allBtns.forEach(b => b.disabled = true);
+      quizExplanation.classList.remove('hidden');
+
+      if (selectedIdx === correctIdx) {
+        quizScore += 100;
+        quizScoreText.textContent = `ĐIỂM: ${quizScore}`;
+        allBtns[selectedIdx].className = "w-full text-left p-3.5 rounded-xl border-2 border-green-500 bg-green-950/60 text-green-300 font-bold text-sm flex items-center gap-3";
+        quizExplanation.innerHTML = `<b class="text-green-400">✓ CHÍNH XÁC!</b> ${explanation}`;
+        playTone(600, 0.2);
+      } else {
+        allBtns[selectedIdx].className = "w-full text-left p-3.5 rounded-xl border-2 border-red-500 bg-red-950/60 text-red-300 text-sm flex items-center gap-3";
+        allBtns[correctIdx].className = "w-full text-left p-3.5 rounded-xl border-2 border-green-500 bg-green-950/60 text-green-300 font-bold text-sm flex items-center gap-3";
+        quizExplanation.innerHTML = `<b class="text-red-400">✗ CHƯA CHÍNH XÁC!</b> ${explanation}`;
+        playTone(200, 0.35, 'sawtooth');
+      }
+
+      btnNextQuestion.classList.remove('hidden');
+      if (currentQ === quizDatabase.length - 1) {
+        btnNextQuestion.textContent = "XEM KẾT QUẢ & HUY HIỆU ➔";
+      } else {
+        btnNextQuestion.textContent = "CÂU TIẾP THEO ➔";
+      }
+    }
+
+    btnNextQuestion.addEventListener('click', () => {
+      currentQ++;
+      if (currentQ < quizDatabase.length) {
+        loadQuizQuestion();
+      } else {
+        showVictoryBadge();
+      }
+    });
+
+    function showVictoryBadge() {
+      quizQuestionBox.classList.add('hidden');
+      quizVictoryBox.classList.remove('hidden');
+      finalScoreDisplay.textContent = `TỔNG ĐIỂM: ${quizScore} / 300`;
+
+      playTone(523.25, 0.15);
+      setTimeout(() => playTone(659.25, 0.15), 160);
+      setTimeout(() => playTone(783.99, 0.35), 320);
+    }
+
+    btnReplayGame.addEventListener('click', () => {
+      location.reload();
+    });
+  </script>
+</body>
+</html>

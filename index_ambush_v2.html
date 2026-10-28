@@ -1,0 +1,1782 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trận Chiến Cái Sơn 1960 - Phục Kích Tỉnh Trưởng Khưu Văn Ba</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Three.js CDN (r128) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- Cannon.js CDN (0.6.2) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+  <!-- Google Fonts: Inter & Be Vietnam Pro -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Black+Ops+One&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Be Vietnam Pro"', 'sans-serif'],
+            mono: ['"Share Tech Mono"', 'monospace'],
+            military: ['"Black Ops One"', 'sans-serif']
+          },
+          colors: {
+            tactical: {
+              red: '#ef4444',
+              blue: '#3b82f6',
+              green: '#10b981',
+              gold: '#eab308',
+              dark: '#0f172a',
+              hud: 'rgba(15, 23, 42, 0.75)'
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      user-select: none;
+      background-color: #050b14;
+      font-family: 'Be Vietnam Pro', sans-serif;
+    }
+    canvas#game-canvas {
+      width: 100vw;
+      height: 100vh;
+      display: block;
+    }
+    .hud-glass {
+      background: rgba(15, 23, 42, 0.78);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+    .hud-glass-border {
+      border: 1px solid rgba(234, 179, 8, 0.35);
+    }
+    /* Sniper Scope Overlay */
+    #scope-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s ease-in-out;
+      background: radial-gradient(circle at center, transparent 38%, rgba(0,0,0,0.95) 75%);
+    }
+    #scope-overlay.active {
+      opacity: 1;
+    }
+    /* Crosshairs */
+    .crosshair-line {
+      position: absolute;
+      background: rgba(239, 68, 68, 0.85);
+      box-shadow: 0 0 6px rgba(239, 68, 68, 0.8);
+    }
+  </style>
+</head>
+<body class="relative w-screen h-screen">
+
+  <!-- 3D Canvas -->
+  <canvas id="game-canvas"></canvas>
+
+  <!-- ================= SNIPER SCOPE OVERLAY ================= -->
+  <div id="scope-overlay" class="flex items-center justify-center">
+    <!-- Reticle Circle -->
+    <div class="relative w-96 h-96 rounded-full border-2 border-red-500/60 flex items-center justify-center">
+      <div class="absolute w-full h-[1px] bg-red-500/70"></div>
+      <div class="absolute h-full w-[1px] bg-red-500/70"></div>
+      <div class="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_#ef4444]"></div>
+      <!-- Range ticks -->
+      <div class="absolute top-8 text-[10px] font-mono text-red-400">100m</div>
+      <div class="absolute top-16 text-[10px] font-mono text-red-400">200m</div>
+      <div class="absolute top-28 text-[10px] font-mono text-red-400">300m</div>
+      <div class="absolute bottom-6 text-[11px] font-mono text-red-400 font-bold tracking-wider">K-44 SCOPE 4x</div>
+    </div>
+  </div>
+
+  <!-- Center Crosshair (TPP normal) -->
+  <div id="tpp-crosshair" class="absolute inset-0 pointer-events-none flex items-center justify-center">
+    <div class="relative w-7 h-7 flex items-center justify-center">
+      <div class="w-1.5 h-1.5 rounded-full bg-yellow-400/90 shadow-[0_0_6px_#facc15]"></div>
+      <div class="absolute top-0 w-0.5 h-2 bg-yellow-400/70"></div>
+      <div class="absolute bottom-0 w-0.5 h-2 bg-yellow-400/70"></div>
+      <div class="absolute left-0 w-2 h-0.5 bg-yellow-400/70"></div>
+      <div class="absolute right-0 w-2 h-0.5 bg-yellow-400/70"></div>
+    </div>
+  </div>
+
+  <!-- ================= HUD UI OVERLAY ================= -->
+
+  <!-- TOP-LEFT: HP & STAMINA BARS + AVATAR -->
+  <div class="absolute top-5 left-5 pointer-events-auto flex items-center gap-3 select-none">
+    <!-- Avatar Guerrilla Fighter -->
+    <div class="relative w-16 h-16 rounded-xl overflow-hidden border-2 border-amber-500/80 shadow-lg bg-slate-900/90 flex items-center justify-center">
+      <img src="ut_hoa_portrait.jpg" alt="Út Hoa" class="w-full h-full object-cover" onerror="this.src=''; this.parentElement.innerHTML='<i class=\'fa-solid fa-user-ninja text-2xl text-amber-400\'></i>'">
+      <div class="absolute bottom-0 inset-x-0 bg-amber-600/90 text-white text-[9px] font-bold text-center py-0.5 tracking-wider uppercase">DU KÍCH</div>
+    </div>
+    <!-- Bars Container -->
+    <div class="hud-glass rounded-xl p-3 min-w-[210px] border border-white/10 shadow-xl flex flex-col gap-2">
+      <!-- Player Name & Level -->
+      <div class="flex items-center justify-between text-xs text-slate-300 font-bold">
+        <span class="flex items-center gap-1.5 text-amber-400">
+          <i class="fa-solid fa-shield-halved text-xs"></i> CHIẾN SĨ ÚT HOA
+        </span>
+        <span class="text-[10px] font-mono bg-slate-800/80 px-1.5 py-0.5 rounded text-amber-300 border border-amber-500/30">CÁI SƠN 1960</span>
+      </div>
+      <!-- HP Bar -->
+      <div class="space-y-1">
+        <div class="flex justify-between text-[11px] font-mono font-bold leading-none">
+          <span class="text-red-400 flex items-center gap-1"><i class="fa-solid fa-heart text-[10px]"></i> HP</span>
+          <span id="hp-text" class="text-slate-200">100 / 100</span>
+        </div>
+        <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden border border-red-500/30">
+          <div id="hp-bar" class="h-full bg-gradient-to-r from-red-600 to-red-400 w-full transition-all duration-300"></div>
+        </div>
+      </div>
+      <!-- Stamina Bar -->
+      <div class="space-y-1">
+        <div class="flex justify-between text-[11px] font-mono font-bold leading-none">
+          <span class="text-blue-400 flex items-center gap-1"><i class="fa-solid fa-bolt text-[10px]"></i> STAMINA</span>
+          <span id="stamina-text" class="text-slate-200">100 / 100</span>
+        </div>
+        <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden border border-blue-500/30">
+          <div id="stamina-bar" class="h-full bg-gradient-to-r from-blue-600 to-cyan-400 w-full transition-all duration-100"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOP-CENTER: HISTORICAL CLOCK & LOCATION -->
+  <div class="absolute top-5 inset-x-0 mx-auto w-fit pointer-events-none flex flex-col items-center">
+    <div class="hud-glass px-4 py-1.5 rounded-full border border-amber-500/40 flex items-center gap-3 text-slate-200 shadow-xl">
+      <span class="flex items-center gap-1.5 text-amber-400 text-xs font-bold font-military tracking-wider">
+        <i class="fa-regular fa-clock text-sm"></i> <span id="game-clock">16:14:48</span>
+      </span>
+      <span class="text-slate-600">|</span>
+      <span class="text-xs text-slate-300 font-semibold tracking-wide flex items-center gap-1.5">
+        <i class="fa-solid fa-location-dot text-red-500"></i> Cầu Cái Sơn, Song Phú, Vĩnh Long
+      </span>
+    </div>
+    <!-- Ambush Alert Banner (hidden by default) -->
+    <div id="ambush-alert" class="mt-2 hidden px-5 py-1.5 rounded-lg bg-red-600/90 text-white font-military text-sm uppercase tracking-widest animate-pulse border-2 border-yellow-400 shadow-[0_0_20px_rgba(239,68,68,0.8)]">
+      ⚠️ ĐOÀN XE ĐÃ VÀO TẦM NGẮM! NỔ SÚNG PHỤC KÍCH!
+    </div>
+  </div>
+
+  <!-- TOP-RIGHT: CIRCULAR RADAR / MINI-MAP -->
+  <div class="absolute top-5 right-5 pointer-events-auto flex flex-col items-end select-none">
+    <div class="relative w-44 h-44 rounded-full p-1 hud-glass border-2 border-emerald-500/60 shadow-[0_0_25px_rgba(16,185,129,0.25)] flex items-center justify-center overflow-hidden">
+      <!-- Radar canvas -->
+      <canvas id="radar-canvas" width="160" height="160" class="rounded-full bg-slate-950/90"></canvas>
+      <!-- Radar sweep line overlay -->
+      <div class="absolute inset-0 rounded-full border border-emerald-500/20 pointer-events-none"></div>
+      <!-- Compass Points -->
+      <div class="absolute top-1 text-[10px] font-mono font-black text-emerald-400">N</div>
+      <div class="absolute bottom-1 text-[10px] font-mono font-black text-emerald-400">S</div>
+      <div class="absolute left-1.5 text-[10px] font-mono font-black text-emerald-400">W</div>
+      <div class="absolute right-1.5 text-[10px] font-mono font-black text-emerald-400">E</div>
+    </div>
+    <!-- Legend -->
+    <div class="mt-2 flex items-center gap-3 text-[10px] font-mono text-slate-300 hud-glass px-2.5 py-1 rounded-md border border-white/10">
+      <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Ta</span>
+      <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span> Đoàn xe địch</span>
+      <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400"></span> Điểm hẹn</span>
+    </div>
+  </div>
+
+  <!-- BOTTOM-LEFT: AMMO COUNTER & WEAPON STATUS -->
+  <div class="absolute bottom-5 left-5 pointer-events-auto flex items-end gap-3 select-none">
+    <div class="hud-glass rounded-xl p-3.5 border border-white/10 shadow-xl flex items-center gap-4">
+      <!-- Rifle Graphic / Icon -->
+      <div class="flex flex-col items-center">
+        <i class="fa-solid fa-crosshairs text-2xl text-amber-400"></i>
+        <span class="text-[9px] font-mono text-slate-400 mt-1 uppercase font-bold">K-44 Carbin</span>
+      </div>
+      <div class="h-10 w-[1px] bg-slate-700"></div>
+      <!-- Ammo numbers -->
+      <div class="flex flex-col">
+        <span class="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-wider">CỠ ĐẠN 7.62mm</span>
+        <div class="flex items-baseline gap-1.5">
+          <span id="mag-ammo" class="text-3xl font-military text-amber-400 leading-none">5</span>
+          <span class="text-lg font-mono text-slate-500">/</span>
+          <span id="reserve-ammo" class="text-base font-mono text-slate-300 font-semibold">35</span>
+        </div>
+        <div id="reload-hint" class="text-[10px] text-amber-300 font-bold mt-0.5 hidden animate-pulse">
+          [R] NẠP ĐẠN
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls quick-tip badge -->
+    <div class="hud-glass px-3.5 py-2.5 rounded-xl text-[11px] text-slate-300 flex flex-col gap-1 border border-white/10 font-mono shadow-lg">
+      <span><b class="text-amber-400">WASD</b>: Chạy & Di chuyển (Shift: Nước rút)</span>
+      <span><b class="text-amber-400">Di chuột / Kéo chuột</b>: Xoay góc nhìn 360°</span>
+      <span><b class="text-amber-400">Cuộn chuột</b>: Thu phóng khoảng cách Camera</span>
+      <span><b class="text-amber-400">Chuột Phải / Phím Q</b>: Ngắm bắn Sniper 4x</span>
+      <span><b class="text-amber-400">Chuột Trái</b>: Bắn súng phục kích</span>
+    </div>
+  </div>
+
+  <!-- BOTTOM-RIGHT: MISSION OBJECTIVE BOX -->
+  <div class="absolute bottom-5 right-5 pointer-events-auto select-none max-w-sm">
+    <div class="hud-glass hud-glass-border rounded-xl p-4 shadow-2xl border-l-4 border-l-amber-500">
+      <div class="flex items-center justify-between mb-1.5">
+        <div class="flex items-center gap-2 text-xs font-military tracking-wider text-amber-400">
+          <i class="fa-solid fa-bullseye text-sm"></i> MỤC TIÊU CHIẾN DỊCH
+        </div>
+        <span id="obj-dist-badge" class="text-[11px] font-mono bg-red-950/80 border border-red-500/50 px-2 py-0.5 rounded text-red-300 font-bold">
+          185m Phía Trước
+        </span>
+      </div>
+      <h3 class="text-sm font-bold text-white mb-1 leading-snug">
+        Phục kích đoàn xe Tỉnh trưởng Khưu Văn Ba
+      </h3>
+      <p class="text-xs text-slate-300 leading-relaxed">
+        Chi viện cho cao trào <span class="text-amber-300 font-semibold">"Diệt ác phá kềm"</span>. Giữ vị trí bí mật sau lùm dừa nước, chờ đoàn xe đến điểm thắt cổ chai Cái Sơn (16:15) rồi nổ súng!
+      </p>
+      <!-- Target Convoy status indicator -->
+      <div class="mt-3 pt-2.5 border-t border-slate-700/60 flex items-center justify-between text-[11px] font-mono">
+        <span class="text-slate-400">Mục tiêu chỉ huy:</span>
+        <span id="target-status" class="text-amber-400 font-bold flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> Đang di chuyển trên lộ
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= INSTRUCTION BRIEFING OVERLAY (GAME START) ================= -->
+  <div id="briefing-modal" class="absolute inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
+    <div class="hud-glass max-w-2xl w-full rounded-2xl p-6 md:p-8 border border-amber-500/40 shadow-[0_0_50px_rgba(234,179,8,0.2)]">
+      <div class="flex items-center gap-3 text-amber-400 mb-3">
+        <i class="fa-solid fa-star text-2xl text-yellow-400"></i>
+        <span class="text-xs font-military tracking-widest uppercase">Mật Lệnh Tác Chiến Quân Khu 8 & Tỉnh Ủy Vĩnh Long</span>
+      </div>
+      <h1 class="text-2xl md:text-3xl font-black text-white mb-3 tracking-wide">
+        TRẬN PHỤC KÍCH CÁI SƠN (16/06/1960)
+      </h1>
+      <p class="text-slate-300 text-sm md:text-base leading-relaxed mb-4">
+        Đồng chí <strong class="text-amber-300">Út Hoa</strong> cùng phân đội nữ du kích Cái Sơn nhận nhiệm vụ phục kích đoàn xe của tên ác ôn đầu sỏ <strong class="text-red-400">Khưu Văn Ba</strong> (Tỉnh trưởng Vĩnh Long khét tiếng gian ác).
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+        <div class="bg-slate-900/80 border border-slate-700 rounded-xl p-3">
+          <div class="text-xs font-mono text-amber-400 font-bold mb-1">THỜI GIAN & ĐỊA ĐIỂM</div>
+          <div class="text-sm text-slate-200">16 giờ 15 phút, ngày 16/06/1960</div>
+          <div class="text-xs text-slate-400">Lộ Cái Sơn, xã Song Phú, huyện Tam Bình</div>
+        </div>
+        <div class="bg-slate-900/80 border border-slate-700 rounded-xl p-3">
+          <div class="text-xs font-mono text-red-400 font-bold mb-1">MỤC TIÊU TIÊU DIỆT</div>
+          <div class="text-sm text-slate-200">1 Xe Jeep Chỉ huy + 2 Xe tải lính hộ tống</div>
+          <div class="text-xs text-slate-400">Bắn chuẩn xác vào xe Jeep đi đầu để chặn đường</div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-2 border-t border-slate-700">
+        <div class="text-xs text-slate-400 font-mono">
+          <i class="fa-solid fa-gamepad text-amber-400 mr-1"></i> Sử dụng <b>WASD</b> để chạy, <b>Chuột Phải</b> ngắm, <b>Chuột Trái</b> bắn.
+        </div>
+        <button id="start-btn" class="px-6 py-2.5 bg-gradient-to-r from-amber-600 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-slate-950 font-black tracking-wider rounded-xl uppercase shadow-lg shadow-amber-500/30 transition-all hover:scale-105 active:scale-95 flex items-center gap-2">
+          <span>VÀO TRẬN ĐỊA</span> <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= HISTORICAL VICTORY & EDUCATIONAL MODAL ================= -->
+  <div id="victory-modal" class="absolute inset-0 bg-slate-950/85 backdrop-blur-md hidden items-center justify-center z-50 p-4">
+    <div class="hud-glass max-w-2xl w-full rounded-2xl p-6 md:p-8 border-2 border-amber-500 shadow-[0_0_60px_rgba(234,179,8,0.35)] max-h-[90vh] overflow-y-auto">
+      <!-- Header -->
+      <div class="text-center mb-5">
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-amber-500/20 text-yellow-400 text-3xl mb-2 border border-yellow-400/50 shadow-[0_0_20px_#facc15]">
+          <i class="fa-solid fa-trophy"></i>
+        </div>
+        <h2 class="text-2xl md:text-3xl font-black text-yellow-400 tracking-wide font-military uppercase">
+          CHIẾN THẮNG HUY HOÀNG CÁI SƠN!
+        </h2>
+        <p class="text-xs md:text-sm text-slate-300 font-mono mt-1">
+          Tiêu diệt hoàn toàn Tỉnh trưởng Khưu Văn Ba & đoàn tùy tùng (16:15 - 16/06/1960)
+        </p>
+      </div>
+
+      <!-- Historical Impact Box -->
+      <div class="bg-gradient-to-br from-amber-950/40 to-slate-900/80 border border-amber-500/40 rounded-xl p-4 mb-5 text-sm text-slate-200 leading-relaxed space-y-2">
+        <div class="text-amber-400 font-bold text-xs uppercase font-mono flex items-center gap-1.5">
+          <i class="fa-solid fa-landmark"></i> Ý Nghĩa Lịch Sử Trận Đánh Cái Sơn:
+        </div>
+        <p>
+          🎯 <strong>Đòn giáng sấm sét:</strong> Khưu Văn Ba là tên tay sai đắc lực khét tiếng gian ác của chính quyền Ngô Đình Diệm tại Vĩnh Long. Việc ta tiêu diệt Ba ngay giữa ban ngày trên tuyến giao thông huyết mạch đã khiến ngụy quyền tỉnh Vĩnh Long và toàn miền Tây Nam Bộ chấn động kinh hoàng.
+        </p>
+        <p>
+          🚩 <strong>Cổ vũ cao trào Đồng Khởi:</strong> Chiến thắng này đập tan âm mưu dồn dân lập "Khu trù mật" và mạng lưới đồn bốt kìm kẹp, mở đường cho phong trào vũ trang nổi dậy đồng loạt khắp tỉnh Vĩnh Long và Đồng bằng sông Cửu Long cuối năm 1960.
+        </p>
+      </div>
+
+      <!-- Interactive Quiz Section -->
+      <div id="quiz-section" class="space-y-4 mb-6">
+        <div class="text-xs font-mono text-amber-300 font-bold uppercase flex items-center justify-between">
+          <span><i class="fa-solid fa-graduation-cap"></i> CÂU HỎI LỊCH SỬ NHẬN THƯỞNG:</span>
+          <span id="quiz-progress" class="text-slate-400 font-normal">Câu 1/2</span>
+        </div>
+        <div id="quiz-question-box" class="bg-slate-900/90 border border-slate-700 rounded-xl p-4">
+          <p id="quiz-q" class="text-sm font-semibold text-white mb-3">
+            Đoàn xe của Tỉnh trưởng Khưu Văn Ba bị phục kích tiêu diệt vào ngày tháng năm nào?
+          </p>
+          <div id="quiz-options" class="grid grid-cols-1 gap-2">
+            <!-- options will be injected -->
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-3 border-t border-slate-700">
+        <div id="quiz-feedback" class="text-xs font-semibold text-emerald-400">
+          Chúc mừng đồng chí đã hoàn thành xuất sắc nhiệm vụ!
+        </div>
+        <button id="replay-btn" class="px-5 py-2.5 bg-gradient-to-r from-amber-600 to-yellow-500 text-slate-950 font-black rounded-xl uppercase text-xs tracking-wider shadow-md hover:scale-105 transition-all flex items-center gap-2">
+          <i class="fa-solid fa-rotate-right"></i> CHƠI LẠI TRẬN ĐÁNH
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Damage Flash Overlay -->
+  <div id="damage-overlay" class="absolute inset-0 pointer-events-none opacity-0 transition-opacity duration-200 bg-red-600/40 z-40"></div>
+
+  <!-- ================= MISSION FAILED MODAL ================= -->
+  <div id="defeat-modal" class="absolute inset-0 bg-slate-950/85 backdrop-blur-md hidden items-center justify-center z-50 p-4">
+    <div class="hud-glass max-w-lg w-full rounded-2xl p-6 md:p-8 border-2 border-red-500 shadow-[0_0_60px_rgba(239,68,68,0.35)] text-center">
+      <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-red-500/20 text-red-400 text-3xl mb-3 border border-red-400/50 shadow-[0_0_20px_#ef4444]">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <h2 id="defeat-title" class="text-2xl font-black text-red-400 tracking-wide font-military uppercase mb-2">
+        NHIỆM VỤ THẤT BẠI
+      </h2>
+      <p id="defeat-desc" class="text-sm text-slate-300 mb-6 leading-relaxed">
+        Đoàn xe của Tỉnh trưởng Khưu Văn Ba đã vượt thoát qua cầu Cái Sơn! Hãy nấp kỹ vào vị trí mai phục và đón lõng nổ súng đúng lúc xe lên cầu (16:15)!
+      </p>
+      <button id="retry-btn" class="px-6 py-2.5 bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-black rounded-xl uppercase text-xs tracking-wider shadow-lg transition-all hover:scale-105 active:scale-95 inline-flex items-center gap-2">
+        <i class="fa-solid fa-rotate-right"></i> THỬ LẠI TRẬN ĐÁNH
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= JAVASCRIPT GAME ENGINE ================= -->
+  <script>
+    /* ==========================================================================
+       1. PROCEDURAL SOUND SYNTHESIZER (Web Audio API)
+       ========================================================================== */
+    class ProceduralAudio {
+      constructor() {
+        this.ctx = null;
+      }
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      playRifleShot() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        // 1. Noise burst (muzzle blast)
+        const bufferSize = this.ctx.sampleRate * 0.4;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.05));
+        }
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(3200, now);
+        filter.frequency.exponentialRampToValueAtTime(180, now + 0.35);
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(1.0, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.38);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+        noise.start(now);
+
+        // 2. Low thump
+        const osc = this.ctx.createOscillator();
+        const oscGain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.exponentialRampToValueAtTime(30, now + 0.25);
+
+        oscGain.gain.setValueAtTime(0.8, now);
+        oscGain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+
+        osc.connect(oscGain);
+        oscGain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.26);
+      }
+
+      playReload() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(600, now);
+        osc.frequency.setValueAtTime(900, now + 0.1);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.26);
+      }
+
+      playExplosion() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const bufferSize = this.ctx.sampleRate * 1.5;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.4));
+        }
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(800, now);
+        filter.frequency.exponentialRampToValueAtTime(80, now + 1.2);
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(1.5, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 1.4);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+        noise.start(now);
+      }
+
+      playBeep() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, now);
+        osc.frequency.setValueAtTime(1760, now + 0.08);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.22);
+      }
+
+      playHurt() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(120, now);
+        osc.frequency.exponentialRampToValueAtTime(40, now + 0.2);
+        gain.gain.setValueAtTime(0.5, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.26);
+      }
+
+      playFanfare() {
+        if (!this.ctx) return;
+        const notes = [261.63, 329.63, 392.00, 523.25];
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          const start = this.ctx.currentTime + idx * 0.14;
+          osc.type = 'triangle';
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.3, start);
+          gain.gain.exponentialRampToValueAtTime(0.01, start + 0.35);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(start);
+          osc.stop(start + 0.36);
+        });
+      }
+    }
+    const audio = new ProceduralAudio();
+
+    /* ==========================================================================
+       2. THREE.JS 3D SCENE & ASSETS SETUP
+       ========================================================================== */
+    const canvas = document.getElementById('game-canvas');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x7ec0ee); // Bright tropical sunny sky
+    scene.fog = new THREE.FogExp2(0x9bd0ee, 0.007);
+
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+    // Dynamic Window Resize
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // Lighting: Warm golden afternoon sunlight (around 16:15)
+    const hemiLight = new THREE.HemisphereLight(0xfff3d6, 0x3d6b35, 0.6);
+    scene.add(hemiLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffe6aa, 1.2);
+    dirLight.position.set(70, 90, 50);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.width = 2048;
+    dirLight.shadow.mapSize.height = 2048;
+    dirLight.shadow.camera.near = 10;
+    dirLight.shadow.camera.far = 250;
+    dirLight.shadow.camera.left = -90;
+    dirLight.shadow.camera.right = 90;
+    dirLight.shadow.camera.top = 90;
+    dirLight.shadow.camera.bottom = -90;
+    dirLight.shadow.bias = -0.0005;
+    scene.add(dirLight);
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.25);
+    scene.add(ambientLight);
+
+    /* ==========================================================================
+       3. LOW-POLY PROCEDURAL ENVIRONMENT (Cái Sơn - Song Phú - Vĩnh Long)
+       ========================================================================== */
+    const materials = {
+      grass: new THREE.MeshLambertMaterial({ color: 0x4f8f3a }),
+      dirtRoad: new THREE.MeshLambertMaterial({ color: 0xb57041 }),
+      water: new THREE.MeshStandardMaterial({ color: 0x2b7a78, roughness: 0.2, metalness: 0.3, transparent: true, opacity: 0.88 }),
+      palmTrunk: new THREE.MeshLambertMaterial({ color: 0x5a3d28 }),
+      palmFrond: new THREE.MeshLambertMaterial({ color: 0x2e7d32, side: THREE.DoubleSide }),
+      thatchRoof: new THREE.MeshLambertMaterial({ color: 0xc8963e }),
+      houseWall: new THREE.MeshLambertMaterial({ color: 0x8d5b4c }),
+      woodBridge: new THREE.MeshLambertMaterial({ color: 0x4a2e18 }),
+      militaryGreen: new THREE.MeshLambertMaterial({ color: 0x3b5323 }),
+      blackRubber: new THREE.MeshLambertMaterial({ color: 0x1a1a1a }),
+      chrome: new THREE.MeshStandardMaterial({ color: 0xdddddd, metalness: 0.8, roughness: 0.2 }),
+      clothBlack: new THREE.MeshLambertMaterial({ color: 0x18181b }),
+      flesh: new THREE.MeshLambertMaterial({ color: 0xe29d74 }),
+      nonLa: new THREE.MeshLambertMaterial({ color: 0xeab308, side: THREE.DoubleSide }),
+      scarf: new THREE.MeshLambertMaterial({ color: 0xf4f4f5 }),
+      rifleWood: new THREE.MeshLambertMaterial({ color: 0x5c3317 }),
+      gunMetal: new THREE.MeshStandardMaterial({ color: 0x27272a, metalness: 0.85, roughness: 0.3 })
+    };
+
+    // Main Ground Terrain
+    const groundGeo = new THREE.PlaneGeometry(350, 450, 32, 32);
+    const ground = new THREE.Mesh(groundGeo, materials.grass);
+    ground.rotation.x = -Math.PI / 2;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    // Winding Dirt Road (Runs along Z-axis with curve)
+    function createRoadMesh() {
+      const roadShape = new THREE.Shape();
+      const points = [];
+      for (let z = -200; z <= 200; z += 5) {
+        // Curve along X
+        const x = Math.sin(z * 0.015) * 12 + 10;
+        points.push(new THREE.Vector3(x, 0.04, z));
+      }
+      const curve = new THREE.CatmullRomCurve3(points);
+      const roadGeo = new THREE.TubeGeometry(curve, 80, 4.5, 6, false);
+      const roadMesh = new THREE.Mesh(roadGeo, materials.dirtRoad);
+      roadMesh.scale.y = 0.05; // Flatten into road strip
+      roadMesh.receiveShadow = true;
+      scene.add(roadMesh);
+      return curve;
+    }
+    const roadCurve = createRoadMesh();
+
+    // Mekong Canal / River (Paralleling the road)
+    const riverGeo = new THREE.PlaneGeometry(28, 450);
+    const river = new THREE.Mesh(riverGeo, materials.water);
+    river.rotation.x = -Math.PI / 2;
+    river.position.set(-18, 0.02, 0);
+    scene.add(river);
+
+    // Rustic Wooden Bridge at Ambush Coordinate (Z = -45)
+    const bridgeGroup = new THREE.Group();
+    const bridgeDeck = new THREE.Mesh(new THREE.BoxGeometry(10, 0.4, 18), materials.woodBridge);
+    bridgeDeck.position.set(10.5, 0.3, -45);
+    bridgeDeck.castShadow = true;
+    bridgeDeck.receiveShadow = true;
+    bridgeGroup.add(bridgeDeck);
+
+    // Bridge posts
+    for (let side of [-4.5, 4.5]) {
+      for (let z = -52; z <= -38; z += 4) {
+        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 2.5, 6), materials.woodBridge);
+        post.position.set(10.5 + side, 0.8, z);
+        post.castShadow = true;
+        bridgeGroup.add(post);
+      }
+      const rail = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.3, 16), materials.woodBridge);
+      rail.position.set(10.5 + side, 1.8, -45);
+      bridgeGroup.add(rail);
+    }
+    scene.add(bridgeGroup);
+
+    // Ambush Checkpoint Beacon (Glowing circle & rotating tactical star at ambush hideout)
+    const ambushBeacon = new THREE.Group();
+    ambushBeacon.position.set(19, 0.05, -42);
+    const beaconRingGeo = new THREE.RingGeometry(2.0, 2.6, 32);
+    const beaconRingMat = new THREE.MeshBasicMaterial({ color: 0xfacc15, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
+    const beaconRing = new THREE.Mesh(beaconRingGeo, beaconRingMat);
+    beaconRing.rotation.x = -Math.PI / 2;
+    ambushBeacon.add(beaconRing);
+
+    const beaconStar = new THREE.Mesh(
+      new THREE.OctahedronGeometry(0.65, 0),
+      new THREE.MeshBasicMaterial({ color: 0xfacc15 })
+    );
+    beaconStar.position.y = 1.6;
+    ambushBeacon.add(beaconStar);
+    scene.add(ambushBeacon);
+
+    // Comrade Guerrillas (Quân ta mai phục sẵn hai bên bờ rạch)
+    const comrades = [];
+    function spawnComrade(x, z, rotY, hasFlag = false) {
+      const g = new THREE.Group();
+      g.position.set(x, 0, z);
+      g.rotation.y = rotY;
+
+      // Torso in black
+      const torso = new THREE.Mesh(new THREE.BoxGeometry(0.75, 1.0, 0.45), materials.clothBlack);
+      torso.position.y = 1.3;
+      torso.castShadow = true;
+      g.add(torso);
+
+      // Scarf
+      const sc = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.2, 0.5), materials.scarf);
+      sc.position.y = 1.75;
+      g.add(sc);
+
+      // Head + Nón Lá
+      const head = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.45, 0.42), materials.flesh);
+      head.position.y = 1.95;
+      g.add(head);
+
+      const non = new THREE.Mesh(new THREE.ConeGeometry(0.85, 0.4, 12), materials.nonLa);
+      non.position.y = 2.25;
+      g.add(non);
+
+      // Rifle
+      const gun = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.15, 1.4), materials.rifleWood);
+      gun.position.set(0.4, 1.3, 0.3);
+      gun.rotation.x = -Math.PI / 6;
+      g.add(gun);
+
+      if (hasFlag) {
+        // Red-Blue National Liberation Front flag with gold star
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 3.5, 6), materials.rifleWood);
+        pole.position.set(-0.4, 1.75, 0);
+        g.add(pole);
+
+        const flagTop = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.5), new THREE.MeshBasicMaterial({ color: 0xef4444, side: THREE.DoubleSide }));
+        flagTop.position.set(-1.1, 3.1, 0);
+        g.add(flagTop);
+
+        const flagBottom = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.5), new THREE.MeshBasicMaterial({ color: 0x2563eb, side: THREE.DoubleSide }));
+        flagBottom.position.set(-1.1, 2.6, 0);
+        g.add(flagBottom);
+
+        const goldStar = new THREE.Mesh(new THREE.CircleGeometry(0.2, 5), new THREE.MeshBasicMaterial({ color: 0xfacc15, side: THREE.DoubleSide }));
+        goldStar.position.set(-1.1, 2.85, 0.01);
+        g.add(goldStar);
+      }
+
+      // Hide initially behind palm bushes (crouched)
+      g.scale.set(0.85, 0.4, 0.85);
+      g.visible = false;
+      scene.add(g);
+      comrades.push(g);
+    }
+    spawnComrade(22, -38, -Math.PI * 0.4, true); // Flag bearer
+    spawnComrade(20, -48, -Math.PI * 0.6, false);
+    spawnComrade(-6, -42, Math.PI * 0.4, false); // West bank
+    spawnComrade(-8, -47, Math.PI * 0.5, false);
+
+    // Procedural Nipa Palm Trees (Dừa Nước)
+    function createNipaPalm(x, z, scale = 1) {
+      const palmGroup = new THREE.Group();
+      palmGroup.position.set(x, 0, z);
+      palmGroup.scale.set(scale, scale, scale);
+
+      // Fronds spreading out from ground center
+      const numFronds = 9;
+      for (let i = 0; i < numFronds; i++) {
+        const angle = (i / numFronds) * Math.PI * 2 + Math.random() * 0.2;
+        const length = 4.5 + Math.random() * 1.5;
+        const frondGroup = new THREE.Group();
+        frondGroup.rotation.y = angle;
+
+        // Curved spine
+        const frondGeo = new THREE.CylinderGeometry(0.06, 0.16, length, 5);
+        const frondSpine = new THREE.Mesh(frondGeo, materials.palmTrunk);
+        frondSpine.position.set(0, length * 0.4, length * 0.3);
+        frondSpine.rotation.x = Math.PI / 4 + (Math.random() * 0.1);
+        frondSpine.castShadow = true;
+        frondGroup.add(frondSpine);
+
+        // Leaves (segmented low poly planes)
+        for (let l = 1; l < length; l += 0.7) {
+          const leafW = Math.sin((l / length) * Math.PI) * 1.4;
+          const leafGeo = new THREE.PlaneGeometry(leafW, 0.6);
+          const leaf = new THREE.Mesh(leafGeo, materials.palmFrond);
+          leaf.position.set(0, l * 0.6, l * 0.5);
+          leaf.rotation.x = Math.PI / 4;
+          leaf.rotation.z = Math.PI / 2;
+          leaf.castShadow = true;
+          frondGroup.add(leaf);
+        }
+        palmGroup.add(frondGroup);
+      }
+      scene.add(palmGroup);
+    }
+
+    // Spawn Palm groves along river and ambush tree lines
+    for (let z = -180; z < 180; z += 12) {
+      createNipaPalm(-8 + (Math.random() * 4 - 2), z, 0.9 + Math.random() * 0.3);
+      createNipaPalm(-28 + (Math.random() * 6 - 3), z + 4, 1.0 + Math.random() * 0.4);
+      // East foliage (ambush hiding zone)
+      if (Math.abs(z - (-45)) > 8) {
+        createNipaPalm(22 + (Math.random() * 8), z, 0.85 + Math.random() * 0.35);
+      }
+    }
+
+    // Traditional Thatched-Roof Houses (Nhà Tranh Vách Đất)
+    function createThatchedHouse(x, z, rotY = 0) {
+      const house = new THREE.Group();
+      house.position.set(x, 0, z);
+      house.rotation.y = rotY;
+
+      // Base walls
+      const walls = new THREE.Mesh(new THREE.BoxGeometry(9, 3.6, 6), materials.houseWall);
+      walls.position.y = 1.8;
+      walls.castShadow = true;
+      walls.receiveShadow = true;
+      house.add(walls);
+
+      // Thatched Roof (Pitched cone/pyramid)
+      const roofGeo = new THREE.ConeGeometry(7, 3.2, 4);
+      const roof = new THREE.Mesh(roofGeo, materials.thatchRoof);
+      roof.position.y = 4.8;
+      roof.rotation.y = Math.PI / 4;
+      roof.scale.set(1.4, 1, 1);
+      roof.castShadow = true;
+      house.add(roof);
+
+      // Doorway & Porch
+      const door = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 2.4), materials.woodBridge);
+      door.position.set(0, 1.2, 3.02);
+      house.add(door);
+
+      // Clay water jar (lu nước)
+      const jar = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.4, 1.2, 8), materials.dirtRoad);
+      jar.position.set(3.5, 0.6, 3.2);
+      jar.castShadow = true;
+      house.add(jar);
+
+      scene.add(house);
+    }
+    createThatchedHouse(32, 20, -Math.PI / 6);
+    createThatchedHouse(36, -90, Math.PI / 5);
+    createThatchedHouse(-45, -30, Math.PI / 3);
+
+    function lerpAngle(from, to, t) {
+      let diff = (to - from) % (Math.PI * 2);
+      if (diff < -Math.PI) diff += Math.PI * 2;
+      if (diff > Math.PI) diff -= Math.PI * 2;
+      return from + diff * t;
+    }
+
+    /* ==========================================================================
+       4. PROCEDURAL 3D GUERRILLA FIGHTER CHARACTER MODEL
+       ========================================================================== */
+    class GuerrillaPlayer {
+      constructor() {
+        this.mesh = new THREE.Group();
+        this.mesh.position.set(20, 0, 8); // Start at guerrilla staging point, 50m from ambush point
+        scene.add(this.mesh);
+
+        // Body hierarchy
+        this.torsoGroup = new THREE.Group();
+        this.mesh.add(this.torsoGroup);
+
+        // Torso (Áo bà ba đen)
+        const torsoGeo = new THREE.BoxGeometry(0.85, 1.15, 0.5);
+        this.torso = new THREE.Mesh(torsoGeo, materials.clothBlack);
+        this.torso.position.y = 1.45;
+        this.torso.castShadow = true;
+        this.torsoGroup.add(this.torso);
+
+        // Khăn Rằn (Checkered Scarf draped over shoulder)
+        const scarfGeo = new THREE.BoxGeometry(0.92, 0.25, 0.56);
+        const scarf = new THREE.Mesh(scarfGeo, materials.scarf);
+        scarf.position.y = 1.95;
+        scarf.castShadow = true;
+        this.torsoGroup.add(scarf);
+
+        // Ammo belt (Dây đạn vắt chéo)
+        const beltGeo = new THREE.BoxGeometry(0.9, 0.12, 0.54);
+        const belt = new THREE.Mesh(beltGeo, materials.dirtRoad);
+        belt.position.y = 1.45;
+        belt.rotation.z = Math.PI / 6;
+        this.torsoGroup.add(belt);
+
+        // Head & Face
+        this.headGroup = new THREE.Group();
+        this.headGroup.position.set(0, 2.15, 0);
+        this.torsoGroup.add(this.headGroup);
+
+        const headGeo = new THREE.BoxGeometry(0.48, 0.52, 0.48);
+        const head = new THREE.Mesh(headGeo, materials.flesh);
+        head.castShadow = true;
+        this.headGroup.add(head);
+
+        // Nón Lá (Conical hat)
+        const nonLaGeo = new THREE.ConeGeometry(0.95, 0.45, 16);
+        const nonLa = new THREE.Mesh(nonLaGeo, materials.nonLa);
+        nonLa.position.set(0, 0.35, 0);
+        nonLa.castShadow = true;
+        this.headGroup.add(nonLa);
+
+        // Left Leg
+        this.leftLeg = new THREE.Group();
+        this.leftLeg.position.set(-0.25, 0.9, 0);
+        this.mesh.add(this.leftLeg);
+        const legGeo = new THREE.BoxGeometry(0.32, 0.9, 0.35);
+        const lMesh = new THREE.Mesh(legGeo, materials.clothBlack);
+        lMesh.position.y = -0.45;
+        lMesh.castShadow = true;
+        this.leftLeg.add(lMesh);
+        // Sandal (Dép lốp)
+        const sandalL = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.1, 0.46), materials.blackRubber);
+        sandalL.position.set(0, -0.9, 0.05);
+        this.leftLeg.add(sandalL);
+
+        // Right Leg
+        this.rightLeg = new THREE.Group();
+        this.rightLeg.position.set(0.25, 0.9, 0);
+        this.mesh.add(this.rightLeg);
+        const rMesh = new THREE.Mesh(legGeo, materials.clothBlack);
+        rMesh.position.y = -0.45;
+        rMesh.castShadow = true;
+        this.rightLeg.add(rMesh);
+        const sandalR = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.1, 0.46), materials.blackRubber);
+        sandalR.position.set(0, -0.9, 0.05);
+        this.rightLeg.add(sandalR);
+
+        // Arms & Rifle
+        this.leftArm = new THREE.Group();
+        this.leftArm.position.set(-0.52, 1.85, 0);
+        this.torsoGroup.add(this.leftArm);
+        const armGeo = new THREE.BoxGeometry(0.25, 0.8, 0.25);
+        const lArmMesh = new THREE.Mesh(armGeo, materials.clothBlack);
+        lArmMesh.position.y = -0.35;
+        lArmMesh.castShadow = true;
+        this.leftArm.add(lArmMesh);
+
+        this.rightArm = new THREE.Group();
+        this.rightArm.position.set(0.52, 1.85, 0);
+        this.torsoGroup.add(this.rightArm);
+        const rArmMesh = new THREE.Mesh(armGeo, materials.clothBlack);
+        rArmMesh.position.y = -0.35;
+        rArmMesh.castShadow = true;
+        this.rightArm.add(rArmMesh);
+
+        // Scoped Historical Rifle (K-44 / Mosin-Nagant Sniper)
+        this.rifleGroup = new THREE.Group();
+        // Wooden stock
+        const stock = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.2, 1.6), materials.rifleWood);
+        stock.castShadow = true;
+        this.rifleGroup.add(stock);
+        // Metal barrel
+        const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.8, 6), materials.gunMetal);
+        barrel.rotation.x = Math.PI / 2;
+        barrel.position.set(0, 0.08, 0.4);
+        barrel.castShadow = true;
+        this.rifleGroup.add(barrel);
+        // Scope
+        const scope = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.6, 8), materials.gunMetal);
+        scope.rotation.x = Math.PI / 2;
+        scope.position.set(0, 0.2, -0.1);
+        scope.castShadow = true;
+        this.rifleGroup.add(scope);
+
+        // Attach rifle to right arm
+        this.rifleGroup.position.set(0, -0.65, 0.4);
+        this.rifleGroup.rotation.x = -Math.PI / 12;
+        this.rightArm.add(this.rifleGroup);
+
+        // Movement State
+        this.speed = 0;
+        this.maxSpeed = 10.0;
+        this.sprintSpeed = 16.5;
+        this.hp = 100;
+        this.stamina = 100;
+        this.isSprinting = false;
+        this.isAiming = false;
+        this.ammoMag = 5;
+        this.ammoReserve = 35;
+        this.walkCycle = 0;
+      }
+
+      update(delta, keys, cameraYaw) {
+        let moveFwd = 0;
+        let moveRgt = 0;
+
+        if (keys['KeyW'] || keys['ArrowUp']) moveFwd += 1;
+        if (keys['KeyS'] || keys['ArrowDown']) moveFwd -= 1;
+        if (keys['KeyD'] || keys['ArrowRight']) moveRgt += 1;
+        if (keys['KeyA'] || keys['ArrowLeft']) moveRgt -= 1;
+
+        const isMoving = (moveFwd !== 0 || moveRgt !== 0);
+
+        // Sprinting mechanics
+        this.isSprinting = (keys['ShiftLeft'] || keys['ShiftRight']) && isMoving && this.stamina > 5;
+        if (this.isSprinting) {
+          this.stamina = Math.max(0, this.stamina - delta * 25);
+        } else {
+          this.stamina = Math.min(100, this.stamina + delta * 18);
+        }
+
+        const currentMaxSpeed = this.isSprinting ? this.sprintSpeed : this.maxSpeed;
+
+        // Camera horizontal forward and right vectors
+        const fwdX = Math.sin(cameraYaw);
+        const fwdZ = -Math.cos(cameraYaw);
+        const rgtX = Math.cos(cameraYaw);
+        const rgtZ = Math.sin(cameraYaw);
+
+        if (isMoving) {
+          const len = Math.hypot(moveFwd, moveRgt);
+          const nFwd = moveFwd / len;
+          const nRgt = moveRgt / len;
+
+          const moveX = fwdX * nFwd + rgtX * nRgt;
+          const moveZ = fwdZ * nFwd + rgtZ * nRgt;
+
+          this.mesh.position.x += moveX * currentMaxSpeed * delta;
+          this.mesh.position.z += moveZ * currentMaxSpeed * delta;
+
+          // Target rotation: character mesh front (+Z) faces movement direction or aim direction
+          const targetRot = this.isAiming ? Math.atan2(fwdX, fwdZ) : Math.atan2(moveX, moveZ);
+          this.mesh.rotation.y = lerpAngle(this.mesh.rotation.y, targetRot, 0.22);
+
+          // Natural procedural limb animation
+          const animSpeed = this.isSprinting ? 16 : 10;
+          this.walkCycle += delta * animSpeed;
+
+          this.leftLeg.rotation.x = Math.sin(this.walkCycle) * 0.75;
+          this.rightLeg.rotation.x = -Math.sin(this.walkCycle) * 0.75;
+          this.leftArm.rotation.x = -Math.sin(this.walkCycle) * 0.6;
+          this.rightArm.rotation.x = Math.sin(this.walkCycle) * 0.4 - (this.isAiming ? 1.0 : 0.2);
+
+          // Torso vertical bounce
+          this.torsoGroup.position.y = Math.abs(Math.sin(this.walkCycle * 2)) * 0.1;
+        } else {
+          if (this.isAiming) {
+            const aimRot = Math.atan2(fwdX, fwdZ);
+            this.mesh.rotation.y = lerpAngle(this.mesh.rotation.y, aimRot, 0.25);
+          }
+
+          // Idle breathing
+          this.walkCycle += delta * 2.5;
+          this.leftLeg.rotation.x = THREE.MathUtils.lerp(this.leftLeg.rotation.x, 0, 0.15);
+          this.rightLeg.rotation.x = THREE.MathUtils.lerp(this.rightLeg.rotation.x, 0, 0.15);
+          this.leftArm.rotation.x = THREE.MathUtils.lerp(this.leftArm.rotation.x, 0, 0.15);
+          this.rightArm.rotation.x = THREE.MathUtils.lerp(this.rightArm.rotation.x, this.isAiming ? -1.2 : 0, 0.2);
+          this.torsoGroup.position.y = Math.sin(this.walkCycle) * 0.03;
+        }
+
+        // Keep character clamped within reasonable map boundaries
+        this.mesh.position.x = Math.max(-50, Math.min(50, this.mesh.position.x));
+        this.mesh.position.z = Math.max(-180, Math.min(180, this.mesh.position.z));
+      }
+    }
+    const player = new GuerrillaPlayer();
+
+    /* ==========================================================================
+       5. 1960s ENEMY MILITARY CONVOY
+       ========================================================================== */
+    class ConvoyVehicle {
+      constructor(type = 'jeep', isLead = false) {
+        this.group = new THREE.Group();
+        this.type = type;
+        this.isLead = isLead;
+        this.wheels = [];
+
+        if (type === 'jeep') {
+          // Willys Jeep Body
+          const body = new THREE.Mesh(new THREE.BoxGeometry(2.3, 1.1, 4.6), materials.militaryGreen);
+          body.position.y = 1.05;
+          body.castShadow = true;
+          this.group.add(body);
+
+          // Hood
+          const hood = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.6, 2.0), materials.militaryGreen);
+          hood.position.set(0, 1.25, -1.3);
+          hood.castShadow = true;
+          this.group.add(hood);
+
+          // Star on hood (Lead car)
+          if (isLead) {
+            const star = new THREE.Mesh(new THREE.CircleGeometry(0.4, 5), materials.clothBlack);
+            star.rotation.x = -Math.PI / 2;
+            star.position.set(0, 1.56, -1.3);
+            this.group.add(star);
+          }
+
+          // Windshield
+          const glass = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.8, 0.1), materials.chrome);
+          glass.position.set(0, 1.85, -0.2);
+          this.group.add(glass);
+
+          // Passenger figures (Khưu Văn Ba with general cap)
+          const driver = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.7, 0.4), materials.militaryGreen);
+          driver.position.set(-0.55, 1.7, 0.3);
+          this.group.add(driver);
+
+          const targetBa = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.7, 0.4), materials.clothBlack);
+          targetBa.position.set(0.55, 1.7, 0.3);
+          // Red target marker ring above Khưu Văn Ba
+          const targetRing = new THREE.Mesh(new THREE.RingGeometry(0.5, 0.7, 16), new THREE.MeshBasicMaterial({ color: 0xef4444, side: THREE.DoubleSide }));
+          targetRing.rotation.x = -Math.PI / 2;
+          targetRing.position.set(0.55, 2.8, 0.3);
+          this.group.add(targetRing);
+          this.targetRing = targetRing;
+
+          this.group.add(targetBa);
+
+          // 4 Wheels
+          const wheelOffsets = [
+            [-1.25, 0.55, 1.3],
+            [1.25, 0.55, 1.3],
+            [-1.25, 0.55, -1.3],
+            [1.25, 0.55, -1.3]
+          ];
+          wheelOffsets.forEach(([wx, wy, wz]) => {
+            const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.45, 12), materials.blackRubber);
+            wheel.rotation.z = Math.PI / 2;
+            wheel.position.set(wx, wy, wz);
+            wheel.castShadow = true;
+            this.group.add(wheel);
+            this.wheels.push(wheel);
+          });
+        } else {
+          // Escort GMC Truck
+          const cab = new THREE.Mesh(new THREE.BoxGeometry(2.8, 2.2, 2.8), materials.militaryGreen);
+          cab.position.set(0, 1.7, -2.4);
+          cab.castShadow = true;
+          this.group.add(cab);
+
+          const cargo = new THREE.Mesh(new THREE.BoxGeometry(2.9, 2.0, 5.8), materials.thatchRoof);
+          cargo.position.set(0, 2.0, 1.8);
+          cargo.castShadow = true;
+          this.group.add(cargo);
+
+          // 6 Wheels
+          const truckWheelOffsets = [
+            [-1.5, 0.7, -2.4], [1.5, 0.7, -2.4],
+            [-1.5, 0.7, 1.5], [1.5, 0.7, 1.5],
+            [-1.5, 0.7, 3.2], [1.5, 0.7, 3.2]
+          ];
+          truckWheelOffsets.forEach(([wx, wy, wz]) => {
+            const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 0.55, 12), materials.blackRubber);
+            wheel.rotation.z = Math.PI / 2;
+            wheel.position.set(wx, wy, wz);
+            wheel.castShadow = true;
+            this.group.add(wheel);
+            this.wheels.push(wheel);
+          });
+        }
+
+        scene.add(this.group);
+      }
+    }
+
+    const convoy = {
+      leadJeep: new ConvoyVehicle('jeep', true),
+      truck1: new ConvoyVehicle('truck', false),
+      truck2: new ConvoyVehicle('truck', false),
+      curveT: 0.10, // Starts at z ≈ -160
+      speed: 0.011, // Smooth cinematic approach
+      isDestroyed: false
+    };
+
+    const GAME_STATES = {
+      MOVE_TO_AMBUSH: 'MOVE_TO_AMBUSH',
+      WAIT_FOR_CONVOY: 'WAIT_FOR_CONVOY',
+      KILL_ZONE: 'KILL_ZONE',
+      FIREFIGHT: 'FIREFIGHT',
+      VICTORY: 'VICTORY',
+      FAILED: 'FAILED'
+    };
+    let currentGameState = GAME_STATES.MOVE_TO_AMBUSH;
+    let firefightTimer = 0;
+
+    /* ==========================================================================
+       6. PARTICLE EXPLOSION & SMOKE ENGINE
+       ========================================================================== */
+    class ParticleExplosion {
+      constructor() {
+        this.particles = [];
+        const geo = new THREE.DodecahedronGeometry(0.6, 1);
+        this.matFire = new THREE.MeshBasicMaterial({ color: 0xff4500 });
+        this.matSmoke = new THREE.MeshLambertMaterial({ color: 0x222222, transparent: true, opacity: 0.85 });
+      }
+
+      spawn(pos, count = 45) {
+        for (let i = 0; i < count; i++) {
+          const isSmoke = i > 18;
+          const p = new THREE.Mesh(new THREE.SphereGeometry(0.4 + Math.random() * 0.7, 5, 5), isSmoke ? this.matSmoke : this.matFire);
+          p.position.copy(pos);
+          p.position.x += (Math.random() - 0.5) * 2;
+          p.position.z += (Math.random() - 0.5) * 2;
+          p.userData = {
+            velocity: new THREE.Vector3(
+              (Math.random() - 0.5) * 16,
+              Math.random() * 18 + 4,
+              (Math.random() - 0.5) * 16
+            ),
+            life: 1.0,
+            decay: Math.random() * 0.6 + 0.4,
+            isSmoke
+          };
+          scene.add(p);
+          this.particles.push(p);
+        }
+      }
+
+      update(delta) {
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+          const p = this.particles[i];
+          p.position.addScaledVector(p.userData.velocity, delta);
+          p.userData.velocity.y -= delta * 9.8 * 0.5; // gentle gravity
+          p.userData.life -= delta * p.userData.decay;
+
+          const scale = 1.0 + (1.0 - p.userData.life) * 2.5;
+          p.scale.set(scale, scale, scale);
+
+          if (p.userData.life <= 0) {
+            scene.remove(p);
+            this.particles.splice(i, 1);
+          }
+        }
+      }
+    }
+    const explosionFX = new ParticleExplosion();
+
+    /* ==========================================================================
+       7. RADAR / MINI-MAP (2D Canvas HUD)
+       ========================================================================== */
+    const radarCanvas = document.getElementById('radar-canvas');
+    const radarCtx = radarCanvas.getContext('2d');
+    const RADAR_RADIUS = 80;
+    const RADAR_SCALE = 0.55; // meters to radar pixels
+
+    function renderRadar() {
+      radarCtx.clearRect(0, 0, 160, 160);
+
+      // Radar Background Rings
+      radarCtx.save();
+      radarCtx.translate(80, 80);
+
+      radarCtx.strokeStyle = 'rgba(16, 185, 129, 0.2)';
+      radarCtx.lineWidth = 1;
+      radarCtx.beginPath();
+      radarCtx.arc(0, 0, 30, 0, Math.PI * 2);
+      radarCtx.arc(0, 0, 55, 0, Math.PI * 2);
+      radarCtx.arc(0, 0, 75, 0, Math.PI * 2);
+      radarCtx.stroke();
+
+      // Cross lines
+      radarCtx.beginPath();
+      radarCtx.moveTo(-75, 0); radarCtx.lineTo(75, 0);
+      radarCtx.moveTo(0, -75); radarCtx.lineTo(0, 75);
+      radarCtx.stroke();
+
+      // Draw Ambush Zone Target (Bridge at Z = -45, X = 10.5)
+      const relAmbushX = (10.5 - player.mesh.position.x) * RADAR_SCALE;
+      const relAmbushY = (-45 - player.mesh.position.z) * RADAR_SCALE;
+      if (Math.hypot(relAmbushX, relAmbushY) < 74) {
+        radarCtx.fillStyle = '#eab308';
+        radarCtx.beginPath();
+        radarCtx.arc(relAmbushX, relAmbushY, 4.5, 0, Math.PI * 2);
+        radarCtx.fill();
+        radarCtx.strokeStyle = '#fef08a';
+        radarCtx.stroke();
+      }
+
+      // Draw Enemy Lead Jeep
+      const jeepPos = convoy.leadJeep.group.position;
+      const relJeepX = (jeepPos.x - player.mesh.position.x) * RADAR_SCALE;
+      const relJeepY = (jeepPos.z - player.mesh.position.z) * RADAR_SCALE;
+      if (Math.hypot(relJeepX, relJeepY) < 74) {
+        radarCtx.fillStyle = '#ef4444';
+        radarCtx.shadowColor = '#ef4444';
+        radarCtx.shadowBlur = 8;
+        radarCtx.beginPath();
+        radarCtx.arc(relJeepX, relJeepY, 5, 0, Math.PI * 2);
+        radarCtx.fill();
+        radarCtx.shadowBlur = 0;
+      }
+
+      // Draw Player Position at Center (Green dot with heading arrow)
+      radarCtx.fillStyle = '#10b981';
+      radarCtx.shadowColor = '#10b981';
+      radarCtx.shadowBlur = 6;
+      radarCtx.beginPath();
+      radarCtx.arc(0, 0, 4, 0, Math.PI * 2);
+      radarCtx.fill();
+      radarCtx.shadowBlur = 0;
+
+      // Heading arrow pointing along camera view direction
+      const pFwdX = Math.sin(mouseYaw);
+      const pFwdZ = -Math.cos(mouseYaw);
+      radarCtx.strokeStyle = '#34d399';
+      radarCtx.lineWidth = 2.5;
+      radarCtx.beginPath();
+      radarCtx.moveTo(0, 0);
+      radarCtx.lineTo(pFwdX * 12, pFwdZ * 12);
+      radarCtx.stroke();
+
+      radarCtx.restore();
+    }
+
+    /* ==========================================================================
+       8. CAMERA & INPUT CONTROLLER (TPP + SNIPER SCOPE)
+       ========================================================================== */
+    const keys = {};
+    let mouseYaw = 0;
+    let mousePitch = 0.15;
+    let isRightMouseDown = false;
+
+    let camZoomDist = 4.8;
+    let isMouseDown = false;
+    let lastMouseX = null;
+    let lastMouseY = null;
+
+    window.addEventListener('keydown', (e) => {
+      keys[e.code] = true;
+      if (e.code === 'KeyR') reloadWeapon();
+      // Key Q or Key E: Toggle Sniper Aiming (convenient for trackpad/laptops)
+      if (e.code === 'KeyQ' || e.code === 'KeyE') {
+        player.isAiming = !player.isAiming;
+        if (player.isAiming) {
+          document.getElementById('scope-overlay').classList.add('active');
+          document.getElementById('tpp-crosshair').classList.add('hidden');
+        } else {
+          document.getElementById('scope-overlay').classList.remove('active');
+          document.getElementById('tpp-crosshair').classList.remove('hidden');
+        }
+      }
+    });
+    window.addEventListener('keyup', (e) => {
+      keys[e.code] = false;
+    });
+
+    // Mouse wheel zoom
+    window.addEventListener('wheel', (e) => {
+      if (player.isAiming) return;
+      camZoomDist = Math.max(2.5, Math.min(8.0, camZoomDist + e.deltaY * 0.005));
+    }, { passive: true });
+
+    // Pointer Lock & Mouse Look
+    document.addEventListener('mousedown', (e) => {
+      audio.init();
+      isMouseDown = true;
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+
+      if (e.button === 2) {
+        // Right Click: Zoom into Sniper Scope
+        isRightMouseDown = true;
+        player.isAiming = true;
+        document.getElementById('scope-overlay').classList.add('active');
+        document.getElementById('tpp-crosshair').classList.add('hidden');
+      } else if (e.button === 0) {
+        // Left Click: Fire weapon (only if briefing modal closed)
+        const modal = document.getElementById('briefing-modal');
+        if (modal && modal.classList.contains('hidden')) {
+          fireWeapon();
+        }
+      }
+    });
+
+    window.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    document.addEventListener('mouseup', (e) => {
+      isMouseDown = false;
+      lastMouseX = null;
+      lastMouseY = null;
+      if (e.button === 2) {
+        isRightMouseDown = false;
+        player.isAiming = false;
+        document.getElementById('scope-overlay').classList.remove('active');
+        document.getElementById('tpp-crosshair').classList.remove('hidden');
+      }
+    });
+
+    let isPointerLocked = false;
+    canvas.addEventListener('click', () => {
+      if (!isPointerLocked) {
+        canvas.requestPointerLock();
+      }
+    });
+    document.addEventListener('pointerlockchange', () => {
+      isPointerLocked = (document.pointerLockElement === canvas);
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      let dx = 0;
+      let dy = 0;
+
+      if (isPointerLocked) {
+        dx = e.movementX || 0;
+        dy = e.movementY || 0;
+      } else if (isMouseDown) {
+        // Fallback smooth drag look when pointer lock isn't active
+        if (lastMouseX !== null && lastMouseY !== null) {
+          dx = e.clientX - lastMouseX;
+          dy = e.clientY - lastMouseY;
+        }
+        lastMouseX = e.clientX;
+        lastMouseY = e.clientY;
+      }
+
+      if (dx === 0 && dy === 0) return;
+
+      const sensitivity = player.isAiming ? 0.0014 : 0.0022;
+      mouseYaw += dx * sensitivity;
+      mousePitch -= dy * sensitivity;
+      // Clamp pitch so camera stays in smooth, natural viewing range
+      mousePitch = Math.max(-0.45, Math.min(0.65, mousePitch));
+    });
+
+    /* ==========================================================================
+       9. WEAPON & AMBUSH LOGIC
+       ========================================================================== */
+    function reloadWeapon() {
+      if (player.ammoMag >= 5 || player.ammoReserve <= 0) return;
+      audio.playReload();
+      const needed = 5 - player.ammoMag;
+      const amount = Math.min(needed, player.ammoReserve);
+      player.ammoMag += amount;
+      player.ammoReserve -= amount;
+      updateAmmoHUD();
+      document.getElementById('reload-hint').classList.add('hidden');
+    }
+
+    function updateAmmoHUD() {
+      document.getElementById('mag-ammo').innerText = player.ammoMag;
+      document.getElementById('reserve-ammo').innerText = player.ammoReserve;
+      if (player.ammoMag === 0) {
+        document.getElementById('reload-hint').classList.remove('hidden');
+      }
+    }
+
+    function fireWeapon() {
+      if (player.ammoMag <= 0) {
+        reloadWeapon();
+        return;
+      }
+      player.ammoMag--;
+      updateAmmoHUD();
+      audio.playRifleShot();
+
+      // Recoil kick
+      mousePitch += 0.035;
+
+      // Raycast shooting into 3D world
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+
+      // Check hit against convoy lead Jeep
+      const hitObjects = [convoy.leadJeep.group, convoy.truck1.group, convoy.truck2.group];
+      const intersects = raycaster.intersectObjects(hitObjects, true);
+
+      // Generous proximity detection for lead Jeep
+      const jeepPos = convoy.leadJeep.group.position;
+      const rayDistToJeep = raycaster.ray.distanceToPoint(jeepPos);
+
+      if ((intersects.length > 0 || rayDistToJeep < 4.8) && !convoy.isDestroyed) {
+        const hitPoint = (intersects.length > 0) ? intersects[0].point : jeepPos;
+
+        // TACTICAL CHECK: Has the convoy entered the kill zone near the bridge?
+        if (jeepPos.z < -65) {
+          // Fired too early!
+          const alert = document.getElementById('ambush-alert');
+          alert.classList.remove('hidden');
+          alert.className = "mt-2 px-5 py-1.5 rounded-lg bg-amber-600/90 text-white font-military text-xs uppercase tracking-widest border border-yellow-300";
+          alert.innerText = "⚠️ BẮN QUÁ SỚM! Đoàn xe chưa lên Cầu Cái Sơn! Hãy chờ xe vào đúng bẫy!";
+          setTimeout(() => {
+            if (currentGameState !== GAME_STATES.KILL_ZONE) alert.classList.add('hidden');
+          }, 2800);
+        } else {
+          // Perfectly timed ambush on the bridge!
+          triggerAmbushSuccess(hitPoint);
+        }
+      }
+    }
+
+    function takeDamage(amount) {
+      if (player.hp <= 0) return;
+      player.hp = Math.max(0, player.hp - amount);
+      document.getElementById('hp-bar').style.width = `${player.hp}%`;
+      document.getElementById('hp-text').innerText = `${player.hp} / 100`;
+      audio.playHurt();
+
+      // Flash damage overlay
+      const dmg = document.getElementById('damage-overlay');
+      if (dmg) {
+        dmg.style.opacity = '0.7';
+        setTimeout(() => { dmg.style.opacity = '0'; }, 200);
+      }
+
+      if (player.hp <= 0) {
+        triggerPlayerDefeated();
+      }
+    }
+
+    function triggerPlayerDefeated() {
+      if (currentGameState === GAME_STATES.FAILED) return;
+      currentGameState = GAME_STATES.FAILED;
+      document.exitPointerLock();
+      document.getElementById('defeat-title').innerText = "CHIẾN SĨ HY SINH";
+      document.getElementById('defeat-desc').innerText = "Đồng chí đã bị thương nặng trong lúc giao tranh dữ dội với lính bảo an! Hãy nấp kín sau rặng dừa nước và thử lại!";
+      document.getElementById('defeat-modal').classList.remove('hidden');
+      document.getElementById('defeat-modal').classList.add('flex');
+    }
+
+    function triggerConvoyEscaped() {
+      if (currentGameState === GAME_STATES.FAILED || convoy.isDestroyed) return;
+      currentGameState = GAME_STATES.FAILED;
+      document.exitPointerLock();
+      document.getElementById('defeat-title').innerText = "NHIỆM VỤ THẤT BẠI: ĐOÀN XE ĐÃ VƯỢT THOÁT";
+      document.getElementById('defeat-desc').innerText = "Đoàn xe của Tỉnh trưởng Khưu Văn Ba đã chạy thoát qua Cầu Cái Sơn trước khi bị tiêu diệt! Hãy phục kích chặn đầu xe đúng thời khắc 16:15!";
+      document.getElementById('defeat-modal').classList.remove('hidden');
+      document.getElementById('defeat-modal').classList.add('flex');
+    }
+
+    // Historical Ambush Trigger
+    function triggerAmbushSuccess(hitPoint) {
+      if (convoy.isDestroyed) return;
+      convoy.isDestroyed = true;
+      currentGameState = GAME_STATES.FIREFIGHT;
+      firefightTimer = 0;
+
+      audio.playExplosion();
+      explosionFX.spawn(hitPoint, 60);
+
+      // Spin out & flip the lead Jeep
+      convoy.leadJeep.group.rotation.z = 0.55;
+      convoy.leadJeep.group.rotation.y += 0.85;
+      convoy.leadJeep.group.position.y += 0.4;
+
+      // Update HUD Objective
+      document.getElementById('target-status').innerHTML = '<span class="text-red-500 font-black">TIÊU DIỆT TỈNH TRƯỞNG BA!</span>';
+      document.getElementById('ambush-alert').classList.remove('hidden');
+      document.getElementById('ambush-alert').className = "mt-2 px-5 py-1.5 rounded-lg bg-emerald-600/90 text-white font-military text-sm uppercase tracking-widest border-2 border-yellow-400 shadow-[0_0_25px_rgba(16,185,129,0.9)]";
+      document.getElementById('ambush-alert').innerText = "⭐ NỔ SÚNG THÀNH CÔNG! QUÂN TA XUNG PHONG TIÊU DIỆT ĐOÀN XE!";
+
+      // Sound fanfare
+      setTimeout(() => {
+        audio.playFanfare();
+      }, 1200);
+    }
+
+    function showVictoryModal() {
+      document.exitPointerLock();
+      document.getElementById('victory-modal').classList.remove('hidden');
+      document.getElementById('victory-modal').classList.add('flex');
+      loadQuizQuestion(0);
+    }
+
+    /* ==========================================================================
+       10. EDUCATIONAL HISTORICAL QUIZ (Đồng Khởi & Trận Cái Sơn)
+       ========================================================================== */
+    const QUIZ_DATA = [
+      {
+        question: "Trận phục kích Cái Sơn (Song Phú, Tam Bình) tiêu diệt Tỉnh trưởng Khưu Văn Ba diễn ra vào thời điểm lịch sử nào?",
+        options: [
+          "16 giờ 15 phút, ngày 16/06/1960",
+          "Ngày 26/03/1931",
+          "Ngày 03/02/1930",
+          "Ngày 30/04/1975"
+        ],
+        correct: 0,
+        explanation: "Chính xác! Trận đánh xuất quỷ nhập thần diễn ra lúc 16:15 ngày 16/06/1960, tiêu diệt tên tỉnh trưởng ác ôn khét tiếng miền Tây Nam Bộ."
+      },
+      {
+        question: "Ý nghĩa chiến lược quan trọng nhất của chiến thắng Cái Sơn năm 1960 đối với phong trào cách mạng miền Nam là gì?",
+        options: [
+          "Chỉ là trận đánh nhỏ không có tác động",
+          "Đánh sập mạng lưới đồn bốt kìm kẹp, mở đường cho cao trào Đồng Khởi ở Vĩnh Long và Đồng bằng sông Cửu Long",
+          "Chấm dứt hoàn toàn chiến tranh xâm lược",
+          "Ký kết hiệp định Giơ-ne-vơ"
+        ],
+        correct: 1,
+        explanation: "Chính xác! Chiến thắng đã làm rúng động toàn bộ ngụy quyền Sài Gòn, cổ vũ mạnh mẽ phong trào Đồng Khởi quật khởi của nhân dân Nam Bộ."
+      }
+    ];
+
+    let currentQuizIndex = 0;
+    function loadQuizQuestion(index) {
+      currentQuizIndex = index;
+      const q = QUIZ_DATA[index];
+      document.getElementById('quiz-progress').innerText = `Câu ${index + 1}/${QUIZ_DATA.length}`;
+      document.getElementById('quiz-q').innerText = q.question;
+
+      const optContainer = document.getElementById('quiz-options');
+      optContainer.innerHTML = '';
+      q.options.forEach((optText, i) => {
+        const btn = document.createElement('button');
+        btn.className = "text-left text-xs md:text-sm p-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 transition-all font-medium";
+        btn.innerText = `${String.fromCharCode(65 + i)}. ${optText}`;
+        btn.onclick = () => handleQuizAnswer(i, btn);
+        optContainer.appendChild(btn);
+      });
+    }
+
+    function handleQuizAnswer(choice, clickedBtn) {
+      const q = QUIZ_DATA[currentQuizIndex];
+      const feedback = document.getElementById('quiz-feedback');
+      if (choice === q.correct) {
+        clickedBtn.classList.remove('bg-slate-800');
+        clickedBtn.classList.add('bg-emerald-700', 'border-emerald-400');
+        feedback.innerText = q.explanation;
+        feedback.className = "text-xs font-semibold text-emerald-400";
+        setTimeout(() => {
+          if (currentQuizIndex + 1 < QUIZ_DATA.length) {
+            loadQuizQuestion(currentQuizIndex + 1);
+          } else {
+            feedback.innerText = "⭐ Hoàn thành xuất sắc toàn bộ câu hỏi Lịch Sử Cái Sơn & Đồng Khởi!";
+          }
+        }, 1500);
+      } else {
+        clickedBtn.classList.remove('bg-slate-800');
+        clickedBtn.classList.add('bg-red-800', 'border-red-400');
+        feedback.innerText = "Chưa chính xác! Hãy đọc kỹ mốc lịch sử hào hùng năm 1960.";
+        feedback.className = "text-xs font-semibold text-red-400";
+      }
+    }
+
+    // Modal buttons
+    document.getElementById('start-btn').addEventListener('click', () => {
+      document.getElementById('briefing-modal').classList.add('hidden');
+      audio.init();
+      canvas.requestPointerLock();
+    });
+
+    document.getElementById('replay-btn').addEventListener('click', () => {
+      window.location.reload();
+    });
+
+    document.getElementById('retry-btn').addEventListener('click', () => {
+      window.location.reload();
+    });
+
+    /* ==========================================================================
+       11. MAIN GAME LOOP
+       ========================================================================== */
+    let clockTime = new THREE.Clock();
+    let simSeconds = 16 * 3600 + 14 * 60 + 45; // Start at 16:14:45
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const delta = Math.min(clockTime.getDelta(), 0.1);
+
+      // In-game historical clock progression
+      simSeconds += delta * 1.0;
+      const hrs = Math.floor(simSeconds / 3600);
+      const mins = Math.floor((simSeconds % 3600) / 60);
+      const secs = Math.floor(simSeconds % 60);
+      document.getElementById('game-clock').innerText = 
+        `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+      // Update Player
+      player.update(delta, keys, mouseYaw);
+
+      // Ambush Beacon visual animation
+      beaconStar.rotation.y += delta * 2.0;
+      beaconStar.position.y = 1.6 + Math.sin(simSeconds * 3.0) * 0.15;
+
+      const distToBeacon = Math.round(player.mesh.position.distanceTo(ambushBeacon.position));
+
+      // Update Convoy along road
+      if (!convoy.isDestroyed) {
+        convoy.curveT += delta * convoy.speed;
+        if (convoy.curveT > 0.85) convoy.curveT = 0.85;
+
+        // Lead Jeep position
+        const tJeep = Math.min(1.0, convoy.curveT);
+        const jeepPos = roadCurve.getPointAt(tJeep);
+        convoy.leadJeep.group.position.copy(jeepPos);
+
+        const tangent = roadCurve.getTangentAt(tJeep);
+        // Vehicle local forward is (0, 0, -1) -> aligned to tangent so vehicle drives FORWARD
+        convoy.leadJeep.group.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), tangent);
+
+        // Rotate wheels forward
+        convoy.leadJeep.wheels.forEach(w => w.rotation.x -= delta * 12);
+
+        // Truck 1 follow
+        const tTruck1 = Math.max(0, tJeep - 0.04);
+        convoy.truck1.group.position.copy(roadCurve.getPointAt(tTruck1));
+        convoy.truck1.group.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), roadCurve.getTangentAt(tTruck1));
+        convoy.truck1.wheels.forEach(w => w.rotation.x -= delta * 10);
+
+        // Truck 2 follow
+        const tTruck2 = Math.max(0, tJeep - 0.08);
+        convoy.truck2.group.position.copy(roadCurve.getPointAt(tTruck2));
+        convoy.truck2.group.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), roadCurve.getTangentAt(tTruck2));
+        convoy.truck2.wheels.forEach(w => w.rotation.x -= delta * 10);
+      }
+
+      const jeepPos = convoy.leadJeep.group.position;
+      const distToJeep = Math.round(player.mesh.position.distanceTo(jeepPos));
+
+      // Tactical Ambush State Machine
+      if (currentGameState === GAME_STATES.MOVE_TO_AMBUSH) {
+        document.getElementById('obj-dist-badge').innerText = `${distToBeacon}m Tới Trận Địa`;
+        document.getElementById('target-status').innerHTML = '<span class="text-amber-400">Tiến vào vị trí mai phục ven rạch</span>';
+
+        if (distToBeacon <= 4.8) {
+          currentGameState = GAME_STATES.WAIT_FOR_CONVOY;
+          beaconRingMat.color.setHex(0x10b981);
+          beaconStar.material.color.setHex(0x10b981);
+          audio.playBeep();
+
+          const alert = document.getElementById('ambush-alert');
+          alert.classList.remove('hidden');
+          alert.className = "mt-2 px-5 py-1.5 rounded-lg bg-emerald-600/90 text-white font-military text-sm uppercase tracking-widest border-2 border-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.8)]";
+          alert.innerText = "✅ ĐÃ VÀO VỊ TRÍ MAI PHỤC! NẰM CHỜ ĐOÀN XE ĐẾN 16:15!";
+          setTimeout(() => {
+            if (currentGameState === GAME_STATES.WAIT_FOR_CONVOY) {
+              alert.classList.add('hidden');
+            }
+          }, 3500);
+        }
+      } else if (currentGameState === GAME_STATES.WAIT_FOR_CONVOY) {
+        document.getElementById('obj-dist-badge').innerText = `Đoàn xe: ${distToJeep}m`;
+        document.getElementById('target-status').innerHTML = '<span class="text-yellow-400 font-bold">Đoàn xe đang tiến vào Cầu Cái Sơn...</span>';
+
+        // When convoy reaches bridge zone (z between -65 and -35)
+        if (jeepPos.z >= -65 && jeepPos.z <= -35) {
+          currentGameState = GAME_STATES.KILL_ZONE;
+          const alert = document.getElementById('ambush-alert');
+          alert.classList.remove('hidden');
+          alert.className = "mt-2 px-5 py-1.5 rounded-lg bg-red-600/90 text-white font-military text-sm uppercase tracking-widest animate-pulse border-2 border-yellow-400 shadow-[0_0_30px_rgba(239,68,68,0.9)]";
+          alert.innerText = "🚨 XE JEEP KHƯU VĂN BA ĐÃ LÊN CẦU! NỔ SÚNG NGAY!";
+        }
+      } else if (currentGameState === GAME_STATES.KILL_ZONE) {
+        document.getElementById('obj-dist-badge').innerText = `Mục Tiêu: ${distToJeep}m`;
+        document.getElementById('target-status').innerHTML = '<span class="text-red-400 font-black animate-pulse">XE TRONG TẦM BẮN! KHAI HỎA!</span>';
+
+        // If convoy crossed the bridge without being destroyed (escaped past z = -20)
+        if (jeepPos.z > -20 && !convoy.isDestroyed) {
+          triggerConvoyEscaped();
+        }
+      } else if (currentGameState === GAME_STATES.FIREFIGHT) {
+        firefightTimer += delta;
+        // Guerrilla comrades pop up from coconut palms
+        comrades.forEach(c => {
+          c.visible = true;
+          c.scale.y = THREE.MathUtils.lerp(c.scale.y, 1.0, delta * 3.5);
+        });
+
+        // Dynamic firefight damage: enemy escort soldiers shoot back!
+        if (firefightTimer > 0.8 && firefightTimer < 2.0 && player.hp > 75) {
+          takeDamage(15);
+        }
+
+        if (firefightTimer >= 3.6) {
+          currentGameState = GAME_STATES.VICTORY;
+          showVictoryModal();
+        }
+      }
+
+      // Update Particle FX
+      explosionFX.update(delta);
+
+      // Camera Orbit around Player (Third-Person Perspective / Scope Zoom)
+      const cosPitch = Math.cos(mousePitch);
+      const sinPitch = Math.sin(mousePitch);
+      const sinYaw = Math.sin(mouseYaw);
+      const cosYaw = Math.cos(mouseYaw);
+
+      const isAiming = player.isAiming;
+      const targetDist = isAiming ? 1.5 : camZoomDist;
+      const targetHeight = isAiming ? 1.8 : 2.0;
+      const shoulderShift = isAiming ? 0.35 : 0.45; // slight right-shoulder offset so crosshairs clear character head
+
+      const pX = player.mesh.position.x;
+      const pY = player.mesh.position.y;
+      const pZ = player.mesh.position.z;
+
+      // Position camera directly relative to player with snappy 1:1 response
+      const camX = pX - sinYaw * cosPitch * targetDist + cosYaw * shoulderShift;
+      const camY = pY + targetHeight + sinPitch * targetDist;
+      const camZ = pZ + cosYaw * cosPitch * targetDist + sinYaw * shoulderShift;
+
+      camera.position.set(camX, camY, camZ);
+      camera.fov = isAiming ? 24 : 60;
+      camera.updateProjectionMatrix();
+
+      // Look Target along aim axis in front of character
+      const lookX = pX + sinYaw * cosPitch * 35;
+      const lookY = pY + 1.7 + sinPitch * 35;
+      const lookZ = pZ - cosYaw * cosPitch * 35;
+
+      camera.lookAt(lookX, lookY, lookZ);
+
+      // Update HUD Bars
+      document.getElementById('stamina-bar').style.width = `${player.stamina}%`;
+      document.getElementById('stamina-text').innerText = `${Math.round(player.stamina)} / 100`;
+
+      // Render 2D Radar
+      renderRadar();
+
+      // Render 3D Scene
+      renderer.render(scene, camera);
+    }
+
+    animate();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1792 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Hành Trình Xung Kiệt: Huyền Thoại Cái Sơn (3D Physics Action Game)</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            doan: {
+              blue: '#005baa',
+              red: '#da251d',
+              gold: '#ffcc00',
+              dark: '#07111e',
+              panel: 'rgba(8, 20, 36, 0.92)'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,600;0,700;0,900;1,700&family=Teko:wght@500;700&display=swap" rel="stylesheet">
+
+  <!-- Three.js (r128 CDN) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <!-- Cannon.js (Physics Engine CDN) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Montserrat', sans-serif;
+      user-select: none;
+      overflow: hidden;
+      background-color: #07111e;
+      touch-action: none;
+    }
+    .font-teko {
+      font-family: 'Teko', sans-serif;
+    }
+    .glass-card {
+      background: rgba(8, 22, 40, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 204, 0, 0.35);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+    }
+    .neon-border-gold {
+      box-shadow: 0 0 20px rgba(255, 204, 0, 0.45);
+    }
+    .neon-border-blue {
+      box-shadow: 0 0 20px rgba(0, 91, 170, 0.6);
+    }
+    .neon-text-gold {
+      text-shadow: 0 0 12px rgba(255, 204, 0, 0.7);
+    }
+    /* Tùy chỉnh thanh cuộn */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.4); }
+    ::-webkit-scrollbar-thumb { background: #ffcc00; border-radius: 4px; }
+  </style>
+</head>
+<body class="w-full h-full text-gray-100 select-none">
+
+  <!-- Canvas 3D WebGL -->
+  <div id="canvas-container" class="absolute inset-0 z-0"></div>
+
+  <!-- ========================================================================= -->
+  <!-- 1. GIAO DIỆN CHÍNH (MAIN MENU) -->
+  <!-- ========================================================================= -->
+  <div id="ui-main-menu" class="absolute inset-0 z-20 flex flex-col justify-between p-6 md:p-10 pointer-events-auto bg-gradient-to-t from-black/80 via-transparent to-black/60">
+    <!-- Header Logo Đoàn & Tiêu đề game -->
+    <header class="flex justify-between items-start">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 md:w-16 md:h-16 rounded-full bg-doan-red flex items-center justify-center border-2 border-doan-gold shadow-lg">
+          <i class="fa-solid fa-flag text-doan-gold text-xl md:text-2xl"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="bg-doan-blue text-white text-[10px] md:text-xs font-bold px-2 py-0.5 rounded tracking-widest uppercase">Tuổi Trẻ Vĩnh Long</span>
+            <span class="text-doan-gold text-xs font-semibold">1960 - 2026</span>
+          </div>
+          <h1 class="text-2xl md:text-5xl font-black uppercase font-teko tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-doan-gold to-yellow-500 drop-shadow-md">
+            Hành Trình Xung Kiệt
+          </h1>
+          <p class="text-xs md:text-sm text-gray-300 font-semibold tracking-wide flex items-center gap-1.5">
+            <span class="text-doan-gold">★</span> HUYỀN THOẠI CHIẾN THẮNG CÁI SƠN
+          </p>
+        </div>
+      </div>
+
+      <!-- Tiền tệ & Nút âm thanh -->
+      <div class="flex items-center gap-3">
+        <div class="glass-card px-4 py-1.5 rounded-full flex items-center gap-2 border border-doan-gold/50 shadow-inner">
+          <i class="fa-solid fa-star text-doan-gold text-sm animate-spin" style="animation-duration: 4s;"></i>
+          <span id="menu-stars-display" class="font-bold text-sm md:text-base text-doan-gold font-mono">0</span>
+          <span class="text-[10px] text-gray-300 font-semibold">SAO ĐOÀN</span>
+        </div>
+        <button id="btn-sound-toggle" class="glass-card w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/10 text-gray-200 transition">
+          <i id="icon-sound" class="fa-solid fa-volume-high text-sm"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Menu Hành động chính giữa / góc dưới bên trái -->
+    <div class="max-w-md space-y-3">
+      <button id="btn-play-game" class="w-full bg-gradient-to-r from-yellow-500 via-doan-gold to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-black font-black py-4 px-6 rounded-2xl shadow-[0_0_35px_rgba(255,204,0,0.6)] uppercase text-base md:text-lg tracking-wider flex items-center justify-between transform transition active:scale-95 group">
+        <span class="flex items-center gap-3">
+          <i class="fa-solid fa-gamepad text-xl group-hover:scale-110 transition-transform"></i>
+          XUẤT QUÂN XUNG KÍCH
+        </span>
+        <i class="fa-solid fa-arrow-right text-lg group-hover:translate-x-1 transition-transform"></i>
+      </button>
+
+      <div class="grid grid-cols-2 gap-3">
+        <button id="btn-open-garage" class="glass-card hover:bg-white/10 text-gray-200 font-bold py-3 px-4 rounded-xl text-xs md:text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition active:scale-95 border border-white/20">
+          <i class="fa-solid fa-wrench text-doan-gold"></i>
+          XƯỞNG CƠ KHÍ
+        </button>
+        <button id="btn-open-levels" class="glass-card hover:bg-white/10 text-gray-200 font-bold py-3 px-4 rounded-xl text-xs md:text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition active:scale-95 border border-white/20">
+          <i class="fa-solid fa-map-location-dot text-doan-gold"></i>
+          CHỌN CHIẾN DỊCH
+        </button>
+      </div>
+
+      <button id="btn-open-lore" class="w-full glass-card hover:bg-white/10 text-gray-300 font-semibold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition border border-white/15">
+        <i class="fa-solid fa-book-open-reader text-yellow-300"></i>
+        Lịch Sử Chiến Thắng Cái Sơn (16/06/1960)
+      </button>
+    </div>
+
+    <!-- Footer thông tin -->
+    <footer class="flex justify-between items-end text-[11px] text-gray-400">
+      <div>3D Physics Driven • Cannon.es + Three.js Engine</div>
+      <div class="hidden sm:block">Điều khiển: <kbd class="bg-black/60 px-1.5 py-0.5 rounded border border-gray-600 text-yellow-300">W</kbd><kbd class="bg-black/60 px-1.5 py-0.5 rounded border border-gray-600 text-yellow-300">A</kbd><kbd class="bg-black/60 px-1.5 py-0.5 rounded border border-gray-600 text-yellow-300">S</kbd><kbd class="bg-black/60 px-1.5 py-0.5 rounded border border-gray-600 text-yellow-300">D</kbd> | Phanh/Rê xe: <kbd class="bg-black/60 px-1.5 py-0.5 rounded border border-gray-600 text-yellow-300">Space</kbd> | Nitro: <kbd class="bg-black/60 px-1.5 py-0.5 rounded border border-gray-600 text-yellow-300">Shift</kbd></div>
+    </footer>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 2. CHỌN MÀN CHƠI (LEVEL SELECT MODAL) -->
+  <!-- ========================================================================= -->
+  <div id="modal-level-select" class="fixed inset-0 z-30 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden pointer-events-auto">
+    <div class="glass-card rounded-2xl max-w-2xl w-full p-6 space-y-5 border-2 border-doan-gold shadow-2xl">
+      <div class="flex justify-between items-center border-b border-white/10 pb-3">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-map-location-dot text-doan-gold text-lg"></i>
+          <h2 class="text-xl font-bold uppercase tracking-wider text-doan-gold font-teko text-2xl">Chọn Chiến Dịch Lịch Sử</h2>
+        </div>
+        <button class="btn-close-modal text-gray-400 hover:text-white text-xl">✕</button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+        <!-- Level 1 -->
+        <div class="level-card bg-black/60 border-2 border-doan-gold rounded-xl p-4 flex flex-col justify-between cursor-pointer hover:bg-doan-blue/20 transition relative group" data-level="1">
+          <div class="space-y-2">
+            <span class="text-[10px] font-bold bg-green-950 text-green-400 px-2 py-0.5 rounded uppercase">MÀN 1: MỞ ĐẦU</span>
+            <h3 class="font-bold text-white text-sm">Đường Về Quê Hương</h3>
+            <p class="text-[11px] text-gray-300 leading-snug">Vượt qua các con đường đất Song Phú, thu thập 5 Sao Đoàn và phá hủy chướng ngại vật cọc tre.</p>
+          </div>
+          <div class="pt-3 border-t border-white/10 flex justify-between items-center text-xs mt-3">
+            <span class="text-yellow-400"><i class="fa-solid fa-star"></i> 5 Sao</span>
+            <span class="text-green-400 font-bold">MỞ KHÓA</span>
+          </div>
+        </div>
+
+        <!-- Level 2 -->
+        <div id="level-card-2" class="level-card bg-black/60 border border-white/20 rounded-xl p-4 flex flex-col justify-between cursor-pointer hover:bg-doan-blue/20 transition relative group" data-level="2">
+          <div class="space-y-2">
+            <span class="text-[10px] font-bold bg-yellow-950 text-yellow-400 px-2 py-0.5 rounded uppercase">MÀN 2: THỬ THÁCH</span>
+            <h3 class="font-bold text-white text-sm">Tiếp Sức Truyền Tin</h3>
+            <p class="text-[11px] text-gray-300 leading-snug">Nhiệm vụ tính giờ chuyển giao mật thư Đồng Khởi, vượt trạm kiểm soát trước khi hết giờ.</p>
+          </div>
+          <div class="pt-3 border-t border-white/10 flex justify-between items-center text-xs mt-3">
+            <span class="text-yellow-400"><i class="fa-solid fa-clock"></i> 60 Giây</span>
+            <span id="level-status-2" class="text-gray-400 font-bold">MỞ KHÓA</span>
+          </div>
+        </div>
+
+        <!-- Level 3 -->
+        <div id="level-card-3" class="level-card bg-black/60 border border-white/20 rounded-xl p-4 flex flex-col justify-between cursor-pointer hover:bg-doan-blue/20 transition relative group" data-level="3">
+          <div class="space-y-2">
+            <span class="text-[10px] font-bold bg-red-950 text-red-400 px-2 py-0.5 rounded uppercase">MÀN 3: ĐỈNH ĐIỂM</span>
+            <h3 class="font-bold text-white text-sm">Trận Phục Kích Cái Sơn</h3>
+            <p class="text-[11px] text-gray-300 leading-snug">Chặn đánh đoàn xe Khưu Văn Ba, húc văng rào chắn và kích nổ tiêu diệt đoàn xe địch!</p>
+          </div>
+          <div class="pt-3 border-t border-white/10 flex justify-between items-center text-xs mt-3">
+            <span class="text-red-400"><i class="fa-solid fa-skull"></i> 16:15 GIỜ G</span>
+            <span id="level-status-3" class="text-gray-400 font-bold">KHÓA</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 3. XƯỞNG CƠ KHÍ NÂNG CẤP XE (GARAGE UPGRADE MODAL) -->
+  <!-- ========================================================================= -->
+  <div id="modal-garage" class="fixed inset-0 z-30 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md hidden pointer-events-auto">
+    <div class="glass-card rounded-2xl max-w-xl w-full p-6 space-y-5 border-2 border-doan-gold shadow-2xl">
+      <div class="flex justify-between items-center border-b border-white/10 pb-3">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-wrench text-doan-gold text-lg"></i>
+          <h2 class="text-xl font-bold uppercase tracking-wider text-doan-gold font-teko text-2xl">Xưởng Cơ Khí Xung Kích</h2>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="text-xs font-bold text-doan-gold bg-black/60 px-3 py-1 rounded-full border border-doan-gold/50 flex items-center gap-1.5">
+            <i class="fa-solid fa-star text-yellow-400"></i>
+            <span id="garage-stars-count">0</span> SAO
+          </div>
+          <button class="btn-close-modal text-gray-400 hover:text-white text-xl">✕</button>
+        </div>
+      </div>
+
+      <!-- Danh sách nâng cấp -->
+      <div class="space-y-3.5">
+        <!-- 1. Động cơ -->
+        <div class="bg-black/60 border border-white/15 p-3.5 rounded-xl flex items-center justify-between">
+          <div class="space-y-1">
+            <div class="font-bold text-sm text-white flex items-center gap-2">
+              <i class="fa-solid fa-gauge-high text-yellow-400"></i>
+              ĐỘNG CƠ CẢI TIẾN (TỐC ĐỘ & GIA TỐC)
+            </div>
+            <div class="text-[11px] text-gray-400">Tăng tốc độ tối đa và sức kéo vượt dốc</div>
+            <div class="flex gap-1.5 pt-1" id="bars-engine">
+              <div class="w-5 h-2 bg-yellow-400 rounded-sm"></div>
+              <div class="w-5 h-2 bg-gray-700 rounded-sm"></div>
+              <div class="w-5 h-2 bg-gray-700 rounded-sm"></div>
+              <div class="w-5 h-2 bg-gray-700 rounded-sm"></div>
+            </div>
+          </div>
+          <button class="btn-upgrade bg-doan-blue hover:bg-blue-600 text-white font-bold text-xs px-3.5 py-2 rounded-lg transition border border-blue-400 flex items-center gap-1" data-type="engine" data-cost="2">
+            <span>2</span> <i class="fa-solid fa-star text-yellow-300"></i> NÂNG CẤP
+          </button>
+        </div>
+
+        <!-- 2. Giáp xe -->
+        <div class="bg-black/60 border border-white/15 p-3.5 rounded-xl flex items-center justify-between">
+          <div class="space-y-1">
+            <div class="font-bold text-sm text-white flex items-center gap-2">
+              <i class="fa-solid fa-shield-halved text-green-400"></i>
+              GIÁP XUNG KÍCH (MÁU & CHỐNG VA ĐẬP)
+            </div>
+            <div class="text-[11px] text-gray-400">Giảm sát thương khi đâm va chướng ngại vật</div>
+            <div class="flex gap-1.5 pt-1" id="bars-armor">
+              <div class="w-5 h-2 bg-green-400 rounded-sm"></div>
+              <div class="w-5 h-2 bg-gray-700 rounded-sm"></div>
+              <div class="w-5 h-2 bg-gray-700 rounded-sm"></div>
+              <div class="w-5 h-2 bg-gray-700 rounded-sm"></div>
+            </div>
+          </div>
+          <button class="btn-upgrade bg-doan-blue hover:bg-blue-600 text-white font-bold text-xs px-3.5 py-2 rounded-lg transition border border-blue-400 flex items-center gap-1" data-type="armor" data-cost="2">
+            <span>2</span> <i class="fa-solid fa-star text-yellow-300"></i> NÂNG CẤP
+          </button>
+        </div>
+
+        <!-- 3. Hệ thống treo & Bám đường -->
+        <div class="bg-black/60 border border-white/15 p-3.5 rounded-xl flex items-center justify-between">
+          <div class="space-y-1">
+            <div class="font-bold text-sm text-white flex items-center gap-2">
+              <i class="fa-solid fa-truck-monster text-blue-400"></i>
+              TREO & LỐP ĐỊA HÌNH (DRIFT & BÁM ĐƯỜNG)
+            </div>
+            <div class="text-[11px] text-gray-400">Tăng độ ổn định khi ôm cua và rê bánh (drift)</div>
+            <div class="flex gap-1.5 pt-1" id="bars-handling">
+              <div class="w-5 h-2 bg-blue-400 rounded-sm"></div>
+              <div class="w-5 h-2 bg-gray-700 rounded-sm"></div>
+              <div class="w-5 h-2 bg-gray-700 rounded-sm"></div>
+              <div class="w-5 h-2 bg-gray-700 rounded-sm"></div>
+            </div>
+          </div>
+          <button class="btn-upgrade bg-doan-blue hover:bg-blue-600 text-white font-bold text-xs px-3.5 py-2 rounded-lg transition border border-blue-400 flex items-center gap-1" data-type="handling" data-cost="2">
+            <span>2</span> <i class="fa-solid fa-star text-yellow-300"></i> NÂNG CẤP
+          </button>
+        </div>
+
+        <!-- 4. Bình Nitro Turbo -->
+        <div class="bg-black/60 border border-white/15 p-3.5 rounded-xl flex items-center justify-between">
+          <div class="space-y-1">
+            <div class="font-bold text-sm text-white flex items-center gap-2">
+              <i class="fa-solid fa-bolt-lightning text-yellow-300"></i>
+              BÌNH NITRO TURBO BOOST
+            </div>
+            <div class="text-[11px] text-gray-400">Tăng dung lượng và tốc độ hồi Nitro phản lực</div>
+            <div class="flex gap-1.5 pt-1" id="bars-turbo">
+              <div class="w-5 h-2 bg-yellow-300 rounded-sm"></div>
+              <div class="w-5 h-2 bg-gray-700 rounded-sm"></div>
+              <div class="w-5 h-2 bg-gray-700 rounded-sm"></div>
+              <div class="w-5 h-2 bg-gray-700 rounded-sm"></div>
+            </div>
+          </div>
+          <button class="btn-upgrade bg-doan-blue hover:bg-blue-600 text-white font-bold text-xs px-3.5 py-2 rounded-lg transition border border-blue-400 flex items-center gap-1" data-type="turbo" data-cost="3">
+            <span>3</span> <i class="fa-solid fa-star text-yellow-300"></i> NÂNG CẤP
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 4. MODAL LỊCH SỬ CHIẾN THẮNG CÁI SƠN -->
+  <!-- ========================================================================= -->
+  <div id="modal-lore" class="fixed inset-0 z-30 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md hidden pointer-events-auto">
+    <div class="glass-card rounded-2xl max-w-xl w-full p-6 space-y-4 border-2 border-doan-gold shadow-2xl">
+      <div class="flex justify-between items-center border-b border-white/10 pb-2">
+        <h2 class="text-xl font-bold uppercase tracking-wider text-doan-gold font-teko text-2xl flex items-center gap-2">
+          <i class="fa-solid fa-landmark"></i> Lịch Sử Hào Hùng Cái Sơn (1960)
+        </h2>
+        <button class="btn-close-modal text-gray-400 hover:text-white text-xl">✕</button>
+      </div>
+      <div class="text-xs text-gray-200 leading-relaxed space-y-2.5 max-h-[60vh] overflow-y-auto pr-1">
+        <p>• <b>Thời khắc lịch sử:</b> Vào đúng <b>16 giờ 15 phút ngày 16/06/1960</b>, tại cầu Cái Sơn (thuộc xã Song Phú, huyện Tam Bình, tỉnh Vĩnh Long), lực lượng vũ trang và du kích địa phương đã tổ chức trận phục kích táo bạo chặn đánh đoàn xe tuần tra ngụy quyền.</p>
+        <p>• <b>Chiến công vang dội:</b> Tiêu diệt tại chỗ tên <b>Tỉnh trưởng Vĩnh Long Khưu Văn Ba</b> cùng đoàn hộ tống, phá tan mạng lưới kìm kẹp ác ôn khét tiếng nhất khu vực.</p>
+        <p>• <b>Ý nghĩa thời đại:</b> Khưu Văn Ba là tên tỉnh trưởng đầu tiên của chính quyền tay sai Sài Gòn bị đền tội ngay tại chiến trường ở miền Nam. Thắng lợi Cái Sơn đã làm rung chuyển toàn vùng Đồng bằng sông Cửu Long, củng cố niềm tin mãnh liệt cho phong trào Đồng Khởi năm 1960!</p>
+      </div>
+      <div class="flex justify-end pt-2">
+        <button class="btn-close-modal bg-doan-gold text-black font-bold px-5 py-2 rounded-xl text-xs uppercase tracking-wider">Đã Hiểu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 5. GIAO DIỆN LÁI XE TRONG TRẬN (GAMEPLAY HUD) -->
+  <!-- ========================================================================= -->
+  <div id="ui-gameplay" class="absolute inset-0 z-10 pointer-events-none flex flex-col justify-between p-4 md:p-6 hidden">
+    
+    <!-- Top HUD Bar -->
+    <header class="flex justify-between items-start pointer-events-auto">
+      <!-- Mục tiêu & Nhiệm vụ -->
+      <div class="glass-card px-4 py-2.5 rounded-xl border border-white/20 max-w-xs md:max-w-md">
+        <div class="flex items-center gap-2 text-[10px] text-doan-gold uppercase font-bold tracking-wider">
+          <span class="inline-block w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+          <span id="hud-level-name">Màn 1: Đường Về Quê Hương</span>
+        </div>
+        <div id="hud-mission-desc" class="text-xs md:text-sm font-bold text-white mt-0.5 truncate">
+          Thu thập 5 Ngôi sao Đoàn & Chạm vạch đích!
+        </div>
+      </div>
+
+      <!-- Thời gian, Camera, Nút Pause -->
+      <div class="flex items-center gap-2 md:gap-3">
+        <!-- Đổi góc nhìn camera -->
+        <button id="btn-camera-view" class="glass-card px-3 py-1.5 rounded-lg border border-white/20 text-xs font-bold text-gray-200 hover:text-white flex items-center gap-1.5 shadow">
+          <i class="fa-solid fa-video text-doan-gold"></i>
+          <span id="camera-mode-label" class="hidden sm:inline">CHASE CAM</span>
+        </button>
+
+        <!-- Đồng hồ / Điểm -->
+        <div class="glass-card px-4 py-1.5 rounded-lg border border-doan-gold/50 text-right">
+          <div class="text-[9px] text-gray-400 font-bold uppercase">Thời gian</div>
+          <div id="hud-timer" class="font-mono font-bold text-xs md:text-sm text-yellow-300">00:00</div>
+        </div>
+
+        <button id="btn-pause" class="glass-card w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 text-gray-200">
+          <i class="fa-solid fa-pause"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Radar Bản Đồ Thu Nhỏ (Góc trên bên phải) -->
+    <div class="absolute top-20 right-6 pointer-events-auto hidden md:block">
+      <div class="w-28 h-28 rounded-full border-2 border-doan-gold/60 bg-black/75 backdrop-blur-md relative overflow-hidden shadow-2xl flex items-center justify-center">
+        <div class="absolute inset-0 border border-white/10 rounded-full"></div>
+        <div class="w-full h-[1px] bg-white/20 absolute"></div>
+        <div class="h-full w-[1px] bg-white/20 absolute"></div>
+        <!-- Vị trí xe người chơi -->
+        <div class="w-2.5 h-2.5 rounded-full bg-green-400 border border-white absolute shadow-[0_0_8px_#2ecc71]"></div>
+        <!-- Điểm Checkpoint / Mục tiêu -->
+        <div id="radar-target-blip" class="w-2.5 h-2.5 rounded-full bg-red-500 border border-white absolute animate-ping shadow-[0_0_8px_#f00]"></div>
+      </div>
+    </div>
+
+    <!-- Thông báo nổi giữa màn hình -->
+    <div id="hud-banner" class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-all duration-300 opacity-0 transform scale-50">
+      <div class="glass-card px-6 py-3 rounded-2xl border-2 border-yellow-400 text-yellow-300 font-black text-lg md:text-2xl shadow-2xl tracking-widest uppercase flex items-center gap-2">
+        <i class="fa-solid fa-star text-yellow-400"></i>
+        <span id="hud-banner-text">ĐÃ NHẬN SAO ĐOÀN!</span>
+      </div>
+    </div>
+
+    <!-- Bottom HUD Dashboard (Speedometer, HP, Turbo) -->
+    <footer class="flex justify-between items-end pointer-events-auto">
+      <!-- Cột trái: Máu xe & Nitro -->
+      <div class="glass-card p-3 rounded-2xl border border-white/20 w-44 md:w-56 space-y-2">
+        <div>
+          <div class="flex justify-between text-[10px] font-bold text-gray-300 mb-1">
+            <span class="flex items-center gap-1"><i class="fa-solid fa-shield-halved text-green-400"></i> GIÁP XE (HP)</span>
+            <span id="hud-hp-text" class="text-green-400 font-mono">100%</span>
+          </div>
+          <div class="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
+            <div id="hud-hp-bar" class="bg-gradient-to-r from-emerald-500 to-green-400 h-full w-full transition-all duration-200"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex justify-between text-[10px] font-bold text-gray-300 mb-1">
+            <span class="flex items-center gap-1"><i class="fa-solid fa-bolt text-yellow-400"></i> NITRO TURBO</span>
+            <span id="hud-nitro-text" class="text-yellow-400 font-mono">100%</span>
+          </div>
+          <div class="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
+            <div id="hud-nitro-bar" class="bg-gradient-to-r from-yellow-500 to-amber-400 h-full w-full transition-all duration-100"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Giữa: Đồng hồ tốc độ điện tử (Speedometer) -->
+      <div class="glass-card px-6 py-2 rounded-2xl border-2 border-doan-gold/60 text-center shadow-2xl">
+        <div id="hud-speedometer" class="text-4xl md:text-6xl font-black font-teko text-yellow-300 leading-none drop-shadow">
+          0
+        </div>
+        <div class="text-[9px] md:text-[10px] text-gray-400 font-bold uppercase tracking-widest -mt-1">
+          KM / GIỜ
+        </div>
+      </div>
+
+      <!-- Cột phải: Sao thu thập & Nút Reset xe -->
+      <div class="flex flex-col items-end gap-2">
+        <button id="btn-reset-car" class="glass-card hover:bg-white/10 px-3 py-1.5 rounded-xl border border-white/20 text-xs text-gray-200 flex items-center gap-1.5 transition active:scale-95 shadow">
+          <i class="fa-solid fa-rotate-right text-yellow-400"></i>
+          <span>LẬT XE (R)</span>
+        </button>
+
+        <div class="glass-card px-4 py-2 rounded-xl border border-doan-gold/50 flex items-center gap-2">
+          <i class="fa-solid fa-star text-doan-gold text-lg"></i>
+          <div>
+            <div class="text-[9px] text-gray-400 font-bold uppercase">Thu thập</div>
+            <div id="hud-stars-count" class="font-bold text-sm md:text-base text-yellow-300 font-mono leading-none">0 / 5</div>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Phím điều khiển cảm ứng ảo trên điện thoại (Mobile D-Pad) -->
+    <div class="sm:hidden pointer-events-auto flex justify-between items-end mt-2">
+      <!-- Cụm trái: Đánh lái trái/phải -->
+      <div class="flex gap-2">
+        <button id="touch-left" class="w-14 h-14 rounded-2xl bg-black/70 border border-white/30 text-white font-bold text-xl active:bg-yellow-500 active:text-black">◀</button>
+        <button id="touch-right" class="w-14 h-14 rounded-2xl bg-black/70 border border-white/30 text-white font-bold text-xl active:bg-yellow-500 active:text-black">▶</button>
+      </div>
+      <!-- Cụm phải: Ga / Phanh / Nitro -->
+      <div class="flex gap-2">
+        <button id="touch-brake" class="w-14 h-14 rounded-2xl bg-red-950/80 border border-red-500/50 text-red-300 font-bold text-sm active:bg-red-600 active:text-white">LÙI</button>
+        <button id="touch-gas" class="w-16 h-14 rounded-2xl bg-green-950/80 border border-green-500/50 text-green-300 font-black text-base active:bg-green-500 active:text-black">GA ▲</button>
+        <button id="touch-turbo" class="w-12 h-14 rounded-2xl bg-yellow-950/80 border border-yellow-500/50 text-yellow-300 font-bold text-xs active:bg-yellow-400 active:text-black">⚡</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 6. TRẠM XUNG KIỆT: TRẮC NGHIỆM ĐOÀN & LỊCH SỬ (CHECKPOINT QUIZ MODAL) -->
+  <!-- ========================================================================= -->
+  <div id="modal-checkpoint-quiz" class="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md hidden pointer-events-auto">
+    <div class="glass-card rounded-2xl max-w-xl w-full p-6 md:p-8 space-y-4 border-2 border-doan-gold shadow-2xl relative overflow-hidden">
+      <!-- Background watermark -->
+      <div class="absolute -right-10 -bottom-10 text-white/5 text-9xl pointer-events-none">
+        <i class="fa-solid fa-flag"></i>
+      </div>
+
+      <div class="flex justify-between items-center border-b border-white/10 pb-2">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-doan-gold animate-ping"></span>
+          <span class="text-xs font-bold text-doan-gold uppercase tracking-widest font-mono">TRẠM XUNG KIỆT: TIẾP SỨC KIẾN THỨC</span>
+        </div>
+        <div class="text-[11px] text-gray-400 font-mono">CÂU HỎI LỊCH SỬ</div>
+      </div>
+
+      <h3 id="quiz-question-text" class="text-base md:text-lg font-bold text-white leading-snug">
+        Trận phục kích cầu Cái Sơn diễn ra vào ngày tháng năm nào và tiêu diệt tên tỉnh trưởng ngụy quyền nào?
+      </h3>
+
+      <div id="quiz-options-container" class="space-y-2.5 pt-2">
+        <!-- Các lựa chọn được tạo động qua JS -->
+      </div>
+
+      <!-- Giải thích kết quả -->
+      <div id="quiz-feedback-box" class="hidden p-3 rounded-xl text-xs leading-relaxed border transition-all"></div>
+
+      <div class="flex justify-end pt-2">
+        <button id="btn-quiz-continue" class="hidden bg-doan-gold hover:bg-yellow-400 text-black font-extrabold px-6 py-2.5 rounded-xl text-xs uppercase tracking-wider transition">
+          TIẾP TỤC HÀNH TRÌNH ➔
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 7. MÀN HÌNH HOÀN THÀNH CHIẾN DỊCH (VICTORY MODAL) -->
+  <!-- ========================================================================= -->
+  <div id="modal-victory" class="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md hidden pointer-events-auto">
+    <div class="glass-card rounded-2xl max-w-lg w-full p-6 md:p-8 space-y-5 border-2 border-green-400 shadow-[0_0_50px_rgba(46,204,113,0.5)] text-center">
+      <div class="text-6xl text-yellow-400 animate-bounce">🎖️</div>
+      <div>
+        <h2 class="text-2xl md:text-4xl font-black uppercase text-doan-gold font-teko tracking-wider">
+          Chiến Thắng Vang Dội!
+        </h2>
+        <p id="victory-subtitle" class="text-xs md:text-sm text-green-300 font-semibold mt-1">
+          Đồng chí đã hoàn thành xuất sắc nhiệm vụ chiến dịch!
+        </p>
+      </div>
+
+      <div class="bg-black/60 border border-white/10 rounded-xl p-4 grid grid-cols-2 gap-3 text-left text-xs">
+        <div>
+          <span class="text-gray-400 block text-[10px] uppercase">Thời gian hoàn thành:</span>
+          <span id="victory-time-val" class="text-white font-mono font-bold text-sm">00:45</span>
+        </div>
+        <div>
+          <span class="text-gray-400 block text-[10px] uppercase">Sao Đoàn nhận thêm:</span>
+          <span id="victory-stars-val" class="text-yellow-400 font-mono font-bold text-sm">+5 SAO</span>
+        </div>
+        <div class="col-span-2 pt-2 border-t border-white/10">
+          <span class="text-gray-400 block text-[10px] uppercase">Huy hiệu Đoàn & Lịch sử:</span>
+          <span class="text-green-400 font-bold text-xs">DŨNG SĨ XUNG KIỆT CÁI SƠN 1960</span>
+        </div>
+      </div>
+
+      <div class="flex gap-3 justify-center pt-2">
+        <button id="btn-victory-menu" class="glass-card hover:bg-white/10 text-gray-200 font-bold px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider border border-white/20">
+          VỀ MENU
+        </button>
+        <button id="btn-victory-next" class="bg-gradient-to-r from-yellow-500 to-doan-gold hover:from-yellow-400 hover:to-yellow-500 text-black font-black px-6 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-lg">
+          CHIẾN DỊCH TIẾP THEO ➔
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 8. MÀN HÌNH THẤT BẠI (GAME OVER MODAL) -->
+  <!-- ========================================================================= -->
+  <div id="modal-gameover" class="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md hidden pointer-events-auto">
+    <div class="glass-card rounded-2xl max-w-md w-full p-6 text-center space-y-4 border-2 border-red-500 shadow-2xl">
+      <div class="text-5xl text-red-500 animate-pulse">💥</div>
+      <h2 class="text-3xl font-black uppercase text-red-400 font-teko tracking-wider">
+        Nhiệm Vụ Chưa Thành!
+      </h2>
+      <p id="gameover-reason" class="text-xs text-gray-300 leading-relaxed">
+        Xe của đồng chí đã bị hư hại nặng nề hoặc không kịp thời gian tiếp tế.
+      </p>
+      <div class="flex gap-3 justify-center pt-3">
+        <button id="btn-gameover-menu" class="glass-card hover:bg-white/10 text-gray-200 font-bold px-5 py-2 rounded-xl text-xs uppercase tracking-wider">
+          MENU
+        </button>
+        <button id="btn-gameover-retry" class="bg-red-600 hover:bg-red-500 text-white font-black px-6 py-2 rounded-xl text-xs uppercase tracking-wider shadow-lg">
+          THỬ LẠI 🔄
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 9. TOÀN BỘ LOGIC GAME ENGINE: THREE.JS + CANNON.ES + WEB AUDIO API -->
+  <!-- ========================================================================= -->
+  <script>
+    // =========================================================================
+    // A. HỆ THỐNG ÂM THANH THỜI GIAN THỰC (PROCEDURAL WEB AUDIO API)
+    // =========================================================================
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.isMuted = false;
+        this.engineOsc = null;
+        this.engineGain = null;
+      }
+
+      init() {
+        if (this.ctx) return;
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        this.ctx = new AudioCtx();
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+        this.setupEngineSound();
+      }
+
+      setupEngineSound() {
+        if (!this.ctx || this.engineOsc) return;
+        try {
+          this.engineOsc = this.ctx.createOscillator();
+          this.engineOsc.type = 'sawtooth';
+          this.engineOsc.frequency.setValueAtTime(35, this.ctx.currentTime);
+
+          this.engineFilter = this.ctx.createBiquadFilter();
+          this.engineFilter.type = 'lowpass';
+          this.engineFilter.frequency.setValueAtTime(180, this.ctx.currentTime);
+
+          this.engineGain = this.ctx.createGain();
+          this.engineGain.gain.setValueAtTime(0, this.ctx.currentTime);
+
+          this.engineOsc.connect(this.engineFilter);
+          this.engineFilter.connect(this.engineGain);
+          this.engineGain.connect(this.ctx.destination);
+          this.engineOsc.start();
+        } catch(e) {}
+      }
+
+      updateEngine(speedKmh, throttle) {
+        if (!this.ctx || !this.engineOsc || this.isMuted) return;
+        const normSpeed = Math.min(1.0, speedKmh / 90.0);
+        const targetFreq = 35 + normSpeed * 75 + (throttle ? 30 : 0);
+        const targetVol = 0.08 + normSpeed * 0.12 + (throttle ? 0.08 : 0);
+        
+        this.engineOsc.frequency.setTargetAtTime(targetFreq, this.ctx.currentTime, 0.08);
+        this.engineFilter.frequency.setTargetAtTime(160 + normSpeed * 350, this.ctx.currentTime, 0.08);
+        this.engineGain.gain.setTargetAtTime(targetVol, this.ctx.currentTime, 0.08);
+      }
+
+      stopEngine() {
+        if (this.engineGain && this.ctx) {
+          this.engineGain.gain.setTargetAtTime(0, this.ctx.currentTime, 0.05);
+        }
+      }
+
+      playCrash() {
+        if (!this.ctx || this.isMuted) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(120, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + 0.3);
+          gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.35);
+          osc.connect(gain); gain.connect(this.ctx.destination);
+          osc.start(); osc.stop(this.ctx.currentTime + 0.35);
+        } catch(e) {}
+      }
+
+      playStarPickup() {
+        if (!this.ctx || this.isMuted) return;
+        try {
+          const notes = [523.25, 659.25, 783.99, 1046.50];
+          notes.forEach((freq, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.06);
+            gain.gain.setValueAtTime(0.15, this.ctx.currentTime + idx * 0.06);
+            gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + idx * 0.06 + 0.15);
+            osc.connect(gain); gain.connect(this.ctx.destination);
+            osc.start(this.ctx.currentTime + idx * 0.06);
+            osc.stop(this.ctx.currentTime + idx * 0.06 + 0.16);
+          });
+        } catch(e) {}
+      }
+
+      playTurbo() {
+        if (!this.ctx || this.isMuted) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(180, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(650, this.ctx.currentTime + 0.4);
+          gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.4);
+          osc.connect(gain); gain.connect(this.ctx.destination);
+          osc.start(); osc.stop(this.ctx.currentTime + 0.4);
+        } catch(e) {}
+      }
+
+      playVictoryFanfare() {
+        if (!this.ctx || this.isMuted) return;
+        const fanfare = [
+          { f: 523.25, d: 0.15 }, { f: 659.25, d: 0.15 },
+          { f: 783.99, d: 0.15 }, { f: 1046.50, d: 0.5 }
+        ];
+        let t = this.ctx.currentTime;
+        fanfare.forEach(item => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(item.f, t);
+          gain.gain.setValueAtTime(0.25, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + item.d);
+          osc.connect(gain); gain.connect(this.ctx.destination);
+          osc.start(t); osc.stop(t + item.d + 0.05);
+          t += item.d + 0.04;
+        });
+      }
+    }
+
+    const sound = new SoundEngine();
+
+    // =========================================================================
+    // B. DỮ LIỆU ĐOÀN & TRẮC NGHIỆM LỊCH SỬ CÁI SƠN
+    // =========================================================================
+    const HISTORICAL_QUIZZES = [
+      {
+        question: "Trận phục kích Cái Sơn diễn ra vào ngày tháng năm nào, và lực lượng ta đã tiêu diệt ai?",
+        options: [
+          { text: "16/06/1960 - Tiêu diệt Tỉnh trưởng Khưu Văn Ba", correct: true },
+          { text: "30/04/1975 - Giải phóng thị xã Vĩnh Long", correct: false },
+          { text: "19/08/1945 - Khởi nghĩa Cách mạng Tháng Tám", correct: false },
+          { text: "26/03/1931 - Thành lập Đoàn TNCS Hồ Chí Minh", correct: false }
+        ],
+        explanation: "Chính xác! Đúng 16h15 ngày 16/6/1960, quân dân Vĩnh Long đã phục kích tiêu diệt tên Tỉnh trưởng Khưu Văn Ba tại cầu Cái Sơn, Song Phú."
+      },
+      {
+        question: "Chiến thắng Cái Sơn (16/06/1960) có ý nghĩa lịch sử to lớn nào sau đây?",
+        options: [
+          { text: "Khưu Văn Ba là Tỉnh trưởng ngụy đầu tiên bị diệt tại trận địa ở miền Nam", correct: true },
+          { text: "Kết thúc hoàn toàn cuộc kháng chiến chống Pháp", correct: false },
+          { text: "Chiến dịch tiến công bằng không quân đầu tiên", correct: false },
+          { text: "Thành lập Mặt trận Việt Minh", correct: false }
+        ],
+        explanation: "Chính xác! Thắng lợi này làm rung chuyển bộ máy kìm kẹp ngụy quyền Vĩnh Long, củng cố khí thế Đồng Khởi nổi dậy của nhân dân."
+      },
+      {
+        question: "Ngày truyền thống của Đoàn Thanh niên Cộng sản Hồ Chí Minh là ngày nào?",
+        options: [
+          { text: "Ngày 26 tháng 3 năm 1931", correct: true },
+          { text: "Ngày 15 tháng 10 năm 1956", correct: false },
+          { text: "Ngày 19 tháng 5 năm 1890", correct: false },
+          { text: "Ngày 03 tháng 2 năm 1930", correct: false }
+        ],
+        explanation: "Chính xác! Đại hội đại biểu toàn quốc lần thứ III của Đoàn đã quyết định lấy ngày 26/3/1931 làm ngày kỷ niệm thành lập Đoàn hàng năm."
+      },
+      {
+        question: "Câu nói bất hủ: 'Con đường của thanh niên chỉ là con đường cách mạng...' là của anh hùng trẻ tuổi nào?",
+        options: [
+          { text: "Anh hùng Lý Tự Trọng", correct: true },
+          { text: "Anh hùng Nguyễn Văn Trỗi", correct: false },
+          { text: "Anh hùng Vừ A Dính", correct: false },
+          { text: "Anh hùng Kim Đồng", correct: false }
+        ],
+        explanation: "Chính xác! Đó là lời khẳng định đanh thép trước tòa án thực dân của đồng chí Lý Tự Trọng - người đoàn viên đầu tiên."
+      },
+      {
+        question: "Địa bàn diễn ra trận đánh Cái Sơn lịch sử năm 1960 nay thuộc địa phận hành chính nào của tỉnh Vĩnh Long?",
+        options: [
+          { text: "Xã Song Phú, huyện Tam Bình, tỉnh Vĩnh Long", correct: true },
+          { text: "Phường 1, thành phố Vĩnh Long", correct: false },
+          { text: "Thị xã Bình Minh, tỉnh Vĩnh Long", correct: false },
+          { text: "Huyện Mang Thít, tỉnh Vĩnh Long", correct: false }
+        ],
+        explanation: "Chính xác! Cầu Cái Sơn nằm trên địa bàn xã Song Phú, huyện Tam Bình, là nút giao thông huyết mạch của ngụy quyền thời kỳ bấy giờ."
+      }
+    ];
+
+    // =========================================================================
+    // C. HỆ THỐNG LƯU TRỮ VÀ TIẾN TRÌNH GAME (LOCALSTORAGE)
+    // =========================================================================
+    class StorageManager {
+      constructor() {
+        this.key = "CAISON_3D_PROGRESS_V1";
+        this.data = this.load();
+      }
+
+      load() {
+        try {
+          const raw = localStorage.getItem(this.key);
+          if (raw) return JSON.parse(raw);
+        } catch(e) {}
+        return {
+          stars: 12,
+          unlockedLevel: 1,
+          upgrades: { engine: 1, armor: 1, handling: 1, turbo: 1 }
+        };
+      }
+
+      save() {
+        try {
+          localStorage.setItem(this.key, JSON.stringify(this.data));
+        } catch(e) {}
+      }
+    }
+
+    const storage = new StorageManager();
+
+    // =========================================================================
+    // D. KHỞI TẠO THREE.JS VÀ CANNON.ES
+    // =========================================================================
+    const container = document.getElementById('canvas-container');
+
+    // Three.js Scene, Camera, Renderer
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x87ceeb);
+    scene.fog = new THREE.FogExp2(0x87ceeb, 0.008);
+
+    const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 800);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    container.appendChild(renderer.domElement);
+
+    // Ánh sáng môi trường
+    const hemiLight = new THREE.HemisphereLight(0xfffaed, 0x3d5a38, 0.75);
+    scene.add(hemiLight);
+
+    const sunLight = new THREE.DirectionalLight(0xffdf99, 1.35);
+    sunLight.position.set(60, 80, -40);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.width = 2048;
+    sunLight.shadow.mapSize.height = 2048;
+    sunLight.shadow.camera.near = 10;
+    sunLight.shadow.camera.far = 250;
+    const d = 60;
+    sunLight.shadow.camera.left = -d;
+    sunLight.shadow.camera.right = d;
+    sunLight.shadow.camera.top = d;
+    sunLight.shadow.camera.bottom = -d;
+    scene.add(sunLight);
+
+    // Cannon.es Physics World
+    const world = new CANNON.World();
+    world.gravity.set(0, -18.5, 0);
+    world.broadphase = new CANNON.NaiveBroadphase();
+    world.solver.iterations = 10;
+    world.defaultContactMaterial.friction = 0.5;
+    world.defaultContactMaterial.restitution = 0.15;
+
+    // Materials Three.js
+    const mats = {
+      dirtRoad: new THREE.MeshLambertMaterial({ color: 0x935c3b }),
+      grass: new THREE.MeshLambertMaterial({ color: 0x487532 }),
+      water: new THREE.MeshLambertMaterial({ color: 0x41655b, transparent: true, opacity: 0.85 }),
+      jeepBody: new THREE.MeshLambertMaterial({ color: 0x32432a }),
+      jeepTrim: new THREE.MeshLambertMaterial({ color: 0x1f2b1a }),
+      wheelRubber: new THREE.MeshLambertMaterial({ color: 0x151515 }),
+      glass: new THREE.MeshLambertMaterial({ color: 0x90b5c9, transparent: true, opacity: 0.7 }),
+      wood: new THREE.MeshLambertMaterial({ color: 0x6e4a2d }),
+      palmFrond: new THREE.MeshLambertMaterial({ color: 0x2b631d }),
+      crate: new THREE.MeshLambertMaterial({ color: 0x8b5a2b }),
+      barrelRed: new THREE.MeshLambertMaterial({ color: 0xb22222 }),
+      goldStar: new THREE.MeshLambertMaterial({ color: 0xffcc00, emissive: 0x554400 }),
+      checkpointBeam: new THREE.MeshBasicMaterial({ color: 0x00a8ff, transparent: true, opacity: 0.45, side: THREE.DoubleSide })
+    };
+
+    // =========================================================================
+    // E. XÂY DỰNG MÔ HÌNH XE JEEP CHIẾN ĐẤU (3D MESH & CANNON RIGID BODY)
+    // =========================================================================
+    class Vehicle {
+      constructor() {
+        this.mesh = new THREE.Group();
+        this.wheelMeshes = [];
+        this.createVisualMesh();
+
+        // Cannon.js Rigid Body
+        const chassisShape = new CANNON.Box(new CANNON.Vec3(1.1, 0.45, 2.1));
+        this.body = new CANNON.Body({
+          mass: 850,
+          shape: chassisShape,
+          material: new CANNON.Material("vehicleMat")
+        });
+        this.body.position.set(0, 1.8, 0);
+        this.body.linearDamping = 0.12;
+        this.body.angularDamping = 0.6;
+        world.addBody(this.body);
+
+        // Các thuộc tính điều khiển & Nâng cấp
+        this.speedKmh = 0;
+        this.steerAngle = 0;
+        this.enginePower = 1.0;
+        this.armorLevel = 1.0;
+        this.hp = 100;
+        this.maxHp = 100;
+        this.nitro = 100;
+        this.isBoosting = false;
+        this.isDrifting = false;
+        this.wheelBase = 2.6;
+        this.trackWidth = 1.8;
+
+        scene.add(this.mesh);
+      }
+
+      createVisualMesh() {
+        // Thân xe chính (Chassis)
+        const bodyGeo = new THREE.BoxGeometry(2.1, 0.75, 4.0);
+        const bodyMesh = new THREE.Mesh(bodyGeo, mats.jeepBody);
+        bodyMesh.position.y = 0.6;
+        bodyMesh.castShadow = true;
+        bodyMesh.receiveShadow = true;
+        this.mesh.add(bodyMesh);
+
+        // Nắp ca-pô phía trước
+        const hoodGeo = new THREE.BoxGeometry(1.9, 0.5, 1.6);
+        const hoodMesh = new THREE.Mesh(hoodGeo, mats.jeepBody);
+        hoodMesh.position.set(0, 0.95, 1.1);
+        hoodMesh.castShadow = true;
+        this.mesh.add(hoodMesh);
+
+        // Kính chắn gió
+        const glassGeo = new THREE.BoxGeometry(1.8, 0.7, 0.08);
+        const glassMesh = new THREE.Mesh(glassGeo, mats.glass);
+        glassMesh.position.set(0, 1.45, 0.3);
+        this.mesh.add(glassMesh);
+
+        // Khung bảo vệ / Mui trần
+        const rollbarGeo = new THREE.CylinderGeometry(0.04, 0.04, 1.2);
+        const rbL = new THREE.Mesh(rollbarGeo, mats.jeepTrim);
+        rbL.position.set(-0.9, 1.5, -0.6);
+        this.mesh.add(rbL);
+        const rbR = new THREE.Mesh(rollbarGeo, mats.jeepTrim);
+        rbR.position.set(0.9, 1.5, -0.6);
+        this.mesh.add(rbR);
+
+        // Cờ Đoàn hoặc Ngôi sao vàng trên nắp ca-pô
+        const starGeo = new THREE.CylinderGeometry(0.25, 0.25, 0.02, 5);
+        const starMesh = new THREE.Mesh(starGeo, mats.goldStar);
+        starMesh.position.set(0, 1.21, 1.1);
+        this.mesh.add(starMesh);
+
+        // Đèn pha trước
+        const headLightMat = new THREE.MeshBasicMaterial({ color: 0xfff2a3 });
+        const hlL = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.1, 12), headLightMat);
+        hlL.rotation.x = Math.PI / 2;
+        hlL.position.set(-0.7, 0.95, 1.92);
+        this.mesh.add(hlL);
+        const hlR = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.1, 12), headLightMat);
+        hlR.rotation.x = Math.PI / 2;
+        hlR.position.set(0.7, 0.95, 1.92);
+        this.mesh.add(hlR);
+
+        // 4 Bánh xe (Wheel Meshes)
+        const wheelOffsets = [
+          [-1.05, 0.45, 1.3],   // Trước trái
+          [1.05, 0.45, 1.3],    // Trước phải
+          [-1.05, 0.45, -1.3],  // Sau trái
+          [1.05, 0.45, -1.3]    // Sau phải
+        ];
+
+        this.wheelNodes = [];
+        wheelOffsets.forEach((pos, idx) => {
+          const wGroup = new THREE.Group();
+          wGroup.position.set(pos[0], pos[1], pos[2]);
+
+          const wMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.48, 0.38, 16), mats.wheelRubber);
+          wMesh.rotation.z = Math.PI / 2;
+          wMesh.castShadow = true;
+          wGroup.add(wMesh);
+
+          this.mesh.add(wGroup);
+          this.wheelNodes.push(wGroup);
+        });
+      }
+
+      applyUpgrades(upgrades) {
+        // Áp dụng nâng cấp xưởng
+        this.enginePower = 1.0 + (upgrades.engine - 1) * 0.28;
+        this.armorLevel = 1.0 + (upgrades.armor - 1) * 0.35;
+        this.maxHp = 100 * this.armorLevel;
+        this.hp = this.maxHp;
+        this.turboCap = 100 + (upgrades.turbo - 1) * 40;
+        this.nitro = this.turboCap;
+        this.handlingFactor = 1.0 + (upgrades.handling - 1) * 0.25;
+      }
+
+      reset(x = 0, y = 1.8, z = 0, rotY = 0) {
+        this.body.position.set(x, y, z);
+        this.body.velocity.set(0, 0, 0);
+        this.body.angularVelocity.set(0, 0, 0);
+        const q = new CANNON.Quaternion();
+        q.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), rotY);
+        this.body.quaternion.copy(q);
+        this.hp = this.maxHp;
+        this.nitro = this.turboCap || 100;
+      }
+
+      update(dt, input) {
+        // Đồng bộ vị trí Three.js theo Cannon.js
+        this.mesh.position.copy(this.body.position);
+        this.mesh.quaternion.copy(this.body.quaternion);
+
+        // Tính toán vector hướng của xe
+        const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(this.mesh.quaternion);
+        const up = new THREE.Vector3(0, 1, 0).applyQuaternion(this.mesh.quaternion);
+
+        // Vận tốc chuyển động thực tế
+        const velocity = new THREE.Vector3(this.body.velocity.x, this.body.velocity.y, this.body.velocity.z);
+        const fwdSpeed = velocity.dot(forward);
+        this.speedKmh = Math.round(Math.abs(fwdSpeed) * 3.6);
+
+        // Điều khiển đánh lái
+        const maxSteer = 0.55;
+        let targetSteer = 0;
+        if (input.left) targetSteer += maxSteer;
+        if (input.right) targetSteer -= maxSteer;
+        this.steerAngle += (targetSteer - this.steerAngle) * 9.0 * dt;
+
+        // Xoay bánh trước theo góc lái
+        this.wheelNodes[0].rotation.y = this.steerAngle;
+        this.wheelNodes[1].rotation.y = this.steerAngle;
+
+        // Quay bánh xe theo tốc độ di chuyển
+        const wheelRollSpeed = (fwdSpeed * dt) / 0.48;
+        this.wheelNodes.forEach(w => {
+          w.children[0].rotation.x += wheelRollSpeed;
+        });
+
+        // Ga / Phanh / Lùi
+        const baseForce = 7500 * this.enginePower;
+        let driveForce = 0;
+        if (input.forward) driveForce += baseForce;
+        if (input.backward) driveForce -= baseForce * 0.6;
+
+        // Nitro Turbo Boost (Shift)
+        this.isBoosting = false;
+        if (input.nitro && this.nitro > 0 && input.forward) {
+          driveForce *= 1.85;
+          this.nitro = Math.max(0, this.nitro - 35 * dt);
+          this.isBoosting = true;
+          sound.playTurbo();
+        } else {
+          this.nitro = Math.min(this.turboCap || 100, this.nitro + 10 * dt);
+        }
+
+        // Tác động lực đẩy vật lý (Cannon.js force)
+        const forceVec = new CANNON.Vec3(forward.x * driveForce, forward.y * driveForce, forward.z * driveForce);
+        this.body.applyForce(forceVec, this.body.position);
+
+        // Phanh tay & Drift (Space)
+        this.isDrifting = false;
+        if (input.handbrake) {
+          this.body.velocity.x *= 0.94;
+          this.body.velocity.z *= 0.94;
+          this.isDrifting = true;
+        }
+
+        // Giữ thăng bằng tự nhiên chống lật ngang quá đà
+        if (up.y < 0.6) {
+          const rightAxis = new THREE.Vector3(1, 0, 0).applyQuaternion(this.mesh.quaternion);
+          const uprightTorque = new CANNON.Vec3(0, 0, -up.x * 2500);
+          this.body.applyTorque(uprightTorque);
+        }
+
+        // Âm thanh động cơ theo vòng tua
+        sound.updateEngine(this.speedKmh, input.forward || input.backward);
+      }
+    }
+
+    // =========================================================================
+    // F. XÂY DỰNG MÔI TRƯỜNG LỊCH SỬ & VẬT CẢN VẬT LÝ (DESTRUCTIBLE PROPS)
+    // =========================================================================
+    class Environment {
+      constructor() {
+        this.destructibles = [];
+        this.stars = [];
+        this.checkpoint = null;
+        this.buildTerrain();
+      }
+
+      buildTerrain() {
+        // Mặt đất ruộng đồng
+        const groundGeo = new THREE.PlaneGeometry(300, 300);
+        const groundMesh = new THREE.Mesh(groundGeo, mats.grass);
+        groundMesh.rotation.x = -Math.PI / 2;
+        groundMesh.receiveShadow = true;
+        scene.add(groundMesh);
+
+        // Mặt đất vật lý Cannon.es
+        const groundBody = new CANNON.Body({
+          mass: 0,
+          shape: new CANNON.Plane(),
+          material: new CANNON.Material("groundMat")
+        });
+        groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
+        world.addBody(groundBody);
+
+        // Con đường đất Cái Sơn uốn lượn
+        const roadGeo = new THREE.BoxGeometry(9.0, 0.08, 280);
+        const roadMesh = new THREE.Mesh(roadGeo, mats.dirtRoad);
+        roadMesh.position.set(0, 0.04, 0);
+        roadMesh.receiveShadow = true;
+        scene.add(roadMesh);
+
+        // Kênh nước rạch Song Phú
+        const canalGeo = new THREE.BoxGeometry(11.0, 0.4, 280);
+        const canalMesh = new THREE.Mesh(canalGeo, mats.water);
+        canalMesh.position.set(-10.5, -0.1, 0);
+        scene.add(canalMesh);
+
+        // Hàng dừa nước rợp bóng
+        for (let z = -120; z <= 120; z += 14) {
+          this.createPalmTree(-6.5 + Math.sin(z * 0.15) * 0.8, z);
+          if (z % 28 === 0) this.createPalmTree(7.5, z);
+        }
+      }
+
+      createPalmTree(x, z) {
+        const treeGroup = new THREE.Group();
+        treeGroup.position.set(x, 0, z);
+
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.35, 3.2, 8), mats.wood);
+        trunk.position.y = 1.6;
+        trunk.rotation.z = (Math.random() - 0.5) * 0.15;
+        trunk.castShadow = true;
+        treeGroup.add(trunk);
+
+        for (let i = 0; i < 6; i++) {
+          const frond = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.06, 3.4), mats.palmFrond);
+          const angle = (i / 6) * Math.PI * 2;
+          frond.position.set(Math.cos(angle) * 1.0, 3.0, Math.sin(angle) * 1.0);
+          frond.rotation.y = angle;
+          frond.rotation.x = 0.4;
+          frond.castShadow = true;
+          treeGroup.add(frond);
+        }
+        scene.add(treeGroup);
+      }
+
+      spawnCrate(x, y, z) {
+        const size = 1.0;
+        const mesh = new THREE.Mesh(new THREE.BoxGeometry(size, size, size), mats.crate);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        scene.add(mesh);
+
+        const body = new CANNON.Body({
+          mass: 35,
+          shape: new CANNON.Box(new CANNON.Vec3(size / 2, size / 2, size / 2))
+        });
+        body.position.set(x, y, z);
+        world.addBody(body);
+
+        this.destructibles.push({ mesh, body });
+      }
+
+      spawnBarrel(x, y, z) {
+        const radius = 0.45, height = 1.1;
+        const mesh = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, height, 12), mats.barrelRed);
+        mesh.castShadow = true;
+        scene.add(mesh);
+
+        const body = new CANNON.Body({
+          mass: 50,
+          shape: new CANNON.Cylinder(radius, radius, height, 10)
+        });
+        body.position.set(x, y, z);
+        world.addBody(body);
+
+        this.destructibles.push({ mesh, body });
+      }
+
+      spawnStar(x, y, z) {
+        const starMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.12, 5), mats.goldStar);
+        starMesh.rotation.x = Math.PI / 2;
+        starMesh.position.set(x, y, z);
+        scene.add(starMesh);
+
+        this.stars.push({
+          mesh: starMesh,
+          pos: new THREE.Vector3(x, y, z),
+          collected: false
+        });
+      }
+
+      setCheckpoint(x, z, label, radius = 3.5) {
+        if (this.checkpoint) {
+          scene.remove(this.checkpoint.mesh);
+        }
+
+        const cylGeo = new THREE.CylinderGeometry(radius, radius, 12, 24, 1, true);
+        const cylMesh = new THREE.Mesh(cylGeo, mats.checkpointBeam);
+        cylMesh.position.set(x, 6, z);
+        scene.add(cylMesh);
+
+        this.checkpoint = {
+          mesh: cylMesh,
+          x, z, radius,
+          triggered: false,
+          label
+        };
+      }
+
+      clearProps() {
+        this.destructibles.forEach(item => {
+          scene.remove(item.mesh);
+          world.remove(item.body);
+        });
+        this.destructibles = [];
+
+        this.stars.forEach(s => scene.remove(s.mesh));
+        this.stars = [];
+
+        if (this.checkpoint) {
+          scene.remove(this.checkpoint.mesh);
+          this.checkpoint = null;
+        }
+      }
+
+      update(dt) {
+        // Đồng bộ các vật cản vật lý
+        this.destructibles.forEach(item => {
+          item.mesh.position.copy(item.body.position);
+          item.mesh.quaternion.copy(item.body.quaternion);
+        });
+
+        // Xoay các ngôi sao Đoàn lấp lánh
+        this.stars.forEach(s => {
+          if (!s.collected) {
+            s.mesh.rotation.z += 2.5 * dt;
+          }
+        });
+
+        // Xoay chùm sáng trạm kiểm soát
+        if (this.checkpoint) {
+          this.checkpoint.mesh.rotation.y += 1.2 * dt;
+        }
+      }
+    }
+
+    // =========================================================================
+    // G. HỆ THỐNG HẠT PROCEDURAL (PARTICLES: KHÓI BỤI & PHẢN LỰC NITRO)
+    // =========================================================================
+    class ParticleEngine {
+      constructor() {
+        this.particleCount = 120;
+        this.geo = new THREE.BufferGeometry();
+        this.pos = new Float32Array(this.particleCount * 3);
+        this.colors = new Float32Array(this.particleCount * 3);
+        this.lifes = new Float32Array(this.particleCount);
+
+        for (let i = 0; i < this.particleCount; i++) {
+          this.pos[i * 3 + 1] = -100;
+          this.lifes[i] = 0;
+        }
+
+        this.geo.setAttribute('position', new THREE.BufferAttribute(this.pos, 3));
+        this.geo.setAttribute('color', new THREE.BufferAttribute(this.colors, 3));
+
+        this.points = new THREE.Points(this.geo, new THREE.PointsMaterial({
+          size: 0.8,
+          vertexColors: true,
+          transparent: true,
+          opacity: 0.7
+        }));
+        scene.add(this.points);
+      }
+
+      emitDust(x, y, z, isNitro = false) {
+        for (let i = 0; i < this.particleCount; i++) {
+          if (this.lifes[i] <= 0) {
+            this.pos[i * 3] = x + (Math.random() - 0.5) * 0.8;
+            this.pos[i * 3 + 1] = y + 0.15;
+            this.pos[i * 3 + 2] = z + (Math.random() - 0.5) * 0.8;
+            this.lifes[i] = 0.5 + Math.random() * 0.4;
+
+            if (isNitro) {
+              this.colors[i * 3] = 0.2;
+              this.colors[i * 3 + 1] = 0.6;
+              this.colors[i * 3 + 2] = 1.0;
+            } else {
+              this.colors[i * 3] = 0.75;
+              this.colors[i * 3 + 1] = 0.60;
+              this.colors[i * 3 + 2] = 0.45;
+            }
+            break;
+          }
+        }
+      }
+
+      update(dt) {
+        for (let i = 0; i < this.particleCount; i++) {
+          if (this.lifes[i] > 0) {
+            this.lifes[i] -= dt;
+            this.pos[i * 3 + 1] += dt * 1.5;
+            if (this.lifes[i] <= 0) this.pos[i * 3 + 1] = -100;
+          }
+        }
+        this.geo.attributes.position.needsUpdate = true;
+        this.geo.attributes.color.needsUpdate = true;
+      }
+    }
+
+    // =========================================================================
+    // H. MASTER GAME MANAGER & STATE MACHINE
+    // =========================================================================
+    class GameManager {
+      constructor() {
+        this.state = "MAIN_MENU";
+        this.currentLevel = 1;
+        this.levelTime = 0;
+        this.maxLevelTime = 75;
+        this.collectedStars = 0;
+        this.targetStars = 5;
+        this.cameraMode = 0; // 0: Chase Cam, 1: Cockpit/Hood Cam, 2: Top-down Drone
+        
+        this.vehicle = new Vehicle();
+        this.env = new Environment();
+        this.particles = new ParticleEngine();
+        
+        this.input = {
+          forward: false, backward: false, left: false, right: false,
+          handbrake: false, nitro: false
+        };
+
+        this.initEventListeners();
+        this.updateMenuStarsDisplay();
+        this.setupLevel(1);
+      }
+
+      setupLevel(lvl) {
+        this.currentLevel = lvl;
+        this.env.clearProps();
+        this.collectedStars = 0;
+        this.levelTime = 0;
+
+        // Cập nhật nâng cấp xe
+        this.vehicle.applyUpgrades(storage.data.upgrades);
+
+        if (lvl === 1) {
+          // MÀN 1: ĐƯỜNG VỀ QUÊ HƯƠNG
+          this.targetStars = 5;
+          this.maxLevelTime = 90;
+          this.vehicle.reset(0, 1.8, -100, 0);
+
+          // Tạo các ngôi sao Đoàn trên đường
+          this.env.spawnStar(0, 1.2, -75);
+          this.env.spawnStar(1.8, 1.2, -45);
+          this.env.spawnStar(-2.0, 1.2, -15);
+          this.env.spawnStar(0, 1.2, 25);
+          this.env.spawnStar(1.5, 1.2, 65);
+
+          // Chướng ngại vật thùng gỗ và cọc tre
+          this.env.spawnCrate(0, 1.0, -30);
+          this.env.spawnCrate(0.8, 1.0, -30);
+          this.env.spawnBarrel(-1.2, 1.0, 5);
+          this.env.spawnCrate(1.5, 1.0, 45);
+
+          // Đích đến / Trạm Xung Kiệt
+          this.env.setCheckpoint(0, 95, "Trạm Tiếp Nhận Xã Song Phú");
+
+          document.getElementById('hud-level-name').textContent = "Màn 1: Đường Về Quê Hương (Song Phú)";
+          document.getElementById('hud-mission-desc').textContent = "Thu thập 5 Sao Đoàn & Vượt chướng ngại vật!";
+        }
+        else if (lvl === 2) {
+          // MÀN 2: TIẾP SỨC TRUYỀN TIN
+          this.targetStars = 3;
+          this.maxLevelTime = 55;
+          this.vehicle.reset(0, 1.8, -110, 0);
+
+          this.env.spawnStar(0, 1.2, -60);
+          this.env.spawnStar(-2.2, 1.2, 0);
+          this.env.spawnStar(2.0, 1.2, 50);
+
+          // Chướng ngại vật dày đặc hơn
+          for (let z = -80; z <= 60; z += 30) {
+            this.env.spawnBarrel(-1.0, 1.0, z);
+            this.env.spawnCrate(1.2, 1.0, z + 5);
+          }
+
+          this.env.setCheckpoint(0, 105, "Trạm Truyền Tin Kháng Chiến");
+          document.getElementById('hud-level-name').textContent = "Màn 2: Tiếp Sức Truyền Tin (Tính Giờ)";
+          document.getElementById('hud-mission-desc').textContent = "Khẩn cấp: Đến trạm trước khi hết 55 giây!";
+        }
+        else if (lvl === 3) {
+          // MÀN 3: TRẬN ĐỊA PHỤC KÍCH CÁI SƠN (16/06/1960)
+          this.targetStars = 3;
+          this.maxLevelTime = 70;
+          this.vehicle.reset(0, 1.8, -120, 0);
+
+          this.env.spawnStar(0, 1.2, -70);
+          this.env.spawnStar(-1.8, 1.2, -20);
+          this.env.spawnStar(1.8, 1.2, 40);
+
+          // Rào chắn phòng thủ
+          for (let z = -50; z <= 60; z += 25) {
+            this.env.spawnCrate(-1.5, 1.0, z);
+            this.env.spawnCrate(0, 1.0, z);
+            this.env.spawnCrate(1.5, 1.0, z);
+            this.env.spawnBarrel(0, 2.0, z);
+          }
+
+          this.env.setCheckpoint(0, 100, "Cầu Cái Sơn - Khai Hỏa Phục Kích!");
+          document.getElementById('hud-level-name').textContent = "Màn 3: Trận Địa Phục Kích Cái Sơn (16/06/1960)";
+          document.getElementById('hud-mission-desc').textContent = "Phá rào chắn & Chiếm lĩnh điểm bắn cầu Cái Sơn!";
+        }
+
+        this.updateHUD();
+      }
+
+      startLevel(lvl) {
+        this.setupLevel(lvl);
+        this.setState("PLAYING");
+        sound.init();
+      }
+
+      setState(newState) {
+        this.state = newState;
+
+        // Ẩn tất cả modal
+        document.getElementById('ui-main-menu').classList.add('hidden');
+        document.getElementById('ui-gameplay').classList.add('hidden');
+        document.getElementById('modal-level-select').classList.add('hidden');
+        document.getElementById('modal-garage').classList.add('hidden');
+        document.getElementById('modal-lore').classList.add('hidden');
+        document.getElementById('modal-checkpoint-quiz').classList.add('hidden');
+        document.getElementById('modal-victory').classList.add('hidden');
+        document.getElementById('modal-gameover').classList.add('hidden');
+
+        if (this.state === "MAIN_MENU") {
+          document.getElementById('ui-main-menu').classList.remove('hidden');
+          sound.stopEngine();
+          this.updateMenuStarsDisplay();
+        }
+        else if (this.state === "PLAYING") {
+          document.getElementById('ui-gameplay').classList.remove('hidden');
+        }
+        else if (this.state === "LEVEL_SELECT") {
+          document.getElementById('modal-level-select').classList.remove('hidden');
+        }
+        else if (this.state === "GARAGE") {
+          document.getElementById('modal-garage').classList.remove('hidden');
+          this.updateGarageUI();
+        }
+        else if (this.state === "LORE") {
+          document.getElementById('modal-lore').classList.remove('hidden');
+        }
+        else if (this.state === "CHECKPOINT_QUIZ") {
+          document.getElementById('modal-checkpoint-quiz').classList.remove('hidden');
+          sound.stopEngine();
+        }
+        else if (this.state === "VICTORY") {
+          document.getElementById('modal-victory').classList.remove('hidden');
+          sound.stopEngine();
+          sound.playVictoryFanfare();
+        }
+        else if (this.state === "GAME_OVER") {
+          document.getElementById('modal-gameover').classList.remove('hidden');
+          sound.stopEngine();
+        }
+      }
+
+      showBanner(text) {
+        const b = document.getElementById('hud-banner');
+        document.getElementById('hud-banner-text').textContent = text;
+        b.style.opacity = '1';
+        b.style.transform = 'translate(-50%, -50%) scale(1)';
+        setTimeout(() => {
+          b.style.opacity = '0';
+          b.style.transform = 'translate(-50%, -50%) scale(0.5)';
+        }, 1200);
+      }
+
+      updateHUD() {
+        document.getElementById('hud-speedometer').textContent = this.vehicle.speedKmh;
+        document.getElementById('hud-hp-text').textContent = `${Math.max(0, Math.round(this.vehicle.hp))}%`;
+        document.getElementById('hud-hp-bar').style.width = `${Math.max(0, (this.vehicle.hp / this.vehicle.maxHp) * 100)}%`;
+        
+        const nitroPercent = (this.vehicle.nitro / (this.vehicle.turboCap || 100)) * 100;
+        document.getElementById('hud-nitro-text').textContent = `${Math.round(nitroPercent)}%`;
+        document.getElementById('hud-nitro-bar').style.width = `${nitroPercent}%`;
+
+        document.getElementById('hud-stars-count').textContent = `${this.collectedStars} / ${this.targetStars}`;
+
+        const remaining = Math.max(0, Math.ceil(this.maxLevelTime - this.levelTime));
+        const min = Math.floor(remaining / 60).toString().padStart(2, '0');
+        const sec = (remaining % 60).toString().padStart(2, '0');
+        document.getElementById('hud-timer').textContent = `${min}:${sec}`;
+
+        // Radar Blip
+        if (this.env.checkpoint) {
+          const blip = document.getElementById('radar-target-blip');
+          const dz = (this.env.checkpoint.z - this.vehicle.mesh.position.z) * 0.45;
+          const dx = (this.env.checkpoint.x - this.vehicle.mesh.position.x) * 0.45;
+          blip.style.transform = `translate(${dx}px, ${dz}px)`;
+        }
+      }
+
+      updateMenuStarsDisplay() {
+        document.getElementById('menu-stars-display').textContent = storage.data.stars;
+        document.getElementById('garage-stars-count').textContent = storage.data.stars;
+      }
+
+      updateGarageUI() {
+        const up = storage.data.upgrades;
+        const updateBars = (containerId, val) => {
+          const container = document.getElementById(containerId);
+          if (!container) return;
+          Array.from(container.children).forEach((bar, idx) => {
+            if (idx < val) bar.className = "w-5 h-2 bg-yellow-400 rounded-sm";
+            else bar.className = "w-5 h-2 bg-gray-700 rounded-sm";
+          });
+        };
+        updateBars('bars-engine', up.engine);
+        updateBars('bars-armor', up.armor);
+        updateBars('bars-handling', up.handling);
+        updateBars('bars-turbo', up.turbo);
+        this.updateMenuStarsDisplay();
+      }
+
+      triggerCheckpointQuiz() {
+        this.setState("CHECKPOINT_QUIZ");
+        const quiz = HISTORICAL_QUIZZES[Math.floor(Math.random() * HISTORICAL_QUIZZES.length)];
+        
+        document.getElementById('quiz-question-text').textContent = quiz.question;
+        const optContainer = document.getElementById('quiz-options-container');
+        optContainer.innerHTML = '';
+
+        const feedbackBox = document.getElementById('quiz-feedback-box');
+        feedbackBox.classList.add('hidden');
+        const btnContinue = document.getElementById('btn-quiz-continue');
+        btnContinue.classList.add('hidden');
+
+        quiz.options.forEach((opt, idx) => {
+          const btn = document.createElement('button');
+          btn.className = "w-full text-left p-3 rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 text-xs md:text-sm text-gray-200 transition flex items-center justify-between";
+          btn.innerHTML = `<span><b>${String.fromCharCode(65 + idx)}.</b> ${opt.text}</span>`;
+          btn.onclick = () => {
+            Array.from(optContainer.children).forEach(b => b.disabled = true);
+            if (opt.correct) {
+              btn.className = "w-full text-left p-3 rounded-xl border border-green-400 bg-green-950/80 text-xs md:text-sm text-green-300 font-bold flex items-center justify-between";
+              feedbackBox.className = "p-3 rounded-xl text-xs leading-relaxed border border-green-500 bg-green-950/70 text-green-200";
+              feedbackBox.innerHTML = `<b>✔ CHÍNH XÁC!</b> ${quiz.explanation}<br><span class="text-yellow-300 font-bold">+2 Sao Đoàn & Hồi đầy bình Nitro Turbo!</span>`;
+              feedbackBox.classList.remove('hidden');
+              storage.data.stars += 2;
+              storage.save();
+              this.vehicle.nitro = this.vehicle.turboCap || 100;
+              this.vehicle.hp = Math.min(this.vehicle.maxHp, this.vehicle.hp + 25);
+              sound.playStarPickup();
+            } else {
+              btn.className = "w-full text-left p-3 rounded-xl border border-red-500 bg-red-950/80 text-xs md:text-sm text-red-300 font-bold flex items-center justify-between";
+              feedbackBox.className = "p-3 rounded-xl text-xs leading-relaxed border border-red-500 bg-red-950/70 text-red-200";
+              feedbackBox.innerHTML = `<b>✖ CHƯA CHÍNH XÁC!</b> ${quiz.explanation}<br><span class="text-red-400 font-semibold">-10 giây thời gian nhiệm vụ!</span>`;
+              feedbackBox.classList.remove('hidden');
+              this.levelTime += 10;
+              sound.playCrash();
+            }
+            btnContinue.classList.remove('hidden');
+          };
+          optContainer.appendChild(btn);
+        });
+
+        btnContinue.onclick = () => {
+          this.setState("PLAYING");
+          this.showBanner("TIẾP TỤC TIẾN CÔNG!");
+        };
+      }
+
+      onLevelVictory() {
+        const addedStars = 5;
+        storage.data.stars += addedStars;
+        if (this.currentLevel === storage.data.unlockedLevel) {
+          storage.data.unlockedLevel = Math.min(3, storage.data.unlockedLevel + 1);
+        }
+        storage.save();
+
+        document.getElementById('victory-time-val').textContent = document.getElementById('hud-timer').textContent;
+        document.getElementById('victory-stars-val').textContent = `+${addedStars} SAO ĐOÀN`;
+        this.setState("VICTORY");
+      }
+
+      onGameOver(reason) {
+        document.getElementById('gameover-reason').textContent = reason;
+        this.setState("GAME_OVER");
+      }
+
+      initEventListeners() {
+        // Bàn phím máy tính (WASD / Arrows)
+        window.addEventListener('keydown', (e) => {
+          const c = e.code;
+          if (c === 'KeyW' || c === 'ArrowUp') this.input.forward = true;
+          if (c === 'KeyS' || c === 'ArrowDown') this.input.backward = true;
+          if (c === 'KeyA' || c === 'ArrowLeft') this.input.left = true;
+          if (c === 'KeyD' || c === 'ArrowRight') this.input.right = true;
+          if (c === 'Space') this.input.handbrake = true;
+          if (c === 'ShiftLeft' || c === 'ShiftRight') this.input.nitro = true;
+          if (c === 'KeyC') this.toggleCamera();
+          if (c === 'KeyR') this.vehicle.reset(this.vehicle.mesh.position.x, 2.0, this.vehicle.mesh.position.z, 0);
+          if (c === 'KeyP' || c === 'Escape') {
+            if (this.state === "PLAYING") this.setState("MAIN_MENU");
+          }
+        });
+
+        window.addEventListener('keyup', (e) => {
+          const c = e.code;
+          if (c === 'KeyW' || c === 'ArrowUp') this.input.forward = false;
+          if (c === 'KeyS' || c === 'ArrowDown') this.input.backward = false;
+          if (c === 'KeyA' || c === 'ArrowLeft') this.input.left = false;
+          if (c === 'KeyD' || c === 'ArrowRight') this.input.right = false;
+          if (c === 'Space') this.input.handbrake = false;
+          if (c === 'ShiftLeft' || c === 'ShiftRight') this.input.nitro = false;
+        });
+
+        // Nút Menu
+        document.getElementById('btn-play-game').onclick = () => this.startLevel(1);
+        document.getElementById('btn-open-garage').onclick = () => this.setState("GARAGE");
+        document.getElementById('btn-open-levels').onclick = () => this.setState("LEVEL_SELECT");
+        document.getElementById('btn-open-lore').onclick = () => this.setState("LORE");
+
+        document.querySelectorAll('.btn-close-modal').forEach(btn => {
+          btn.onclick = () => this.setState("MAIN_MENU");
+        });
+
+        // Chọn màn
+        document.querySelectorAll('.level-card').forEach(card => {
+          card.onclick = () => {
+            const lvl = parseInt(card.dataset.level);
+            this.startLevel(lvl);
+          };
+        });
+
+        // Nâng cấp trong xưởng
+        document.querySelectorAll('.btn-upgrade').forEach(btn => {
+          btn.onclick = () => {
+            const type = btn.dataset.type;
+            const cost = parseInt(btn.dataset.cost);
+            if (storage.data.stars >= cost && storage.data.upgrades[type] < 4) {
+              storage.data.stars -= cost;
+              storage.data.upgrades[type]++;
+              storage.save();
+              this.updateGarageUI();
+              sound.playStarPickup();
+            } else {
+              sound.playCrash();
+            }
+          };
+        });
+
+        // Nút âm thanh
+        document.getElementById('btn-sound-toggle').onclick = () => {
+          sound.isMuted = !sound.isMuted;
+          document.getElementById('icon-sound').className = sound.isMuted ? "fa-solid fa-volume-xmark text-red-400" : "fa-solid fa-volume-high text-sm";
+          if (sound.isMuted) sound.stopEngine();
+        };
+
+        // Nút Camera
+        document.getElementById('btn-camera-view').onclick = () => this.toggleCamera();
+        document.getElementById('btn-reset-car').onclick = () => {
+          this.vehicle.reset(this.vehicle.mesh.position.x, 2.0, this.vehicle.mesh.position.z, 0);
+        };
+        document.getElementById('btn-pause').onclick = () => this.setState("MAIN_MENU");
+
+        // Nút Victory & GameOver
+        document.getElementById('btn-victory-menu').onclick = () => this.setState("MAIN_MENU");
+        document.getElementById('btn-victory-next').onclick = () => {
+          const next = Math.min(3, this.currentLevel + 1);
+          this.startLevel(next);
+        };
+        document.getElementById('btn-gameover-menu').onclick = () => this.setState("MAIN_MENU");
+        document.getElementById('btn-gameover-retry').onclick = () => this.startLevel(this.currentLevel);
+
+        // Cảm ứng ảo trên điện thoại (Touch controls)
+        const bindTouch = (id, keyName) => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          const onStart = (e) => { this.input[keyName] = true; e.preventDefault(); };
+          const onEnd = (e) => { this.input[keyName] = false; e.preventDefault(); };
+          el.addEventListener('mousedown', onStart);
+          el.addEventListener('mouseup', onEnd);
+          el.addEventListener('mouseleave', onEnd);
+          el.addEventListener('touchstart', onStart);
+          el.addEventListener('touchend', onEnd);
+        };
+        bindTouch('touch-left', 'left');
+        bindTouch('touch-right', 'right');
+        bindTouch('touch-gas', 'forward');
+        bindTouch('touch-brake', 'backward');
+        bindTouch('touch-turbo', 'nitro');
+
+        // Resize window
+        window.addEventListener('resize', () => {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+      }
+
+      toggleCamera() {
+        this.cameraMode = (this.cameraMode + 1) % 3;
+        const labels = ["CHASE CAM", "COCKPIT HOOD", "DRONE CAM"];
+        document.getElementById('camera-mode-label').textContent = labels[this.cameraMode];
+      }
+
+      updateCamera() {
+        const carPos = this.vehicle.mesh.position;
+        const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(this.vehicle.mesh.quaternion);
+
+        if (this.state === "MAIN_MENU" || this.state === "GARAGE") {
+          // Camera xoay nghệ thuật ngắm xe Jeep trong menu
+          const t = Date.now() * 0.0006;
+          camera.position.set(carPos.x + Math.sin(t) * 7.5, carPos.y + 2.5, carPos.z + Math.cos(t) * 7.5);
+          camera.lookAt(carPos.x, carPos.y + 0.8, carPos.z);
+          return;
+        }
+
+        if (this.cameraMode === 0) {
+          // 1. Third-Person Chase Cam
+          const targetCamPos = new THREE.Vector3()
+            .copy(carPos)
+            .sub(fwd.clone().multiplyScalar(7.2))
+            .add(new THREE.Vector3(0, 3.2, 0));
+          camera.position.lerp(targetCamPos, 0.12);
+          camera.lookAt(carPos.x, carPos.y + 1.2, carPos.z);
+        }
+        else if (this.cameraMode === 1) {
+          // 2. Cockpit / Hood View
+          const hoodPos = new THREE.Vector3()
+            .copy(carPos)
+            .add(fwd.clone().multiplyScalar(0.6))
+            .add(new THREE.Vector3(0, 1.45, 0));
+          camera.position.copy(hoodPos);
+          const lookTarget = hoodPos.clone().add(fwd.clone().multiplyScalar(10));
+          camera.lookAt(lookTarget);
+        }
+        else {
+          // 3. Top-Down Drone Cam
+          camera.position.set(carPos.x, carPos.y + 18, carPos.z - 2);
+          camera.lookAt(carPos.x, carPos.y, carPos.z);
+        }
+      }
+
+      loop(dt) {
+        // Cập nhật vật lý thế giới
+        world.step(Math.min(dt, 0.1));
+
+        if (this.state === "PLAYING") {
+          this.levelTime += dt;
+          this.vehicle.update(dt, this.input);
+          this.env.update(dt);
+          this.particles.update(dt);
+
+          // Phát hạt khói bụi từ bánh xe
+          if (this.vehicle.speedKmh > 12) {
+            const carPos = this.vehicle.mesh.position;
+            this.particles.emitDust(carPos.x, carPos.y, carPos.z, this.vehicle.isBoosting);
+          }
+
+          // Kiểm tra thu thập Sao Đoàn
+          this.env.stars.forEach(s => {
+            if (!s.collected && s.pos.distanceTo(this.vehicle.mesh.position) < 2.5) {
+              s.collected = true;
+              scene.remove(s.mesh);
+              this.collectedStars++;
+              sound.playStarPickup();
+              this.showBanner("★ THU THẬP SAO ĐOÀN!");
+            }
+          });
+
+          // Kiểm tra tới Trạm Kiểm Soát / Checkpoint
+          if (this.env.checkpoint && !this.env.checkpoint.triggered) {
+            const distToCheckpoint = Math.hypot(
+              this.vehicle.mesh.position.x - this.env.checkpoint.x,
+              this.vehicle.mesh.position.z - this.env.checkpoint.z
+            );
+            if (distToCheckpoint < this.env.checkpoint.radius) {
+              this.env.checkpoint.triggered = true;
+              this.triggerCheckpointQuiz();
+            }
+          }
+
+          // Kiểm tra Điều kiện Thắng / Thua
+          if (this.levelTime >= this.maxLevelTime) {
+            this.onGameOver("Hết thời gian quy định của nhiệm vụ!");
+          }
+          if (this.vehicle.hp <= 0) {
+            this.onGameOver("Xe xung kích đã bị phá hủy hoàn toàn!");
+          }
+
+          // Nếu hoàn thành mục tiêu màn chơi
+          if (this.env.checkpoint && this.env.checkpoint.triggered && this.collectedStars >= this.targetStars) {
+            this.onLevelVictory();
+          }
+
+          this.updateHUD();
+        } else {
+          this.env.update(dt);
+        }
+
+        this.updateCamera();
+        renderer.render(scene, camera);
+      }
+    }
+
+    // =========================================================================
+    // I. VÒNG LẶP CHÍNH (MAIN ANIMATION LOOP)
+    // =========================================================================
+    const game = new GameManager();
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = clock.getDelta();
+      game.loop(dt);
+    }
+    animate();
+
+  </script>
+</body>
+</html>
