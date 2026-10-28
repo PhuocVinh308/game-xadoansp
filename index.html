@@ -143,66 +143,100 @@
     }
 
     /* Mobile & Tablet Responsive Optimizations */
-    body.touch-device-active #bottom-weapon-hud {
+    body.touch-device-active #bottom-weapon-hud,
+    body.touch-device-active #click-to-lock,
+    body.touch-device-active #squad-story-panel,
+    body.touch-device-active #open-inspect-btn,
+    body.touch-device-active #player-stamina-row,
+    body.touch-device-active #player-stance-camo-row,
+    body.touch-device-active #convoy-target-card,
+    body.touch-device-active #top-clock-wrap,
+    body.touch-device-active #top-clock-sep,
+    body.touch-device-active #top-chat-btn,
+    body.touch-device-active #top-cam-btn,
+    body.touch-device-active #perf-toggle-btn,
+    body.touch-device-active #obj-header-row,
+    body.touch-device-active #obj-desc,
+    body.touch-device-active #obj-status-row,
+    body.touch-device-active #cam-mode-selector {
       display: none !important;
     }
-    body.touch-device-active #click-to-lock {
-      display: none !important;
+    body.touch-device-active #objective-card {
+      top: 3.1rem !important;
+      left: 0.35rem !important;
+      right: auto !important;
+      bottom: auto !important;
+      max-width: 240px !important;
     }
-    @media (max-width: 1024px) {
-      #bottom-weapon-hud {
-        display: none !important;
-      }
-      #click-to-lock {
+    body.touch-device-active #objective-card > div {
+      padding: 0.25rem 0.55rem !important;
+      border-radius: 0.6rem !important;
+    }
+    @media (max-width: 1024px), (max-height: 540px) {
+      #bottom-weapon-hud,
+      #click-to-lock,
+      #squad-story-panel,
+      #open-inspect-btn,
+      #player-stamina-row,
+      #player-stance-camo-row,
+      #convoy-target-card,
+      #top-clock-wrap,
+      #top-clock-sep,
+      #top-chat-btn,
+      #top-cam-btn,
+      #perf-toggle-btn,
+      #obj-header-row,
+      #obj-desc,
+      #obj-status-row,
+      #cam-mode-selector {
         display: none !important;
       }
       .radar-container {
-        transform: scale(0.72);
+        transform: scale(0.62);
         transform-origin: top right;
       }
       #objective-card {
-        top: 5.8rem !important;
-        left: 0.5rem !important;
+        top: 3.1rem !important;
+        left: 0.35rem !important;
         right: auto !important;
         bottom: auto !important;
-        max-width: 225px !important;
-        transform: scale(0.88);
-        transform-origin: top left;
+        max-width: 240px !important;
       }
-      #cam-mode-selector {
-        display: none !important;
+      #objective-card > div {
+        padding: 0.25rem 0.55rem !important;
+        border-radius: 0.6rem !important;
       }
     }
     @media (max-width: 640px) {
       #top-center-bar {
-        top: 0.25rem !important;
+        top: 0.3rem !important;
         transform: scale(0.92);
         transform-origin: top center;
       }
       #top-left-player-hud {
-        top: 2.35rem !important;
+        top: 0.3rem !important;
         left: 0.35rem !important;
-        transform: scale(0.80);
+        transform: scale(0.84);
         transform-origin: top left;
       }
       .radar-container {
-        top: 2.35rem !important;
+        top: 0.3rem !important;
         right: 0.35rem !important;
-        transform: scale(0.56);
+        transform: scale(0.54);
         transform-origin: top right;
       }
       #objective-card {
-        top: 5.95rem !important;
+        top: 2.65rem !important;
         left: 0.35rem !important;
         right: auto !important;
         bottom: auto !important;
-        max-width: 215px !important;
-        transform: scale(0.82);
+        max-width: 220px !important;
+        transform: scale(0.86);
         transform-origin: top left;
       }
       /* On portrait phones, place weapon dock slightly above joystick & fire buttons so nothing overlaps */
       #touch-weapon-dock {
-        bottom: 6.6rem !important;
+        bottom: 6.4rem !important;
         transform: translateX(-50%) scale(0.92) !important;
       }
       #touch-joystick-zone {
@@ -232,29 +266,29 @@
     }
     @media (max-height: 540px) {
       .radar-container {
-        top: 0.35rem !important;
+        top: 0.3rem !important;
         right: 0.35rem !important;
-        transform: scale(0.54);
+        transform: scale(0.50);
         transform-origin: top right;
       }
       #top-left-player-hud {
-        top: 0.35rem !important;
+        top: 0.3rem !important;
         left: 0.35rem !important;
-        transform: scale(0.76);
+        transform: scale(0.82);
         transform-origin: top left;
       }
       #top-center-bar {
         top: 0.25rem !important;
-        transform: scale(0.84);
+        transform: scale(0.86);
         transform-origin: top center;
       }
       #objective-card {
-        top: 4.1rem !important;
+        top: 2.55rem !important;
         left: 0.35rem !important;
         right: auto !important;
         bottom: auto !important;
-        max-width: 210px !important;
-        transform: scale(0.76);
+        max-width: 240px !important;
+        transform: scale(0.84);
         transform-origin: top left;
       }
       #touch-joystick-zone {
@@ -645,7 +679,7 @@
       <img src="bo_doi_avatar.jpg" alt="Bộ Đội Việt Nam" class="w-full h-full object-cover" onerror="this.src='bo_doi_face.jpg'">
       <div class="absolute bottom-0 inset-x-0 bg-emerald-800/95 text-yellow-300 text-[7px] font-mono font-bold text-center py-0.5 uppercase">3D [B]</div>
     </div>
-    <div class="hud-glass rounded-xl px-2.5 py-1.5 min-w-[178px] border border-white/10 shadow-lg flex flex-col gap-1">
+    <div class="hud-glass rounded-xl px-2.5 py-1.5 min-w-[148px] sm:min-w-[178px] border border-white/10 shadow-lg flex flex-col gap-1">
       <div class="flex items-center justify-between text-[10px] text-slate-300 font-bold">
         <span class="flex items-center gap-1 text-emerald-400">
           <i class="fa-solid fa-person-rifle text-[10px] text-yellow-400"></i> BỘ ĐỘI VN
@@ -660,7 +694,7 @@
         </div>
         <span id="hp-text" class="text-slate-200 text-[8px] w-11 text-right">100/100</span>
       </div>
-      <div class="flex items-center gap-1.5 text-[9px] font-mono font-bold">
+      <div id="player-stamina-row" class="flex items-center gap-1.5 text-[9px] font-mono font-bold">
         <span class="text-cyan-400 w-5">TL</span>
         <div class="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden border border-blue-500/30">
           <div id="stamina-bar" class="h-full bg-gradient-to-r from-blue-600 to-cyan-400 w-full transition-all duration-100"></div>
@@ -668,7 +702,7 @@
         <span id="stamina-text" class="text-slate-300 text-[8px] w-11 text-right">100/100</span>
       </div>
       <!-- Stance & Camo Status -->
-      <div class="flex items-center justify-between pt-0.5 border-t border-slate-700/50 text-[9px] font-mono">
+      <div id="player-stance-camo-row" class="flex items-center justify-between pt-0.5 border-t border-slate-700/50 text-[9px] font-mono">
         <button id="stance-toggle-btn" class="flex items-center gap-1 text-amber-300 font-bold hover:text-amber-200 cursor-pointer">
           <i class="fa-solid fa-person" id="stance-icon"></i> <span id="stance-text">ĐỨNG [X]</span>
         </button>
@@ -680,7 +714,7 @@
   </div>
 
   <!-- Left Side (Below Player HUD): Compact Squad & Story Panel -->
-  <div id="squad-story-panel" class="hidden md:flex absolute top-28 left-3 z-20 w-60 flex-col gap-1.5 pointer-events-auto select-none transition-all collapsed">
+  <div id="squad-story-panel" class="hidden lg:flex absolute top-28 left-3 z-20 w-60 flex-col gap-1.5 pointer-events-auto select-none transition-all collapsed">
     <div class="hud-glass rounded-xl p-2 border border-emerald-500/40 shadow-xl bg-slate-950/80 backdrop-blur-md">
       <!-- Compact Header: Formation & Expand Toggle -->
       <div class="flex items-center justify-between mb-1.5">
@@ -747,11 +781,11 @@
   <!-- Top-Center: Sleek Compact Bar -->
   <div id="top-center-bar" class="absolute top-2.5 inset-x-0 mx-auto w-fit max-w-[96vw] pointer-events-none flex flex-col items-center z-20">
     <div class="hud-glass px-3 py-1 rounded-full border border-amber-500/40 flex items-center gap-1.5 sm:gap-2 text-slate-200 shadow-lg pointer-events-auto text-[10px]">
-      <span class="flex items-center gap-1 text-amber-400 font-bold font-military tracking-wider">
+      <span id="top-clock-wrap" class="flex items-center gap-1 text-amber-400 font-bold font-military tracking-wider">
         <i class="fa-regular fa-clock text-xs"></i> <span id="game-clock">16:14:35</span>
       </span>
-      <span class="text-slate-600">|</span>
-      <button onclick="openComradeDialogueModal(nearestComradeIdx >= 0 ? nearestComradeIdx : currentHistoricalStoryIdx)" title="Trò chuyện cùng Đồng đội [Phím U]" class="px-2 py-0.5 rounded-full bg-emerald-800/90 hover:bg-emerald-700 active:scale-95 text-yellow-200 font-mono text-[9px] font-bold flex items-center gap-1 border border-emerald-400/50 cursor-pointer">
+      <span id="top-clock-sep" class="text-slate-600">|</span>
+      <button id="top-chat-btn" onclick="openComradeDialogueModal(nearestComradeIdx >= 0 ? nearestComradeIdx : currentHistoricalStoryIdx)" title="Trò chuyện cùng Đồng đội [Phím U]" class="px-2 py-0.5 rounded-full bg-emerald-800/90 hover:bg-emerald-700 active:scale-95 text-yellow-200 font-mono text-[9px] font-bold flex items-center gap-1 border border-emerald-400/50 cursor-pointer">
         <i class="fa-solid fa-comments text-yellow-300"></i>
         <span>TRÒ CHUYỆN</span>
       </button>
@@ -763,7 +797,7 @@
         <i class="fa-solid fa-book-open text-yellow-300"></i>
         <span>SÁCH SỬ</span>
       </button>
-      <button onclick="cycleCameraMode()" title="Đổi góc nhìn Vai Phải / Vai Trái / Thứ Nhất [Phím V] • Toàn cảnh [Phím C]" class="hidden sm:flex px-2 py-0.5 rounded-full bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 font-mono text-[9px] font-bold items-center gap-1 border border-slate-600 cursor-pointer">
+      <button id="top-cam-btn" onclick="cycleCameraMode()" title="Đổi góc nhìn Vai Phải / Vai Trái / Thứ Nhất [Phím V] • Toàn cảnh [Phím C]" class="hidden sm:flex px-2 py-0.5 rounded-full bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 font-mono text-[9px] font-bold items-center gap-1 border border-slate-600 cursor-pointer">
         <i class="fa-solid fa-camera text-amber-400"></i>
         <span>GÓC NHÌN</span>
       </button>
@@ -899,7 +933,7 @@
   <!-- Mission Objective Card (Compact & Collapsed by Default for Clean Screen) -->
   <div id="objective-card" class="collapsed absolute bottom-3 right-3 pointer-events-auto select-none max-w-xs z-20 transition-all">
     <div class="hud-glass rounded-xl px-3 py-2 shadow-xl border-l-4 border-l-amber-500">
-      <div class="flex items-center justify-between gap-1.5 mb-0.5">
+      <div id="obj-header-row" class="flex items-center justify-between gap-1.5 mb-0.5">
         <div class="flex items-center gap-1 text-[10px] font-military tracking-wider text-amber-400">
           <i class="fa-solid fa-bullseye text-xs"></i> NHIỆM VỤ
         </div>
@@ -917,13 +951,13 @@
           </button>
         </div>
       </div>
-      <h3 id="obj-title" class="text-[11px] font-bold text-white leading-snug">
+      <h3 id="obj-title" class="text-[10px] sm:text-[11px] font-bold text-amber-200 leading-snug">
         Nhiệm vụ 1: Hạ 2 Lính Gác Chòi Canh
       </h3>
       <p id="obj-desc" class="text-[10px] text-slate-300 leading-relaxed mt-1 obj-details">
         Hai tên lính gác đang quan sát bờ kinh Cái Sơn. Dùng súng ngắm K-44 hạ gục cả 2 tên để dọn đường.
       </p>
-      <div class="mt-1 pt-1 border-t border-slate-700/50 flex items-center justify-between text-[9px] font-mono">
+      <div id="obj-status-row" class="mt-1 pt-1 border-t border-slate-700/50 flex items-center justify-between text-[9px] font-mono">
         <span id="target-status" class="text-amber-400 font-bold flex items-center gap-1">
           <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> Lính gác chòi: 2 tên còn lại
         </span>
@@ -956,7 +990,7 @@
       <button id="touch-w-1" class="px-2 py-1 rounded-lg bg-amber-500 text-slate-950 font-mono text-[10px] font-bold cursor-pointer active:scale-95">🎯 K-44</button>
       <button id="touch-w-2" class="px-2 py-1 rounded-lg bg-slate-800 text-slate-300 font-mono text-[10px] font-bold cursor-pointer active:scale-95">🔥 K-50M</button>
       <button id="touch-w-3" class="px-2 py-1 rounded-lg bg-slate-800 text-slate-300 font-mono text-[10px] font-bold cursor-pointer active:scale-95">💣 LỰU</button>
-      <button id="touch-w-4" class="hidden sm:inline-block px-2 py-1 rounded-lg bg-slate-800 text-slate-300 font-mono text-[10px] font-bold cursor-pointer active:scale-95">🔭 NHÒM</button>
+      <button id="touch-w-4" class="hidden">🔭 NHÒM</button>
       <button id="touch-btn-heal" class="px-2 py-1 rounded-lg bg-cyan-950/90 border border-cyan-400/60 text-cyan-200 font-mono text-[10px] font-bold cursor-pointer active:scale-95 flex items-center gap-1" title="Uống nước bình tông hồi máu">
         <i class="fa-solid fa-bottle-water text-cyan-300"></i>
         <span id="touch-canteen-text">2/2</span>
@@ -968,7 +1002,7 @@
 
     <!-- Bottom-Right: Clean, Streamlined Action Cluster (Zero Clutter) -->
     <div id="touch-action-cluster" class="absolute bottom-4 right-4 pointer-events-auto flex flex-col items-end gap-2">
-      <!-- Compact Top Row: Auto-Target Lock, Reload, Stance, Jump -->
+      <!-- Compact Top Row: Auto-Target Lock + Reload only -->
       <div class="flex items-center gap-1.5">
         <button id="touch-btn-autotarget" onclick="snapAimToBestTarget(false)" class="px-2.5 h-10 rounded-full bg-emerald-800/95 border-2 border-yellow-300 shadow-[0_0_15px_rgba(16,185,129,0.6)] text-yellow-200 flex items-center gap-1 active:scale-90 transition-transform cursor-pointer" title="Khóa tâm ngắm vào mục tiêu gần nhất">
           <i class="fa-solid fa-location-crosshairs text-xs text-yellow-300"></i>
@@ -978,14 +1012,8 @@
           <i class="fa-solid fa-rotate-right text-xs text-amber-400"></i>
           <span class="text-[6px] font-mono font-bold">NẠP</span>
         </button>
-        <button id="touch-btn-stance" class="w-10 h-10 rounded-full bg-slate-900/90 border border-slate-500 text-slate-200 flex flex-col items-center justify-center active:scale-90 transition-transform cursor-pointer" title="Đổi tư thế: Đứng / Ngồi / Nằm [X]">
-          <i id="touch-stance-icon" class="fa-solid fa-person text-xs text-emerald-400"></i>
-          <span id="touch-stance-text" class="text-[6px] font-mono font-bold">ĐỨNG</span>
-        </button>
-        <button id="touch-btn-jump" class="w-10 h-10 rounded-full bg-slate-900/90 border border-emerald-400/70 text-emerald-300 flex flex-col items-center justify-center active:scale-90 transition-transform cursor-pointer" title="Nhảy [Space]">
-          <i class="fa-solid fa-angles-up text-xs text-emerald-300"></i>
-          <span class="text-[6px] font-mono font-bold">NHẢY</span>
-        </button>
+        <button id="touch-btn-stance" class="hidden"></button>
+        <button id="touch-btn-jump" class="hidden"></button>
       </div>
 
       <!-- Hidden legacy buttons kept in DOM for safe JS binding -->
