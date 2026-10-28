@@ -1983,10 +1983,10 @@
             </div>
             <div class="text-left">
               <div class="text-[10px] sm:text-[11px] font-bold tracking-wider text-blue-900 uppercase font-serif">
-                ĐOÀN TNCS HỒ CHÍ MINH HUYỆN TAM BÌNH
+                ĐOÀN TNCS HỒ CHÍ MINH TỈNH VĨNH LONG
               </div>
               <div class="text-[11px] sm:text-xs font-black text-red-800 uppercase tracking-wider font-serif">
-                BCH ĐOÀN XÃ SONG PHÚ
+                BCH XÃ ĐOÀN SONG PHÚ
               </div>
               <div class="text-[9px] font-semibold text-stone-600 font-serif">
                 ★ Công trình Thanh niên Số hóa Lịch sử ★
@@ -2005,7 +2005,7 @@
         </div>
 
         <div class="text-[10px] sm:text-xs font-bold text-blue-900 uppercase tracking-widest font-serif mb-1">
-          BAN CHẤP HÀNH ĐOÀN TNCS HỒ CHÍ MINH XÃ SONG PHÚ
+          BAN CHẤP HÀNH XÃ ĐOÀN SONG PHÚ
         </div>
 
         <h2 class="text-xl sm:text-3xl font-black text-red-800 uppercase font-serif tracking-wide mb-1.5">
@@ -2019,16 +2019,16 @@
           Ban Chấp hành Xã Đoàn Song Phú trân trọng chứng nhận đồng chí / đoàn viên / bạn:
         </p>
         
-        <div id="cert-display-name" class="text-xl sm:text-2xl font-black text-red-950 uppercase font-serif my-1.5 border-b-2 border-red-900/30 pb-1 inline-block min-w-[240px]">
+        <div id="cert-display-name" class="text-xl sm:text-2xl font-black text-red-900 uppercase font-serif my-1.5 border-b-2 border-red-900/30 pb-1 inline-block min-w-[240px]">
           CHIẾN SĨ LỊCH SỬ CÁI SƠN
         </div>
 
         <div id="cert-display-unit" class="text-xs font-bold text-stone-700 mb-2.5 font-serif">
-          Chi đoàn / Đơn vị: Xã Đoàn Song Phú - Huyện Tam Bình, Tỉnh Vĩnh Long
+          Chi đoàn / Đơn vị: Xã Đoàn Song Phú - Tỉnh Vĩnh Long
         </div>
 
         <p class="text-xs sm:text-sm text-stone-800 leading-relaxed max-w-lg mx-auto font-serif italic mb-4">
-          “Đã hoàn thành xuất sắc chiến dịch trải nghiệm lịch sử, dâng hương tưởng niệm các Anh hùng Liệt sĩ và tìm hiểu truyền thống hào hùng của Chiến thắng Cầu Cái Sơn (16 giờ 15 phút, ngày 16/06/1960) tại xã Song Phú, huyện Tam Bình, tỉnh Vĩnh Long.”
+          “Đã hoàn thành xuất sắc chiến dịch trải nghiệm lịch sử, dâng hương tưởng niệm các Anh hùng Liệt sĩ và tìm hiểu truyền thống hào hùng của Chiến thắng Cầu Cái Sơn (16 giờ 15 phút, ngày 16/06/1960) tại xã Song Phú, tỉnh Vĩnh Long.”
         </p>
 
         <!-- Signatures & Xã Đoàn Song Phú Official Red Seal -->
@@ -2045,8 +2045,8 @@
             <div class="w-20 h-20 rounded-full border-2 border-red-600 bg-red-600/5 text-red-600 text-[6.5px] font-black flex flex-col items-center justify-center text-center uppercase -rotate-12 opacity-90 mx-auto my-0.5 pointer-events-none shadow-sm">
               <span>ĐOÀN TNCS HỒ CHÍ MINH</span>
               <span class="text-xs text-red-600 leading-none my-0.5">★</span>
-              <span>BCH XÃ SONG PHÚ</span>
-              <span class="text-[6px]">H.TAM BÌNH - T.VĨNH LONG</span>
+              <span>BCH XÃ ĐOÀN SONG PHÚ</span>
+              <span class="text-[6px]">TỈNH VĨNH LONG</span>
             </div>
             <div class="font-bold text-red-950 text-xs uppercase mt-0.5">XÃ ĐOÀN SONG PHÚ</div>
           </div>
@@ -10103,19 +10103,19 @@
       const quickUnit = document.getElementById('cert-quick-unit');
 
       const finalName = name || (quickName && quickName.value.trim()) || (nameInput && nameInput.value.trim()) || 'CHIẾN SĨ LỊCH SỬ CÁI SƠN';
-      const finalUnit = unit || (quickUnit && quickUnit.value.trim()) || (unitInput && unitInput.value.trim()) || 'Xã Đoàn Song Phú - Huyện Tam Bình, Tỉnh Vĩnh Long';
+      const finalUnit = unit || (quickUnit && quickUnit.value.trim()) || (unitInput && unitInput.value.trim()) || 'Xã Đoàn Song Phú - Tỉnh Vĩnh Long';
 
       if (quickName && !quickName.value.trim() && finalName !== 'CHIẾN SĨ LỊCH SỬ CÁI SƠN') {
         quickName.value = finalName;
       }
-      if (quickUnit && !quickUnit.value.trim()) {
-        quickUnit.value = finalUnit;
+      if (quickUnit && (!quickUnit.value.trim() || quickUnit.value.includes('Huyện Tam Bình'))) {
+        quickUnit.value = 'Xã Đoàn Song Phú - Tỉnh Vĩnh Long';
       }
 
       const dispName = document.getElementById('cert-display-name');
       const dispUnit = document.getElementById('cert-display-unit');
       if (dispName) dispName.innerText = finalName.toUpperCase();
-      if (dispUnit) dispUnit.innerText = `Chi đoàn / Đơn vị: ${finalUnit}`;
+      if (dispUnit) dispUnit.innerText = `Chi đoàn / Đơn vị: ${finalUnit.replace(/\s*-\s*Huyện Tam Bình,?/i, ' -')}`;
 
       const certModal = document.getElementById('certificate-modal');
       if (certModal) {
@@ -10132,7 +10132,7 @@
       if (dispName) dispName.innerText = val.toUpperCase();
     });
     document.getElementById('cert-quick-unit')?.addEventListener('input', (e) => {
-      const val = e.target.value.trim() || 'Xã Đoàn Song Phú - Huyện Tam Bình, Tỉnh Vĩnh Long';
+      const val = e.target.value.trim() || 'Xã Đoàn Song Phú - Tỉnh Vĩnh Long';
       const dispUnit = document.getElementById('cert-display-unit');
       if (dispUnit) dispUnit.innerText = `Chi đoàn / Đơn vị: ${val}`;
     });
@@ -10146,7 +10146,7 @@
 
     function generateCertificatePNG() {
       const dispName = document.getElementById('cert-display-name')?.innerText || 'CHIẾN SĨ LỊCH SỬ CÁI SƠN';
-      const dispUnit = document.getElementById('cert-display-unit')?.innerText || 'Chi đoàn / Đơn vị: Xã Đoàn Song Phú - Huyện Tam Bình, Tỉnh Vĩnh Long';
+      const dispUnit = document.getElementById('cert-display-unit')?.innerText || 'Chi đoàn / Đơn vị: Xã Đoàn Song Phú - Tỉnh Vĩnh Long';
 
       const canvas = document.createElement('canvas');
       canvas.width = 1200;
@@ -10207,10 +10207,10 @@
       ctx.textAlign = 'left';
       ctx.fillStyle = '#1e3a8a';
       ctx.font = 'bold 17px "Times New Roman", serif';
-      ctx.fillText('ĐOÀN TNCS HỒ CHÍ MINH HUYỆN TAM BÌNH', 190, 92);
+      ctx.fillText('ĐOÀN TNCS HỒ CHÍ MINH TỈNH VĨNH LONG', 190, 92);
       ctx.fillStyle = '#991b1b';
       ctx.font = '900 20px "Times New Roman", serif';
-      ctx.fillText('BCH ĐOÀN XÃ SONG PHÚ', 190, 118);
+      ctx.fillText('BCH XÃ ĐOÀN SONG PHÚ', 190, 118);
       ctx.fillStyle = '#475569';
       ctx.font = 'italic bold 14px "Times New Roman", serif';
       ctx.fillText('★ Công trình Thanh niên Số hóa Lịch sử ★', 190, 140);
@@ -10236,7 +10236,7 @@
       ctx.textAlign = 'center';
       ctx.fillStyle = '#1e3a8a';
       ctx.font = 'bold 18px "Times New Roman", serif';
-      ctx.fillText('BAN CHẤP HÀNH ĐOÀN TNCS HỒ CHÍ MINH XÃ SONG PHÚ', 600, 200);
+      ctx.fillText('BAN CHẤP HÀNH XÃ ĐOÀN SONG PHÚ', 600, 200);
 
       ctx.fillStyle = '#991b1b';
       ctx.font = '900 44px "Times New Roman", serif';
@@ -10277,7 +10277,7 @@
       ctx.fillText('VÀ TÌM HIỂU CHIẾN THẮNG LỊCH SỬ CẦU CÁI SƠN (16:15 - NGÀY 16/06/1960)', 600, 502);
       ctx.fillStyle = '#1e293b';
       ctx.font = 'bold 18px "Times New Roman", serif';
-      ctx.fillText('TẠI XÃ SONG PHÚ, HUYỆN TAM BÌNH, TỈNH VĨNH LONG', 600, 536);
+      ctx.fillText('TẠI XÃ SONG PHÚ, TỈNH VĨNH LONG', 600, 536);
 
       // Footer: Date & Signatures
       const now = new Date();
@@ -10325,10 +10325,10 @@
       ctx.fillText('ĐOÀN TNCS HỒ CHÍ MINH', 0, -20);
       ctx.font = 'bold 18px Arial, sans-serif';
       ctx.fillText('★', 0, 4);
-      ctx.font = 'bold 9.5px Arial, sans-serif';
-      ctx.fillText('BCH XÃ SONG PHÚ', 0, 19);
+      ctx.font = 'bold 9px Arial, sans-serif';
+      ctx.fillText('BCH XÃ ĐOÀN SONG PHÚ', 0, 19);
       ctx.font = 'bold 7.5px Arial, sans-serif';
-      ctx.fillText('H.TAM BÌNH - T.VĨNH LONG', 0, 31);
+      ctx.fillText('TỈNH VĨNH LONG', 0, 31);
       ctx.restore();
 
       ctx.fillStyle = '#7f1d1d';
