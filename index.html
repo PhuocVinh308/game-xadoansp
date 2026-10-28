@@ -318,7 +318,7 @@
       align-items: center;
       justify-content: center;
       z-index: 25;
-      background: radial-gradient(circle at center, transparent 35%, rgba(0,0,0,0.85) 39%, rgba(0,0,0,0.98) 46%, #000000 52%);
+      overflow: hidden;
     }
     #realistic-scope.active {
       display: flex;
@@ -326,24 +326,24 @@
 
     .scope-lens {
       position: relative;
-      width: min(84vh, 88vw);
-      height: min(84vh, 88vw);
+      width: min(86vh, 88vw);
+      height: min(86vh, 88vw);
       border-radius: 50%;
-      border: 8px solid #18181b;
-      box-shadow: 0 0 0 100vmax #000000, 
-                  inset 0 0 60px rgba(0, 0, 0, 0.95), 
-                  inset 0 0 25px rgba(56, 189, 248, 0.25),
-                  0 0 40px rgba(0,0,0,0.9);
+      border: 6px solid #18181b;
+      box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.94),
+                  inset 0 0 32px rgba(0, 0, 0, 0.75),
+                  inset 0 0 12px rgba(56, 189, 248, 0.15),
+                  0 0 30px rgba(0, 0, 0, 0.9);
       overflow: hidden;
     }
 
-    /* Optical Lens Glass Reflection & Spherical Glare */
+    /* Subtle Optical Lens Glass Reflection */
     .scope-lens::before {
       content: '';
       position: absolute;
       inset: 0;
       border-radius: 50%;
-      background: radial-gradient(circle at 32% 28%, rgba(56, 189, 248, 0.16) 0%, rgba(217, 70, 239, 0.06) 42%, transparent 72%);
+      background: radial-gradient(circle at 30% 25%, rgba(56, 189, 248, 0.08) 0%, transparent 55%);
       pointer-events: none;
       z-index: 5;
     }
@@ -352,9 +352,9 @@
     .scope-lens::after {
       content: '';
       position: absolute;
-      inset: -4px;
+      inset: 2px;
       border-radius: 50%;
-      border: 2px dashed rgba(217, 119, 6, 0.4);
+      border: 1.5px solid rgba(245, 158, 11, 0.35);
       pointer-events: none;
     }
 
@@ -499,133 +499,69 @@
   <!-- ================= SOVIET PU 3.5X22 OPTICAL SNIPER SCOPE ================= -->
   <div id="realistic-scope">
     <div class="scope-lens flex items-center justify-center">
-      <!-- Reticle SVG Overlay -->
+      <!-- Clean, Crisp Sniper Reticle SVG Overlay -->
       <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 600 600">
-        <!-- Thin Crosshairs -->
-        <line x1="0" y1="300" x2="600" y2="300" stroke="#ef4444" stroke-width="1.2" opacity="0.85"/>
-        <line x1="300" y1="0" x2="300" y2="600" stroke="#ef4444" stroke-width="1.2" opacity="0.85"/>
+        <!-- Fine Outer Crosshairs with Center Gap for Clear Target Visibility -->
+        <line x1="0" y1="300" x2="290" y2="300" stroke="#ef4444" stroke-width="1.2" opacity="0.85"/>
+        <line x1="310" y1="300" x2="600" y2="300" stroke="#ef4444" stroke-width="1.2" opacity="0.85"/>
+        <line x1="300" y1="0" x2="300" y2="290" stroke="#ef4444" stroke-width="1.2" opacity="0.85"/>
+        <line x1="300" y1="310" x2="300" y2="600" stroke="#ef4444" stroke-width="1.2" opacity="0.85"/>
 
-        <!-- Center Soviet PU Pointed Post -->
-        <polygon points="296,300 304,300 306,580 294,580" fill="#ef4444" opacity="0.95"/>
-        <polygon points="295,302 305,302 300,296" fill="#ef4444"/>
-        <circle cx="300" cy="300" r="1.8" fill="#fef08a"/>
+        <!-- Heavy Outer Side Posts (Soviet PU / German #4 Style) -->
+        <line x1="0" y1="300" x2="170" y2="300" stroke="#18181b" stroke-width="5" opacity="0.9"/>
+        <line x1="430" y1="300" x2="600" y2="300" stroke="#18181b" stroke-width="5" opacity="0.9"/>
+        <line x1="300" y1="440" x2="300" y2="600" stroke="#18181b" stroke-width="5" opacity="0.9"/>
 
-        <!-- Heavy Horizontal Side Bars (German #1 / Soviet PU Style) -->
-        <polygon points="20,297 220,297 220,303 20,303" fill="#ef4444" opacity="0.95"/>
-        <polygon points="220,295 230,300 220,305" fill="#ef4444"/>
-        <polygon points="580,297 380,297 380,303 580,303" fill="#ef4444" opacity="0.95"/>
-        <polygon points="380,295 370,300 380,305" fill="#ef4444"/>
+        <!-- Center Precision Ring & Pinpoint Dot -->
+        <circle cx="300" cy="300" r="10" fill="none" stroke="#ef4444" stroke-width="1.2" opacity="0.8"/>
+        <circle cx="300" cy="300" r="2.2" fill="#fde047"/>
 
-        <!-- Mil-Ticks Horizontal Left -->
-        <circle cx="260" cy="300" r="1.8" fill="#ef4444" opacity="0.85"/>
-        <line x1="260" y1="294" x2="260" y2="306" stroke="#ef4444" stroke-width="1.2"/>
-        <circle cx="240" cy="300" r="1.5" fill="#ef4444" opacity="0.85"/>
+        <!-- Subtle Horizontal Mil-Dots -->
+        <circle cx="260" cy="300" r="1.6" fill="#ef4444" opacity="0.8"/>
+        <circle cx="220" cy="300" r="1.6" fill="#ef4444" opacity="0.8"/>
+        <circle cx="340" cy="300" r="1.6" fill="#ef4444" opacity="0.8"/>
+        <circle cx="380" cy="300" r="1.6" fill="#ef4444" opacity="0.8"/>
 
-        <!-- Mil-Ticks Horizontal Right -->
-        <circle cx="340" cy="300" r="1.8" fill="#ef4444" opacity="0.85"/>
-        <line x1="340" y1="294" x2="340" y2="306" stroke="#ef4444" stroke-width="1.2"/>
-        <circle cx="360" cy="300" r="1.5" fill="#ef4444" opacity="0.85"/>
+        <!-- Subtle Vertical Range Ticks -->
+        <line x1="295" y1="340" x2="305" y2="340" stroke="#ef4444" stroke-width="1.2" opacity="0.8"/>
+        <line x1="293" y1="380" x2="307" y2="380" stroke="#ef4444" stroke-width="1.2" opacity="0.8"/>
+        <line x1="291" y1="420" x2="309" y2="420" stroke="#ef4444" stroke-width="1.2" opacity="0.8"/>
 
-        <!-- Drop Compensation Marks (100m, 200m, 300m, 400m) -->
-        <line x1="293" y1="340" x2="307" y2="340" stroke="#ef4444" stroke-width="1.4"/>
-        <text x="312" y="343" fill="#f87171" font-size="9" font-family="monospace" font-weight="bold">100m</text>
-
-        <line x1="288" y1="380" x2="312" y2="380" stroke="#ef4444" stroke-width="1.6"/>
-        <text x="317" y="383" fill="#f87171" font-size="9" font-family="monospace" font-weight="bold">200m</text>
-
-        <line x1="282" y1="420" x2="318" y2="420" stroke="#ef4444" stroke-width="1.8"/>
-        <text x="323" y="423" fill="#f87171" font-size="9" font-family="monospace" font-weight="bold">300m</text>
-
-        <line x1="275" y1="460" x2="325" y2="460" stroke="#ef4444" stroke-width="2.0"/>
-        <text x="330" y="463" fill="#f87171" font-size="9" font-family="monospace" font-weight="bold">400m</text>
-
-        <!-- Stadiametric Rangefinder Scale on bottom-left for 1.7m Human Height -->
-        <path d="M 115 470 Q 170 450 220 390" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4,2" opacity="0.85"/>
-        <line x1="115" y1="470" x2="220" y2="470" stroke="#ef4444" stroke-width="1.0" opacity="0.7"/>
-        <text x="120" y="485" fill="#fca5a5" font-size="8" font-family="monospace" font-weight="bold">THƯỚC ĐO CỰ LY (1.7m)</text>
-        <text x="135" y="462" fill="#ef4444" font-size="7" font-family="monospace">4</text>
-        <text x="165" y="445" fill="#ef4444" font-size="7" font-family="monospace">3</text>
-        <text x="195" y="425" fill="#ef4444" font-size="7" font-family="monospace">2</text>
-
-        <!-- Modern Ballistic Impact Predictor Pip (Gravity Drop + Windage + Target Lead) -->
-        <line id="ballistic-lead-line" x1="300" y1="300" x2="300" y2="318" stroke="#4ade80" stroke-width="1.4" stroke-dasharray="3,2" opacity="0.85"/>
-        <g id="ballistic-impact-pip" transform="translate(300, 318)">
-          <circle cx="0" cy="0" r="7" fill="none" stroke="#4ade80" stroke-width="1.5" stroke-dasharray="3,1.5" opacity="0.9"/>
-          <circle cx="0" cy="0" r="2.2" fill="#fde047"/>
-          <polygon points="0,-10 3,-6 -3,-6" fill="#4ade80" opacity="0.85"/>
-          <text id="ballistic-pip-label" x="11" y="3" fill="#4ade80" font-size="7.5" font-family="monospace" font-weight="bold">ĐIỂM RƠI</text>
-        </g>
+        <!-- Hidden legacy SVG elements kept for safe JS reference -->
+        <line id="ballistic-lead-line" class="hidden" x1="300" y1="300" x2="300" y2="300"/>
+        <g id="ballistic-impact-pip" class="hidden"></g>
       </svg>
 
-      <!-- Scope Stamped Identification & Turret Plate -->
-      <div class="absolute top-2 inset-x-0 mx-auto w-fit text-[9px] font-mono tracking-widest text-amber-500/80 uppercase font-black px-3 py-0.5 rounded bg-black/60 border border-amber-500/30">
-        ★ №1960 • PU 3.5X22 • K-44 CÁI SƠN ★
+      <!-- Hidden Legacy Telemetry Nodes (kept in DOM so JS updates safely without cluttering lens) -->
+      <div id="scope-left-telemetry" class="hidden">
+        <span id="scope-drop-readout"></span>
+        <span id="scope-wind-readout"></span>
+      </div>
+      <div id="scope-right-telemetry" class="hidden">
+        <span id="scope-heart-readout"></span>
+        <span id="scope-breath-readout"></span>
       </div>
 
-      <!-- Scope Left Ballistics Telemetry Panel -->
-      <div id="scope-left-telemetry" class="absolute left-6 top-1/2 -translate-y-1/2 flex flex-col gap-1.5 p-2.5 rounded-xl bg-slate-950/85 border border-red-500/40 text-[10px] font-mono shadow-2xl pointer-events-none select-none">
-        <div class="text-[9px] text-red-400 font-bold border-b border-red-500/30 pb-0.5 flex items-center gap-1">
-          <i class="fa-solid fa-ruler-horizontal text-yellow-400"></i> XẠ GIỚI & KHÍ TƯỢNG
-        </div>
-        <div class="flex justify-between gap-3 text-slate-300">
-          <span>CỰ LY:</span>
-          <span id="scope-range-readout" class="font-bold text-amber-400">--</span>
-        </div>
-        <div class="flex justify-between gap-3 text-slate-300">
-          <span>ĐỘ RƠI:</span>
-          <span id="scope-drop-readout" class="font-bold text-cyan-300">0.0 MOA</span>
-        </div>
-        <div class="flex justify-between gap-3 text-slate-300">
-          <span>GIÓ NGANG:</span>
-          <span id="scope-wind-readout" class="font-bold text-emerald-400">2.1 m/s →</span>
-        </div>
-        <div class="flex justify-between gap-3 text-slate-300">
-          <span>GÓC TÀ:</span>
-          <span class="font-bold text-slate-200">+1.2°</span>
-        </div>
-      </div>
-
-      <!-- Scope Right Biometric & Lock-On Telemetry Panel -->
-      <div id="scope-right-telemetry" class="absolute right-6 top-1/2 -translate-y-1/2 flex flex-col gap-1.5 p-2.5 rounded-xl bg-slate-950/85 border border-red-500/40 text-[10px] font-mono shadow-2xl pointer-events-none select-none">
-        <div class="text-[9px] text-red-400 font-bold border-b border-red-500/30 pb-0.5 flex items-center gap-1">
-          <i class="fa-solid fa-heart-pulse text-red-400"></i> SINH THỂ & TÂM NGẮM
-        </div>
-        <div class="flex justify-between gap-3 text-slate-300">
-          <span>NHỊP TIM:</span>
-          <span id="scope-heart-readout" class="font-bold text-red-400 animate-pulse">❤️ 74 BPM</span>
-        </div>
-        <div class="flex justify-between gap-3 text-slate-300">
-          <span>NÍN THỞ:</span>
-          <span id="scope-breath-readout" class="font-bold text-cyan-300">100%</span>
-        </div>
-        <div class="flex flex-col gap-0.5 pt-1 border-t border-slate-800">
-          <span class="text-[9px] text-slate-400">MỤC TIÊU DƯỚI TÂM:</span>
-          <div id="scope-lock-readout" class="font-bold text-yellow-300 text-[10px]">CHỜ NGẮM...</div>
-        </div>
-      </div>
-
-      <!-- Scope Interactive Controls Bar -->
-      <div class="absolute top-8 inset-x-0 mx-auto w-fit flex items-center gap-2 select-none z-40 pointer-events-auto">
-        <button id="scope-zoom-btn" title="Chuyển đổi độ phóng đại [E / Cuộn chuột]" class="px-3.5 py-1.5 bg-black/85 hover:bg-amber-600/90 text-amber-300 hover:text-white font-mono text-xs font-bold rounded-full border border-amber-500/60 shadow-xl transition-all cursor-pointer flex items-center gap-1.5 active:scale-95">
-          <i class="fa-solid fa-magnifying-glass-plus text-yellow-300"></i>
-          <span>PHÓNG ĐẠI: <b id="scope-zoom-text" class="text-white">4.0X</b> [E]</span>
+      <!-- Compact Top Bar inside Scope: Range + Zoom Toggle + Exit -->
+      <div class="absolute top-4 inset-x-0 mx-auto w-fit flex items-center gap-1.5 select-none z-40 pointer-events-auto bg-black/75 px-2.5 py-1 rounded-full border border-amber-500/40">
+        <span class="text-[10px] font-mono text-slate-300">CỰ LY: <b id="scope-range-readout" class="text-amber-400">--</b></span>
+        <span class="text-slate-600">|</span>
+        <button id="scope-zoom-btn" title="Đổi độ phóng đại 4X / 8X [Phím E]" class="px-2 py-0.5 bg-amber-600/90 hover:bg-amber-500 text-slate-950 font-mono text-[10px] font-black rounded-full transition-all cursor-pointer active:scale-95">
+          🔍 <span id="scope-zoom-text">4.0X</span>
         </button>
-        <button id="scope-exit-btn" title="Thoát chế độ ngắm [Q / Chuột Phải]" class="px-3 py-1.5 bg-red-950/85 hover:bg-red-600 text-white font-mono text-xs font-bold rounded-full border border-red-500/60 shadow-xl transition-all cursor-pointer flex items-center gap-1.5 active:scale-95">
-          <i class="fa-solid fa-xmark text-red-300"></i>
-          <span>TẮT NGẮM [Q]</span>
+        <button id="scope-exit-btn" title="Tắt ngắm [Phím Q]" class="px-2 py-0.5 bg-red-800/90 hover:bg-red-600 text-white font-mono text-[10px] font-bold rounded-full transition-all cursor-pointer active:scale-95">
+          ✕ TẮT
         </button>
       </div>
 
-      <!-- Steady Aim Breath Meter (Hold Shift) -->
-      <div class="absolute bottom-10 inset-x-0 mx-auto w-56 flex flex-col items-center gap-1 select-none pointer-events-none">
-        <div class="flex items-center justify-between w-full text-[10px] font-mono text-cyan-300 font-bold">
-          <span class="flex items-center gap-1"><i class="fa-solid fa-lungs text-xs"></i> NÍN THỞ [GIỮ SHIFT]</span>
-          <span id="breath-text">100%</span>
-        </div>
-        <div class="w-full h-2 bg-slate-900/90 rounded-full overflow-hidden border border-cyan-500/50">
+      <!-- Compact Bottom Target Lock & Breath Bar -->
+      <div class="absolute bottom-5 inset-x-0 mx-auto w-44 flex flex-col items-center gap-1 select-none pointer-events-none">
+        <div id="scope-lock-readout" class="font-mono font-bold text-yellow-300 text-[10px] bg-black/70 px-2.5 py-0.5 rounded-full border border-amber-500/30">CHỜ NGẮM...</div>
+        <div class="w-32 h-1.5 bg-slate-900/90 rounded-full overflow-hidden border border-cyan-500/40">
           <div id="breath-bar" class="h-full bg-gradient-to-r from-cyan-500 to-blue-400 w-full transition-all duration-75"></div>
         </div>
-        <div id="breath-status" class="text-[9px] font-mono text-slate-400">Giữ SHIFT để nín thở nén tim, triệt tiêu rung tâm ngắm</div>
+        <span id="breath-text" class="hidden">100%</span>
+        <div id="breath-status" class="hidden"></div>
       </div>
     </div>
   </div>
@@ -7983,19 +7919,6 @@
       if (bulletCam.active) return;
       if (player.isAiming) return;
 
-      if (camera && player && player.mesh) {
-        try {
-          const aimPt = getAimTargetPoint(80);
-          const eyeY = player.mesh.position.y + (playerStance === 'crouch' ? 1.25 : (playerStance === 'prone' ? 0.55 : 1.82));
-          const eyePos = new THREE.Vector3(player.mesh.position.x, eyeY, player.mesh.position.z);
-          const toT = aimPt.clone().sub(eyePos);
-          mouseYaw = Math.atan2(toT.x, -toT.z);
-          const hDist = Math.hypot(toT.x, toT.z);
-          mousePitch = Math.atan2(toT.y, hDist);
-          mousePitch = Math.max(-0.40, Math.min(0.50, mousePitch));
-        } catch(err) {}
-      }
-
       player.isAiming = true;
       audio.playClick();
 
@@ -8025,26 +7948,6 @@
 
     function stopAiming() {
       if (!player.isAiming) return;
-
-      if (camera && player && player.mesh) {
-        try {
-          const aimPt = getAimTargetPoint(80);
-          const shoulderShift = (currentCamMode === CAM_MODES.TPP_LEFT) ? -0.55 : 0.55;
-          const camDist = (playerStance === 'prone' ? 4.0 : 5.2);
-          const camHeight = (playerStance === 'crouch' ? 1.7 : (playerStance === 'prone' ? 1.0 : 2.3));
-          const camY = Math.max(player.mesh.position.y + 1.35, player.mesh.position.y + camHeight);
-          const camPos = new THREE.Vector3(
-            player.mesh.position.x - Math.sin(mouseYaw) * camDist + Math.cos(mouseYaw) * shoulderShift,
-            camY,
-            player.mesh.position.z + Math.cos(mouseYaw) * camDist + Math.sin(mouseYaw) * shoulderShift
-          );
-          const toT = aimPt.clone().sub(camPos);
-          mouseYaw = Math.atan2(toT.x, -toT.z);
-          const hDist = Math.hypot(toT.x, toT.z);
-          mousePitch = Math.atan2(toT.y, hDist);
-          mousePitch = Math.max(-0.40, Math.min(0.50, mousePitch));
-        } catch(err) {}
-      }
 
       player.isAiming = false;
       audio.playClick();
@@ -8398,10 +8301,6 @@
       if (currentWeaponSlot === WEAPON_TYPES.BINOCULARS) {
         toggleBinoculars();
       } else {
-        const wasAiming = player && player.isAiming;
-        if (!wasAiming && typeof snapAimToBestTarget === 'function') {
-          snapAimToBestTarget(true);
-        }
         toggleScopeMode();
         if (player && player.isAiming) {
           keys.ShiftLeft = true; // Auto-stabilize breath on mobile when scoped in
@@ -10591,10 +10490,8 @@
 
     function snapAimToPoint(aimPos, labelText = "MỤC TIÊU", silent = false) {
       if (!aimPos || !player || !player.mesh) return;
-      const eyeOffset = (playerStance === 'crouch' ? 1.1 : (playerStance === 'prone' ? 0.55 : 1.68));
-      const fromPos = (player.isAiming || currentCamMode === CAM_MODES.FPP)
-        ? player.mesh.position.clone().add(new THREE.Vector3(0, eyeOffset, 0))
-        : camera.position.clone();
+      const eyeOffset = (playerStance === 'crouch' ? 1.25 : (playerStance === 'prone' ? 0.55 : 1.82));
+      const fromPos = player.mesh.position.clone().add(new THREE.Vector3(0, eyeOffset, 0));
       const toT = aimPos.clone().sub(fromPos);
       mouseYaw = Math.atan2(toT.x, -toT.z);
       const hDist = Math.hypot(toT.x, toT.z);
