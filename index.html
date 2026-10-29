@@ -2853,14 +2853,14 @@
       sampanWood: new THREE.MeshStandardMaterial({ color: 0x54361e, roughness: 0.82 }),
       barbedWire: new THREE.MeshStandardMaterial({ color: 0x71717a, metalness: 0.85, roughness: 0.3 }),
       lanternGlass: new THREE.MeshStandardMaterial({ color: 0xffedd5, emissive: 0xf59e0b, emissiveIntensity: 0.85, roughness: 0.1, transparent: true, opacity: 0.9 }),
-      // Vietnamese Soldier Materials (matching Sketchfab Bộ Đội Việt Nam reference)
+      // Vietnamese Soldier Materials (Quân phục xanh lá cây đậm Bộ Đội Việt Nam)
       soldierUniform: (function() {
         const c = document.createElement('canvas');
         c.width = 128; c.height = 128;
         const ctx = c.getContext('2d');
-        ctx.fillStyle = '#344c30';
+        ctx.fillStyle = '#113e18';
         ctx.fillRect(0, 0, 128, 128);
-        ctx.fillStyle = 'rgba(20, 32, 18, 0.2)';
+        ctx.fillStyle = 'rgba(6, 24, 9, 0.35)';
         for (let i = 0; i < 128; i += 2) {
           ctx.fillRect(i, 0, 1, 128);
           ctx.fillRect(0, i, 128, 1);
@@ -2869,15 +2869,15 @@
         tex.wrapS = THREE.RepeatWrapping;
         tex.wrapT = THREE.RepeatWrapping;
         tex.repeat.set(4, 4);
-        return new THREE.MeshStandardMaterial({ map: tex, roughness: 0.78, metalness: 0.05 });
+        return new THREE.MeshStandardMaterial({ map: tex, color: 0x154d1e, roughness: 0.86, metalness: 0.02 });
       })(),
-      soldierUniformDark: new THREE.MeshStandardMaterial({ color: 0x273b24, roughness: 0.8 }),
-      soldierChestRig: new THREE.MeshStandardMaterial({ color: 0x6e684c, roughness: 0.85 }),
-      soldierBackpack: new THREE.MeshStandardMaterial({ color: 0x2f422b, roughness: 0.85 }),
-      soldierCanteen: new THREE.MeshStandardMaterial({ color: 0x556b4f, roughness: 0.5, metalness: 0.3 }),
+      soldierUniformDark: new THREE.MeshStandardMaterial({ color: 0x0c3012, roughness: 0.88 }),
+      soldierChestRig: new THREE.MeshStandardMaterial({ color: 0x5c5838, roughness: 0.85 }),
+      soldierBackpack: new THREE.MeshStandardMaterial({ color: 0x103816, roughness: 0.88 }),
+      soldierCanteen: new THREE.MeshStandardMaterial({ color: 0x1a4a20, roughness: 0.55, metalness: 0.25 }),
       soldierBoots: new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.9 }),
       soldierHair: new THREE.MeshStandardMaterial({ color: 0x1c1815, roughness: 0.9 }),
-      soldierStrap: new THREE.MeshStandardMaterial({ color: 0x484232, roughness: 0.85 }),
+      soldierStrap: new THREE.MeshStandardMaterial({ color: 0x3f3a28, roughness: 0.85 }),
       nonLa: new THREE.MeshStandardMaterial({ color: 0xeab308, roughness: 0.75, side: THREE.DoubleSide }),
       khanRan: (function() {
         const c = document.createElement('canvas');
@@ -2900,7 +2900,7 @@
         tex.repeat.set(2, 4);
         return new THREE.MeshStandardMaterial({ map: tex, roughness: 0.8 });
       })(),
-      muTaiBeo: new THREE.MeshStandardMaterial({ color: 0x365314, roughness: 0.82 }),
+      muTaiBeo: new THREE.MeshStandardMaterial({ color: 0x14451b, roughness: 0.85 }),
       rubberSandals: new THREE.MeshStandardMaterial({ color: 0x111113, roughness: 0.95 }),
       scarf: new THREE.MeshStandardMaterial({ color: 0xf4f4f5, roughness: 0.8 }),
       rifleWood: (function() {
@@ -2994,8 +2994,8 @@
       shrubFlowerYellow: new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.5 }),
       redStarBadge: new THREE.MeshBasicMaterial({ color: 0xdc2626 }),
       goldStar: new THREE.MeshBasicMaterial({ color: 0xfacc15 }),
-      pithHelmet: new THREE.MeshStandardMaterial({ color: 0x2e492b, roughness: 0.75 }),
-      pithRim: new THREE.MeshStandardMaterial({ color: 0x22381f, roughness: 0.8 }),
+      pithHelmet: new THREE.MeshStandardMaterial({ color: 0x134219, roughness: 0.78 }),
+      pithRim: new THREE.MeshStandardMaterial({ color: 0x0b2b0f, roughness: 0.85 }),
       khanRan: (function() {
         const c = document.createElement('canvas');
         c.width = 64; c.height = 64;
@@ -4360,7 +4360,7 @@
 
       // Đôi bàn tay chắp dâng hương trang nghiêm
       for (let hx of [-0.07, 0.07]) {
-        const sleeve = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.085, 0.42, 10), materials.clothBlack);
+        const sleeve = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.085, 0.42, 10), materials.soldierUniform);
         sleeve.position.set(hx * 1.4, -0.26, 0.12);
         sleeve.rotation.x = Math.PI / 4;
         sleeve.rotation.z = hx < 0 ? -0.22 : 0.22;
@@ -5320,10 +5320,12 @@
       const bodyGroup = new THREE.Group();
       g.add(bodyGroup);
 
+      const uniformMat = cfg.isFemale ? materials.clothBlack : materials.soldierUniform;
+
       // 1. Legs, Rolled Trousers & Ho Chi Minh Rubber Tire Sandals (Dép Râu Cao Su)
       const lLeg = new THREE.Group();
       lLeg.position.set(-0.21, 0.9, 0);
-      const lPants = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.13, 0.82, 10), materials.clothBlack);
+      const lPants = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.13, 0.82, 10), uniformMat);
       lPants.position.y = -0.38;
       lPants.castShadow = true;
       lLeg.add(lPants);
@@ -5338,7 +5340,7 @@
 
       const rLeg = new THREE.Group();
       rLeg.position.set(0.21, 0.9, 0);
-      const rPants = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.13, 0.82, 10), materials.clothBlack);
+      const rPants = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.13, 0.82, 10), uniformMat);
       rPants.position.y = -0.38;
       rPants.castShadow = true;
       rLeg.add(rPants);
@@ -5351,17 +5353,17 @@
       rLeg.add(rSandal);
       bodyGroup.add(rLeg);
 
-      // 2. Sculpted Torso in Silk Black Bà Ba, Buttons, Belt & Fluttering Khăn Rằn Nam Bộ
+      // 2. Sculpted Torso, Buttons, Belt & Fluttering Khăn Rằn Nam Bộ
       const torsoGroup = new THREE.Group();
       torsoGroup.position.set(0, 0.9, 0);
       bodyGroup.add(torsoGroup);
 
-      const torso = new THREE.Mesh(new THREE.BoxGeometry(0.74, 1.04, 0.44), materials.clothBlack);
+      const torso = new THREE.Mesh(new THREE.BoxGeometry(0.74, 1.04, 0.44), uniformMat);
       torso.position.y = 0.52;
       torso.castShadow = true;
       torsoGroup.add(torso);
 
-      // Traditional Áo Bà Ba Front Buttons & Side Pockets
+      // Traditional Front Buttons & Side Pockets
       const buttonMat = new THREE.MeshBasicMaterial({ color: 0xe2e8f0 });
       for (let by of [0.28, 0.45, 0.62, 0.79]) {
         const btn = new THREE.Mesh(new THREE.SphereGeometry(0.022, 6, 6), buttonMat);
@@ -5518,7 +5520,7 @@
       // 4. Arms & Authentic Weapons
       const lArm = new THREE.Group();
       lArm.position.set(-0.46, 0.95, 0);
-      const lArmMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.095, 0.68, 8), materials.clothBlack);
+      const lArmMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.095, 0.68, 8), uniformMat);
       lArmMesh.position.y = -0.28;
       lArmMesh.castShadow = true;
       lArm.add(lArmMesh);
@@ -5531,7 +5533,7 @@
 
       const rArm = new THREE.Group();
       rArm.position.set(0.46, 0.95, 0);
-      const rArmMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.095, 0.68, 8), materials.clothBlack);
+      const rArmMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.095, 0.68, 8), uniformMat);
       rArmMesh.position.y = -0.28;
       rArmMesh.castShadow = true;
       rArm.add(rArmMesh);
