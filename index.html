@@ -2453,71 +2453,91 @@
     let ultraSmoothMode = isMobilePerf; // Default ultra-smooth on mobile/tablet, balanced high-FPS on desktop
     const renderer = new THREE.WebGLRenderer({
       canvas,
-      antialias: !isMobilePerf,
+      antialias: true,
       powerPreference: 'high-performance'
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, ultraSmoothMode ? 1.0 : 1.25));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, ultraSmoothMode ? 1.35 : 1.75));
     renderer.shadowMap.enabled = !ultraSmoothMode;
-    if (typeof THREE.PCFShadowMap !== 'undefined') {
+    if (typeof THREE.PCFSoftShadowMap !== 'undefined') {
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    } else if (typeof THREE.PCFShadowMap !== 'undefined') {
       renderer.shadowMap.type = THREE.PCFShadowMap;
     }
     if (typeof THREE.sRGBEncoding !== 'undefined') renderer.outputEncoding = THREE.sRGBEncoding;
     if (typeof THREE.ACESFilmicToneMapping !== 'undefined') {
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.15;
+      renderer.toneMappingExposure = 1.18;
     }
 
     const scene = new THREE.Scene();
 
-    // Procedural Sunset Skybox (Golden Hour 16:15 Cái Sơn - Equirectangular Sky Sphere)
+    // High-Definition Sunset Skybox & Environment Reflection Map (Golden Hour 16:15 Cái Sơn)
     function createSunsetSkyTexture() {
       const c = document.createElement('canvas');
-      c.width = 1024;
-      c.height = 512;
+      c.width = 2048;
+      c.height = 1024;
       const ctx = c.getContext('2d');
-      const grad = ctx.createLinearGradient(0, 0, 0, 512);
-      grad.addColorStop(0.00, '#0a192f'); // Deep zenith midnight indigo
-      grad.addColorStop(0.18, '#1e293b'); // Twilight navy
-      grad.addColorStop(0.36, '#581c87'); // Imperial purple
-      grad.addColorStop(0.50, '#991b1b'); // Crimson sunset
-      grad.addColorStop(0.64, '#ea580c'); // Radiant blazing orange
-      grad.addColorStop(0.78, '#f59e0b'); // Golden sun glow
-      grad.addColorStop(0.90, '#fef08a'); // Warm golden horizon
-      grad.addColorStop(1.00, '#d97706'); // Delta alluvial ground mist
+      const grad = ctx.createLinearGradient(0, 0, 0, 1024);
+      grad.addColorStop(0.00, '#071126'); // Deep zenith indigo
+      grad.addColorStop(0.14, '#172554'); // Twilight royal blue
+      grad.addColorStop(0.28, '#4c1d95'); // Velvet violet dusk
+      grad.addColorStop(0.40, '#881337'); // Deep rose-crimson
+      grad.addColorStop(0.50, '#c2410c'); // Blazing sunset orange
+      grad.addColorStop(0.60, '#f59e0b'); // Golden amber horizon
+      grad.addColorStop(0.69, '#fde047'); // Luminous sun-drenched gold
+      grad.addColorStop(0.74, '#ffedd5'); // Horizon atmospheric mist
+      grad.addColorStop(0.82, '#b45309'); // Warm delta ground bounce
+      grad.addColorStop(1.00, '#294222'); // Deep emerald delta reflection
       ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, 1024, 512);
+      ctx.fillRect(0, 0, 2048, 1024);
 
-      // Atmospheric Sunset Cirrus Clouds
-      ctx.fillStyle = 'rgba(254, 240, 138, 0.26)';
-      for (let i = 0; i < 18; i++) {
-        const y = 160 + Math.random() * 160;
-        const x = Math.random() * 1024;
-        const w = 90 + Math.random() * 180;
-        const h = 5 + Math.random() * 11;
+      // Radiant Sun Glow baked into sky dome
+      const sunRadial = ctx.createRadialGradient(1480, 610, 12, 1480, 610, 460);
+      sunRadial.addColorStop(0.0, 'rgba(255, 255, 240, 0.95)');
+      sunRadial.addColorStop(0.15, 'rgba(254, 240, 138, 0.65)');
+      sunRadial.addColorStop(0.45, 'rgba(249, 115, 22, 0.28)');
+      sunRadial.addColorStop(1.0, 'rgba(249, 115, 22, 0)');
+      ctx.fillStyle = sunRadial;
+      ctx.fillRect(0, 0, 2048, 1024);
+
+      // Layered Golden-Rimmed Cumulus & Cirrus Sunset Clouds
+      for (let i = 0; i < 45; i++) {
+        const y = 260 + Math.random() * 340;
+        const x = Math.random() * 2048;
+        const w = 110 + Math.random() * 280;
+        const h = 8 + Math.random() * 22;
+        const cGrad = ctx.createLinearGradient(x, y - h, x, y + h);
+        cGrad.addColorStop(0, 'rgba(254, 240, 138, 0.36)');
+        cGrad.addColorStop(0.5, 'rgba(251, 146, 60, 0.24)');
+        cGrad.addColorStop(1, 'rgba(124, 45, 18, 0.18)');
+        ctx.fillStyle = cGrad;
         ctx.beginPath();
         ctx.ellipse(x, y, w, h, 0, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      // Warm peach cloud highlights
-      ctx.fillStyle = 'rgba(251, 146, 60, 0.20)';
-      for (let i = 0; i < 14; i++) {
-        const y = 210 + Math.random() * 130;
-        const x = Math.random() * 1024;
-        const w = 70 + Math.random() * 130;
-        const h = 4 + Math.random() * 8;
-        ctx.beginPath();
-        ctx.ellipse(x, y, w, h, 0, 0, Math.PI * 2);
-        ctx.fill();
+      // Distant Mekong Horizon Treeline Silhouette along the equator band
+      ctx.fillStyle = 'rgba(28, 38, 26, 0.32)';
+      ctx.beginPath();
+      ctx.moveTo(0, 745);
+      for (let x = 0; x <= 2048; x += 16) {
+        const treeH = Math.sin(x * 0.03) * 8 + Math.cos(x * 0.11) * 5 + Math.sin(x * 0.27) * 3;
+        ctx.lineTo(x, 736 - Math.max(0, treeH));
       }
+      ctx.lineTo(2048, 755);
+      ctx.lineTo(0, 755);
+      ctx.closePath();
+      ctx.fill();
 
       const tex = new THREE.CanvasTexture(c);
       tex.mapping = THREE.EquirectangularReflectionMapping;
       return tex;
     }
-    scene.background = createSunsetSkyTexture();
-    scene.fog = new THREE.FogExp2(0xd68953, 0.0030);
+    const sunsetSkyTex = createSunsetSkyTexture();
+    scene.background = sunsetSkyTex;
+    scene.environment = sunsetSkyTex;
+    scene.fog = new THREE.FogExp2(0xd98a54, 0.0024);
 
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 750);
 
@@ -2527,7 +2547,7 @@
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, ultraSmoothMode ? 1.0 : 1.25));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, ultraSmoothMode ? 1.35 : 1.75));
     }
     window.addEventListener('resize', handleScreenResize);
     window.addEventListener('orientationchange', () => {
@@ -2539,27 +2559,27 @@
     }
 
     // Rich Golden Sunlight & Ambient Lighting
-    const hemiLight = new THREE.HemisphereLight(0xffedd5, 0x243e20, 0.85);
+    const hemiLight = new THREE.HemisphereLight(0xfff2d6, 0x2a4822, 0.92);
     scene.add(hemiLight);
 
-    const dirLight = new THREE.DirectionalLight(0xffdfb3, 1.85);
+    const dirLight = new THREE.DirectionalLight(0xffe4b5, 1.95);
     dirLight.position.set(75, 105, 50);
     dirLight.castShadow = !ultraSmoothMode;
-    dirLight.shadow.mapSize.width = 1024;
-    dirLight.shadow.mapSize.height = 1024;
+    dirLight.shadow.mapSize.width = 1536;
+    dirLight.shadow.mapSize.height = 1536;
     dirLight.shadow.camera.near = 15;
-    dirLight.shadow.camera.far = 240;
-    dirLight.shadow.camera.left = -72;
-    dirLight.shadow.camera.right = 72;
-    dirLight.shadow.camera.top = 72;
-    dirLight.shadow.camera.bottom = -72;
-    dirLight.shadow.bias = -0.0005;
+    dirLight.shadow.camera.far = 250;
+    dirLight.shadow.camera.left = -78;
+    dirLight.shadow.camera.right = 78;
+    dirLight.shadow.camera.top = 78;
+    dirLight.shadow.camera.bottom = -78;
+    dirLight.shadow.bias = -0.0004;
     dirLight.shadow.normalBias = 0.02;
     scene.add(dirLight);
 
     window.togglePerformanceMode = function() {
       ultraSmoothMode = !ultraSmoothMode;
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, ultraSmoothMode ? 1.0 : 1.25));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, ultraSmoothMode ? 1.35 : 1.75));
       renderer.shadowMap.enabled = !ultraSmoothMode;
       dirLight.castShadow = !ultraSmoothMode;
       renderer.shadowMap.needsUpdate = true;
@@ -2582,11 +2602,11 @@
     };
 
     // River Water Bounce Light (Phản quang mặt nước sông Cái Sơn phù sa ấm áp)
-    const riverBounceLight = new THREE.DirectionalLight(0xfbbf24, 0.42);
-    riverBounceLight.position.set(-80, 25, -20);
+    const riverBounceLight = new THREE.DirectionalLight(0xfbbf24, 0.48);
+    riverBounceLight.position.set(-80, 28, -20);
     scene.add(riverBounceLight);
 
-    const ambientLight = new THREE.AmbientLight(0xffeedd, 0.38);
+    const ambientLight = new THREE.AmbientLight(0xffeedd, 0.42);
     scene.add(ambientLight);
 
     // Visible Golden Sun & Corona Rays
@@ -2663,49 +2683,139 @@
     const clouds = [];
     const cloudMat = new THREE.MeshLambertMaterial({
       color: 0xffedd5,
+      emissive: 0x7c2d12,
+      emissiveIntensity: 0.22,
       transparent: true,
       opacity: 0.88
     });
-    for (let c = 0; c < 22; c++) {
+    for (let c = 0; c < 24; c++) {
       const cloud = new THREE.Group();
       const numPuffs = 4 + Math.floor(Math.random() * 4);
       for (let p = 0; p < numPuffs; p++) {
         const puff = new THREE.Mesh(new THREE.DodecahedronGeometry(5 + Math.random() * 4, 1), cloudMat);
+        puff.scale.y = 0.58;
         puff.position.set(
-          (p - numPuffs / 2) * 5 + (Math.random() - 0.5) * 3,
-          (Math.random() - 0.5) * 2.5,
+          (p - numPuffs / 2) * 5.2 + (Math.random() - 0.5) * 3,
+          (Math.random() - 0.5) * 1.8,
           (Math.random() - 0.5) * 4
         );
         cloud.add(puff);
       }
       cloud.position.set(
-        (Math.random() - 0.5) * 360,
-        55 + Math.random() * 25,
-        (Math.random() - 0.5) * 380
+        (Math.random() - 0.5) * 380,
+        56 + Math.random() * 26,
+        (Math.random() - 0.5) * 400
       );
       cloud.userData = { speed: 1.2 + Math.random() * 1.8 };
       scene.add(cloud);
       clouds.push(cloud);
     }
 
+    // Helper: Procedural Feathered Palm Frond Texture (Realistic Pinnate Leaflets with Alpha Cutout)
+    function createFeatheredPalmFrondTexture(baseHex, highlightHex, darkHex) {
+      const c = document.createElement('canvas');
+      c.width = 256; c.height = 512;
+      const ctx = c.getContext('2d');
+      ctx.clearRect(0, 0, 256, 512);
+
+      // Central woody rachis / spine
+      const spineGrad = ctx.createLinearGradient(0, 512, 0, 0);
+      spineGrad.addColorStop(0, '#4a3219');
+      spineGrad.addColorStop(0.5, baseHex);
+      spineGrad.addColorStop(1, highlightHex);
+      ctx.fillStyle = spineGrad;
+      ctx.beginPath();
+      ctx.moveTo(123, 512);
+      ctx.lineTo(133, 512);
+      ctx.lineTo(129, 10);
+      ctx.lineTo(127, 10);
+      ctx.closePath();
+      ctx.fill();
+
+      // Draw 38 pairs of pinnate leaflets fanning out along the frond
+      for (let i = 0; i < 38; i++) {
+        const t = i / 37;
+        const y = 496 - t * 476;
+        const span = Math.sin(Math.pow(t, 0.75) * Math.PI) * 116 + 10;
+        const droop = 18 + t * 22;
+
+        for (let side of [-1, 1]) {
+          const tipX = 128 + side * span;
+          const tipY = y - droop;
+          const ctrlX = 128 + side * (span * 0.55);
+          const ctrlY = y - droop * 0.85;
+
+          const leafGrad = ctx.createLinearGradient(128, y, tipX, tipY);
+          leafGrad.addColorStop(0, darkHex);
+          leafGrad.addColorStop(0.55, baseHex);
+          leafGrad.addColorStop(1, highlightHex);
+          ctx.fillStyle = leafGrad;
+
+          ctx.beginPath();
+          ctx.moveTo(128, y + 4);
+          ctx.quadraticCurveTo(ctrlX, ctrlY - 5, tipX, tipY);
+          ctx.quadraticCurveTo(ctrlX, ctrlY + 4, 128, y - 3);
+          ctx.closePath();
+          ctx.fill();
+        }
+      }
+
+      const tex = new THREE.CanvasTexture(c);
+      return tex;
+    }
+
+    // Helper: Procedural Banana Leaf Texture with Natural Tropical Splits
+    function createBananaLeafTexture() {
+      const c = document.createElement('canvas');
+      c.width = 256; c.height = 512;
+      const ctx = c.getContext('2d');
+      ctx.clearRect(0, 0, 256, 512);
+
+      // Central midrib
+      ctx.fillStyle = '#65a30d';
+      ctx.fillRect(124, 20, 8, 492);
+
+      // Lush broad blade with natural wind-splits
+      for (let y = 28; y < 490; y += 6) {
+        const t = (y - 28) / 462;
+        const halfW = Math.sin(t * Math.PI) * 108 + 8;
+        // Natural splits in banana leaf
+        if (Math.abs(y - 160) < 4 || Math.abs(y - 290) < 4 || Math.abs(y - 390) < 4) continue;
+        const grad = ctx.createLinearGradient(128 - halfW, y, 128 + halfW, y);
+        grad.addColorStop(0, '#4d7c0f');
+        grad.addColorStop(0.45, '#3f8f29');
+        grad.addColorStop(0.5, '#84cc16');
+        grad.addColorStop(0.55, '#3f8f29');
+        grad.addColorStop(1, '#4d7c0f');
+        ctx.fillStyle = grad;
+        ctx.fillRect(128 - halfW, y, halfW * 2, 5.5);
+      }
+
+      return new THREE.CanvasTexture(c);
+    }
+
     /* ==========================================================================
        3. ADVANCED PBR PROCEDURAL ENVIRONMENT & MATERIALS
        ========================================================================== */
+    const nipaFrondTex = createFeatheredPalmFrondTexture('#2e7d32', '#65a30d', '#14532d');
+    const cocoFrondTex = createFeatheredPalmFrondTexture('#1f6b25', '#4d7c0f', '#0f3d15');
+    const bananaLeafTex = createBananaLeafTexture();
+
     const materials = {
       grass: (function() {
         const c = document.createElement('canvas');
         c.width = 1024; c.height = 1024;
         const ctx = c.getContext('2d');
         
-        // Base moist soil tone for field bunds (Bờ ruộng, bờ bao đồng bằng sông Cửu Long)
-        ctx.fillStyle = '#4a2f1a';
+        // Rich alluvial soil base for Mekong Delta field bunds
+        ctx.fillStyle = '#3b2614';
         ctx.fillRect(0, 0, 1024, 1024);
 
-        // Patchwork rice paddies mosaic (Vàng chín & Xanh non đan xen theo ảnh thực tế)
+        // Authentic Mekong Delta patchwork rice paddies & orchards
         const paddyColors = [
-          '#eab308', '#d97706', '#ca8a04', '#f59e0b', '#fbbf24', '#e2a024', // Lúa chín vàng ươm
-          '#16a34a', '#15803d', '#22c55e', '#4ade80', '#166534', '#2e7d32', // Lúa đang trổ xanh ngắt
-          '#65a30d', '#84cc16', '#4d7c0f'                                    // Mạ non & ruộng ngập nước
+          '#d97706', '#ca8a04', '#eab308', '#b45309', // Lúa chín vàng óng mùa gặt
+          '#15803d', '#166534', '#2e7d32', '#1b5e20', // Lúa xanh thì con gái
+          '#3f6212', '#4d7c0f', '#365314', '#14532d'  // Vườn cây ăn trái & cỏ mật
         ];
 
         const cols = 8;
@@ -2717,84 +2827,132 @@
           for (let col = 0; col < cols; col++) {
             const x = col * cellW;
             const y = r * cellH;
-            const pad = 7; // Earthen bund border width
+            const pad = 6; // Bund path border
             const colorIdx = (col * 3 + r * 7 + (col ^ r) * 2) % paddyColors.length;
-            ctx.fillStyle = paddyColors[colorIdx];
+            const pGrad = ctx.createLinearGradient(x, y, x + cellW, y + cellH);
+            pGrad.addColorStop(0, paddyColors[colorIdx]);
+            pGrad.addColorStop(1, paddyColors[(colorIdx + 2) % paddyColors.length]);
+            ctx.fillStyle = pGrad;
             ctx.fillRect(x + pad, y + pad, cellW - pad * 2, cellH - pad * 2);
 
-            // Subtle interior irrigation furrows
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
-            for (let f = pad + 6; f < cellH - pad; f += 9) {
-              ctx.fillRect(x + pad, y + f, cellW - pad * 2, 2);
+            // Soft grassy bund edge bevel
+            ctx.strokeStyle = 'rgba(46, 125, 50, 0.55)';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(x + pad, y + pad, cellW - pad * 2, cellH - pad * 2);
+
+            // Subtle irrigation rows & golden water glint inside paddy
+            ctx.fillStyle = 'rgba(254, 240, 138, 0.09)';
+            for (let f = pad + 8; f < cellH - pad; f += 8) {
+              ctx.fillRect(x + pad + 4, y + f, cellW - pad * 2 - 8, 2);
             }
           }
         }
 
-        // Micro-speckles for shimmering grain stalks and lush rice leaves
-        for (let i = 0; i < 14000; i++) {
+        // Rich organic micro-detail for grass blades, wildflowers, and soil
+        for (let i = 0; i < 18000; i++) {
           const sx = Math.random() * 1024;
           const sy = Math.random() * 1024;
           const t = Math.random();
-          if (t < 0.40) ctx.fillStyle = 'rgba(254, 240, 138, 0.35)'; // Gạt nắng trên hạt lúa vàng
-          else if (t < 0.70) ctx.fillStyle = 'rgba(22, 101, 52, 0.35)'; // Tán lá lúa rậm
-          else if (t < 0.90) ctx.fillStyle = 'rgba(134, 239, 172, 0.28)'; // Điểm sáng nõn chuối
-          else ctx.fillStyle = 'rgba(74, 47, 26, 0.45)'; // Đất phù sa bồi bờ
-          ctx.fillRect(sx, sy, 2 + Math.random() * 3, 2 + Math.random() * 4);
+          if (t < 0.38) ctx.fillStyle = 'rgba(254, 240, 138, 0.30)';
+          else if (t < 0.72) ctx.fillStyle = 'rgba(20, 83, 45, 0.35)';
+          else if (t < 0.90) ctx.fillStyle = 'rgba(132, 204, 22, 0.28)';
+          else ctx.fillStyle = 'rgba(59, 38, 20, 0.40)';
+          ctx.fillRect(sx, sy, 2 + Math.random() * 3, 2 + Math.random() * 3);
         }
 
         const tex = new THREE.CanvasTexture(c);
         tex.wrapS = THREE.RepeatWrapping;
         tex.wrapT = THREE.RepeatWrapping;
         tex.repeat.set(14, 18);
-        return new THREE.MeshStandardMaterial({ map: tex, roughness: 0.88, metalness: 0.04 });
+        return new THREE.MeshStandardMaterial({
+          map: tex,
+          bumpMap: tex,
+          bumpScale: 0.04,
+          roughness: 0.86,
+          metalness: 0.05
+        });
       })(),
       dirtRoad: (function() {
         const c = document.createElement('canvas');
         c.width = 512; c.height = 512;
         const ctx = c.getContext('2d');
-        ctx.fillStyle = '#a65b32';
+        // Warm laterite & alluvial compacted dirt road (Lộ đất đỏ phù sa Nam Bộ)
+        const rGrad = ctx.createLinearGradient(0, 0, 512, 0);
+        rGrad.addColorStop(0.00, '#365314'); // Grassy shoulder left
+        rGrad.addColorStop(0.08, '#78350f');
+        rGrad.addColorStop(0.22, '#9a4e24');
+        rGrad.addColorStop(0.50, '#b46232'); // Crown of road
+        rGrad.addColorStop(0.78, '#9a4e24');
+        rGrad.addColorStop(0.92, '#78350f');
+        rGrad.addColorStop(1.00, '#365314'); // Grassy shoulder right
+        ctx.fillStyle = rGrad;
         ctx.fillRect(0, 0, 512, 512);
-        ctx.fillStyle = 'rgba(115, 58, 24, 0.4)';
-        ctx.fillRect(100, 0, 90, 512);
-        ctx.fillRect(322, 0, 90, 512);
-        for (let i = 0; i < 4000; i++) {
+
+        // Dual military tire tracks with subtle puddles & compacted ruts
+        ctx.fillStyle = 'rgba(67, 20, 7, 0.38)';
+        ctx.fillRect(118, 0, 72, 512);
+        ctx.fillRect(322, 0, 72, 512);
+
+        // Tire tread marks & pebbles
+        for (let y = 0; y < 512; y += 8) {
+          ctx.fillStyle = 'rgba(41, 18, 8, 0.25)';
+          ctx.fillRect(124, y, 60, 3);
+          ctx.fillRect(328, y, 60, 3);
+        }
+        for (let i = 0; i < 5500; i++) {
           const x = Math.random() * 512;
           const y = Math.random() * 512;
-          ctx.fillStyle = (Math.random() < 0.5) ? 'rgba(74, 38, 16, 0.35)' : 'rgba(217, 150, 98, 0.35)';
-          ctx.fillRect(x, y, 2 + Math.random() * 3, 2 + Math.random() * 4);
+          ctx.fillStyle = (Math.random() < 0.5) ? 'rgba(67, 30, 12, 0.38)' : 'rgba(234, 179, 120, 0.32)';
+          ctx.fillRect(x, y, 2 + Math.random() * 3, 2 + Math.random() * 3);
         }
         const tex = new THREE.CanvasTexture(c);
         tex.wrapS = THREE.RepeatWrapping;
         tex.wrapT = THREE.RepeatWrapping;
-        tex.repeat.set(2, 24);
-        return new THREE.MeshStandardMaterial({ map: tex, roughness: 0.92, metalness: 0.04 });
+        tex.repeat.set(1, 28);
+        return new THREE.MeshStandardMaterial({
+          map: tex,
+          bumpMap: tex,
+          bumpScale: 0.05,
+          roughness: 0.88,
+          metalness: 0.05
+        });
       })(),
       water: (function() {
         const c = document.createElement('canvas');
         c.width = 512; c.height = 512;
         const ctx = c.getContext('2d');
-        ctx.fillStyle = '#808080';
-        ctx.fillRect(0, 0, 512, 512);
-        for (let y = 0; y < 512; y += 4) {
-          for (let x = 0; x < 512; x += 4) {
-            const v = Math.sin(x * 0.08) * Math.cos(y * 0.1) * 60 + 128;
-            ctx.fillStyle = `rgb(${Math.floor(v)},${Math.floor(v)},255)`;
-            ctx.fillRect(x, y, 4, 4);
+        const imgData = ctx.createImageData(512, 512);
+        const data = imgData.data;
+        for (let y = 0; y < 512; y++) {
+          for (let x = 0; x < 512; x++) {
+            const nx = (x / 512) * Math.PI * 2;
+            const ny = (y / 512) * Math.PI * 2;
+            const w1 = Math.sin(nx * 6 + Math.cos(ny * 4)) * 0.45;
+            const w2 = Math.cos(ny * 10 - Math.sin(nx * 8)) * 0.35;
+            const w3 = Math.sin((nx + ny) * 16) * 0.20;
+            const val = Math.floor(((w1 + w2 + w3) * 0.5 + 0.5) * 255);
+            const idx = (y * 512 + x) * 4;
+            data[idx] = val;
+            data[idx + 1] = val;
+            data[idx + 2] = Math.min(255, val + 25);
+            data[idx + 3] = 255;
           }
         }
+        ctx.putImageData(imgData, 0, 0);
         const tex = new THREE.CanvasTexture(c);
         tex.wrapS = THREE.RepeatWrapping;
         tex.wrapT = THREE.RepeatWrapping;
-        tex.repeat.set(4, 20);
+        tex.repeat.set(4, 22);
         window.waterWaveTex = tex;
         return new THREE.MeshStandardMaterial({
-          color: 0x8a5432, // Nước Phù Sa Sông Cái Sơn đặc trưng Tây Nam Bộ
+          color: 0x7c4a2b, // Sông Cái Sơn nặng đỏ phù sa phản chiếu hoàng hôn vàng rực
           bumpMap: tex,
-          bumpScale: 0.07,
-          roughness: 0.15,
-          metalness: 0.18,
+          bumpScale: 0.09,
+          roughness: 0.11,
+          metalness: 0.28,
+          envMapIntensity: 1.45,
           transparent: true,
-          opacity: 0.94
+          opacity: 0.95
         });
       })(),
       // Vật Liệu Tôn Nghiêm Cho Khu Di Tích Lịch Sử Chiến Thắng Cầu Cái Sơn
@@ -2821,15 +2979,73 @@
         tex.repeat.set(6, 6);
         return new THREE.MeshStandardMaterial({ map: tex, roughness: 0.6, metalness: 0.05 });
       })(),
-      palmTrunk: new THREE.MeshStandardMaterial({ color: 0x5a3d28, roughness: 0.9 }),
-      palmFrond: new THREE.MeshStandardMaterial({ color: 0x2e7d32, roughness: 0.65, side: THREE.DoubleSide }),
-      thatchRoof: new THREE.MeshStandardMaterial({ color: 0xc8963e, roughness: 0.95 }),
-      roofThatch: new THREE.MeshStandardMaterial({ color: 0xc8963e, roughness: 0.95 }),
-      houseWall: new THREE.MeshStandardMaterial({ color: 0x8d5b4c, roughness: 0.88 }),
-      woodBridge: new THREE.MeshStandardMaterial({ color: 0x4a2e18, roughness: 0.8 }),
-      militaryGreen: new THREE.MeshStandardMaterial({ color: 0x3b5323, roughness: 0.6, metalness: 0.2 }),
+      palmTrunk: new THREE.MeshStandardMaterial({ color: 0x523620, roughness: 0.9 }),
+      palmFrond: new THREE.MeshStandardMaterial({
+        map: nipaFrondTex,
+        alphaTest: 0.32,
+        roughness: 0.58,
+        metalness: 0.04,
+        side: THREE.DoubleSide
+      }),
+      thatchRoof: (function() {
+        const c = document.createElement('canvas');
+        c.width = 256; c.height = 256;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#a1712c';
+        ctx.fillRect(0, 0, 256, 256);
+        // Layered woven nipa palm thatch shingles (Mái lá dừa nước chằm lớp)
+        for (let row = 0; row < 256; row += 16) {
+          ctx.fillStyle = (row % 32 === 0) ? '#b88438' : '#8f6122';
+          ctx.fillRect(0, row, 256, 14);
+          ctx.fillStyle = 'rgba(45, 25, 8, 0.45)';
+          ctx.fillRect(0, row + 13, 256, 3);
+          for (let x = 0; x < 256; x += 4) {
+            ctx.fillStyle = (x % 8 === 0) ? 'rgba(234, 179, 8, 0.22)' : 'rgba(60, 35, 10, 0.25)';
+            ctx.fillRect(x, row, 2, 13);
+          }
+        }
+        const tex = new THREE.CanvasTexture(c);
+        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+        tex.repeat.set(4, 4);
+        return new THREE.MeshStandardMaterial({ map: tex, bumpMap: tex, bumpScale: 0.05, roughness: 0.92 });
+      })(),
+      roofThatch: new THREE.MeshStandardMaterial({ color: 0xb88438, roughness: 0.92 }),
+      houseWall: (function() {
+        const c = document.createElement('canvas');
+        c.width = 256; c.height = 256;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#7c5338';
+        ctx.fillRect(0, 0, 256, 256);
+        // Woven bamboo mat & timber frame pattern (Vách phên tre đan Nam Bộ)
+        for (let y = 0; y < 256; y += 8) {
+          for (let x = 0; x < 256; x += 8) {
+            ctx.fillStyle = ((x + y) % 16 === 0) ? '#8f6243' : '#69442b';
+            ctx.fillRect(x, y, 7, 7);
+          }
+        }
+        const tex = new THREE.CanvasTexture(c);
+        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+        tex.repeat.set(4, 2);
+        return new THREE.MeshStandardMaterial({ map: tex, bumpMap: tex, bumpScale: 0.03, roughness: 0.88 });
+      })(),
+      woodBridge: (function() {
+        const c = document.createElement('canvas');
+        c.width = 256; c.height = 256;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#4a2e18';
+        ctx.fillRect(0, 0, 256, 256);
+        for (let y = 0; y < 256; y += 3) {
+          ctx.fillStyle = (y % 6 === 0) ? 'rgba(92, 58, 30, 0.45)' : 'rgba(28, 16, 8, 0.35)';
+          ctx.fillRect(0, y, 256, 2);
+        }
+        const tex = new THREE.CanvasTexture(c);
+        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+        tex.repeat.set(2, 4);
+        return new THREE.MeshStandardMaterial({ map: tex, bumpMap: tex, bumpScale: 0.04, roughness: 0.82 });
+      })(),
+      militaryGreen: new THREE.MeshStandardMaterial({ color: 0x3b5323, roughness: 0.55, metalness: 0.25 }),
       blackRubber: new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.85 }),
-      chrome: new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.85, roughness: 0.18 }),
+      chrome: new THREE.MeshStandardMaterial({ color: 0xd4d4d8, metalness: 0.9, roughness: 0.15 }),
       clothBlack: new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.9 }),
       flesh: new THREE.MeshStandardMaterial({ color: 0xe29d74, roughness: 0.6 }),
       brass: new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.92, roughness: 0.22 }),
@@ -2842,15 +3058,20 @@
       goldMedal: new THREE.MeshStandardMaterial({ color: 0xfacc15, metalness: 0.92, roughness: 0.22 }),
       jeepGrille: new THREE.MeshStandardMaterial({ color: 0x1c211b, roughness: 0.7 }),
       steelDark: new THREE.MeshStandardMaterial({ color: 0x27272a, metalness: 0.82, roughness: 0.35 }),
-      bamboo: new THREE.MeshStandardMaterial({ color: 0x769b42, roughness: 0.65 }),
+      bamboo: new THREE.MeshStandardMaterial({ color: 0x6d9438, roughness: 0.62 }),
       bambooDry: new THREE.MeshStandardMaterial({ color: 0xc4b382, roughness: 0.85 }),
-      terracotta: new THREE.MeshStandardMaterial({ color: 0xb55a30, roughness: 0.85 }),
-      haystack: new THREE.MeshStandardMaterial({ color: 0xd9a441, roughness: 0.95 }),
+      terracotta: new THREE.MeshStandardMaterial({ color: 0xb55a30, roughness: 0.78 }),
+      haystack: new THREE.MeshStandardMaterial({ color: 0xd9a441, roughness: 0.92 }),
       sandbag: new THREE.MeshStandardMaterial({ color: 0xa89f7f, roughness: 0.92 }),
-      bananaLeaf: new THREE.MeshStandardMaterial({ color: 0x3d8c2e, roughness: 0.6, side: THREE.DoubleSide }),
-      lotusPink: new THREE.MeshStandardMaterial({ color: 0xf472b6, roughness: 0.5, side: THREE.DoubleSide }),
-      lotusLeaf: new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.6, side: THREE.DoubleSide }),
-      sampanWood: new THREE.MeshStandardMaterial({ color: 0x54361e, roughness: 0.82 }),
+      bananaLeaf: new THREE.MeshStandardMaterial({
+        map: bananaLeafTex,
+        alphaTest: 0.30,
+        roughness: 0.55,
+        side: THREE.DoubleSide
+      }),
+      lotusPink: new THREE.MeshStandardMaterial({ color: 0xf472b6, roughness: 0.45, side: THREE.DoubleSide }),
+      lotusLeaf: new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.58, side: THREE.DoubleSide }),
+      sampanWood: new THREE.MeshStandardMaterial({ color: 0x54361e, roughness: 0.78 }),
       barbedWire: new THREE.MeshStandardMaterial({ color: 0x71717a, metalness: 0.85, roughness: 0.3 }),
       lanternGlass: new THREE.MeshStandardMaterial({ color: 0xffedd5, emissive: 0xf59e0b, emissiveIntensity: 0.85, roughness: 0.1, transparent: true, opacity: 0.9 }),
       // Vietnamese Soldier Materials (Quân phục xanh lá cây đậm Bộ Đội Việt Nam)
@@ -2879,27 +3100,6 @@
       soldierHair: new THREE.MeshStandardMaterial({ color: 0x1c1815, roughness: 0.9 }),
       soldierStrap: new THREE.MeshStandardMaterial({ color: 0x3f3a28, roughness: 0.85 }),
       nonLa: new THREE.MeshStandardMaterial({ color: 0xeab308, roughness: 0.75, side: THREE.DoubleSide }),
-      khanRan: (function() {
-        const c = document.createElement('canvas');
-        c.width = 64; c.height = 64;
-        const ctx = c.getContext('2d');
-        ctx.fillStyle = '#f8fafc';
-        ctx.fillRect(0, 0, 64, 64);
-        ctx.fillStyle = '#18181b';
-        const s = 8;
-        for (let y = 0; y < 64; y += s) {
-          for (let x = 0; x < 64; x += s) {
-            if ((x / s + y / s) % 2 === 0) {
-              ctx.fillRect(x, y, s, s);
-            }
-          }
-        }
-        const tex = new THREE.CanvasTexture(c);
-        tex.wrapS = THREE.RepeatWrapping;
-        tex.wrapT = THREE.RepeatWrapping;
-        tex.repeat.set(2, 4);
-        return new THREE.MeshStandardMaterial({ map: tex, roughness: 0.8 });
-      })(),
       muTaiBeo: new THREE.MeshStandardMaterial({ color: 0x14451b, roughness: 0.85 }),
       rubberSandals: new THREE.MeshStandardMaterial({ color: 0x111113, roughness: 0.95 }),
       scarf: new THREE.MeshStandardMaterial({ color: 0xf4f4f5, roughness: 0.8 }),
@@ -2982,16 +3182,22 @@
         tex.wrapS = THREE.RepeatWrapping;
         tex.wrapT = THREE.RepeatWrapping;
         tex.repeat.set(2, 6);
-        return new THREE.MeshStandardMaterial({ map: tex, roughness: 0.92, metalness: 0.05 });
+        return new THREE.MeshStandardMaterial({ map: tex, bumpMap: tex, bumpScale: 0.04, roughness: 0.9, metalness: 0.05 });
       })(),
-      coconutFrond: new THREE.MeshStandardMaterial({ color: 0x226b28, roughness: 0.65, side: THREE.DoubleSide }),
-      coconutFruit: new THREE.MeshStandardMaterial({ color: 0x84cc16, roughness: 0.6 }),
+      coconutFrond: new THREE.MeshStandardMaterial({
+        map: cocoFrondTex,
+        alphaTest: 0.32,
+        roughness: 0.56,
+        metalness: 0.05,
+        side: THREE.DoubleSide
+      }),
+      coconutFruit: new THREE.MeshStandardMaterial({ color: 0x65a30d, roughness: 0.48 }),
       coconutDry: new THREE.MeshStandardMaterial({ color: 0x7c5836, roughness: 0.95 }),
       treeBark: new THREE.MeshStandardMaterial({ color: 0x4a3321, roughness: 0.92 }),
-      treeFoliage: new THREE.MeshStandardMaterial({ color: 0x2d632b, roughness: 0.8 }),
-      bananaHeart: new THREE.MeshStandardMaterial({ color: 0x701a75, roughness: 0.6 }),
-      shrubFlowerRed: new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.5 }),
-      shrubFlowerYellow: new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.5 }),
+      treeFoliage: new THREE.MeshStandardMaterial({ color: 0x255e23, roughness: 0.75 }),
+      bananaHeart: new THREE.MeshStandardMaterial({ color: 0x701a75, roughness: 0.55 }),
+      shrubFlowerRed: new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0x7f1d1d, emissiveIntensity: 0.25, roughness: 0.45 }),
+      shrubFlowerYellow: new THREE.MeshStandardMaterial({ color: 0xfacc15, emissive: 0x713f12, emissiveIntensity: 0.25, roughness: 0.45 }),
       redStarBadge: new THREE.MeshBasicMaterial({ color: 0xdc2626 }),
       goldStar: new THREE.MeshBasicMaterial({ color: 0xfacc15 }),
       pithHelmet: new THREE.MeshStandardMaterial({ color: 0x134219, roughness: 0.78 }),
@@ -3128,59 +3334,119 @@
         points.push(new THREE.Vector3(x, 0.04, z));
       }
       const curve = new THREE.CatmullRomCurve3(points);
-      const roadGeo = new THREE.TubeGeometry(curve, 85, 4.8, 5, false);
+      const roadGeo = new THREE.TubeGeometry(curve, 95, 5.1, 6, false);
       const roadMesh = new THREE.Mesh(roadGeo, materials.dirtRoad);
-      roadMesh.scale.y = 0.05;
+      roadMesh.scale.y = 0.045;
       roadMesh.receiveShadow = true;
       scene.add(roadMesh);
       return curve;
     }
     const roadCurve = createRoadMesh();
 
-    // Main Cái Sơn River (Wide alluvial canal with lightweight wave physics)
-    const riverGeo = new THREE.PlaneGeometry(42, 840, 6, 24);
+    // 1960 Roadside Wooden Telegraph Poles & Overhead Sagging Wires (Cột dây thép Quốc lộ 4 năm 1960)
+    (function createRoadsideTelegraphLine() {
+      const poleMat = new THREE.MeshStandardMaterial({ color: 0x3e2723, roughness: 0.9 });
+      const insulatorMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.25 });
+      const wireMat = new THREE.LineBasicMaterial({ color: 0x1e293b, transparent: true, opacity: 0.65 });
+      const poleGeo = new THREE.CylinderGeometry(0.11, 0.16, 7.6, 6);
+      const crossArmGeo = new THREE.BoxGeometry(1.65, 0.12, 0.12);
+      const insulatorGeo = new THREE.CylinderGeometry(0.05, 0.06, 0.16, 6);
+
+      const poleTopsL = [];
+      const poleTopsR = [];
+      for (let z = -240; z <= 240; z += 40) {
+        if (Math.abs(z - (-45)) < 16) continue; // Skip directly on bridge deck
+        const rx = Math.sin(z * 0.015) * 12 + 10 + 5.8;
+        const pGrp = new THREE.Group();
+        pGrp.position.set(rx, 0, z);
+
+        const pole = new THREE.Mesh(poleGeo, poleMat);
+        pole.position.y = 3.8;
+        pole.castShadow = true;
+        pGrp.add(pole);
+
+        const arm = new THREE.Mesh(crossArmGeo, poleMat);
+        arm.position.y = 7.1;
+        pGrp.add(arm);
+
+        for (let ix of [-0.65, -0.25, 0.25, 0.65]) {
+          const ins = new THREE.Mesh(insulatorGeo, insulatorMat);
+          ins.position.set(ix, 7.22, 0);
+          pGrp.add(ins);
+        }
+        scene.add(pGrp);
+        poleTopsL.push(new THREE.Vector3(rx - 0.65, 7.28, z));
+        poleTopsR.push(new THREE.Vector3(rx + 0.65, 7.28, z));
+      }
+
+      // Sagging overhead telegraph wires between poles
+      for (let i = 0; i < poleTopsL.length - 1; i++) {
+        for (let arr of [poleTopsL, poleTopsR]) {
+          const p1 = arr[i];
+          const p2 = arr[i + 1];
+          const mid = new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5);
+          mid.y -= 0.65; // Natural wire sag
+          const wireCurve = new THREE.QuadraticBezierCurve3(p1, mid, p2);
+          const wireGeo = new THREE.BufferGeometry().setFromPoints(wireCurve.getPoints(8));
+          scene.add(new THREE.Line(wireGeo, wireMat));
+        }
+      }
+    })();
+
+    // Main Cái Sơn River (Wide alluvial canal with wave physics & sloped muddy riverbanks)
+    const riverGeo = new THREE.PlaneGeometry(42, 840, 8, 28);
     const river = new THREE.Mesh(riverGeo, materials.water);
     river.rotation.x = -Math.PI / 2;
-    river.position.set(-20, 0.02, 0);
+    river.position.set(-20, 0.03, 0);
     river.receiveShadow = true;
     scene.add(river);
 
+    // Alluvial Muddy Riverbanks & Grassy Embankments flanking Cái Sơn River
+    const bankMat = new THREE.MeshStandardMaterial({ color: 0x4a3520, roughness: 0.92, metalness: 0.05 });
+    for (let bankX of [-41.2, 1.2]) {
+      const bankMesh = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.22, 840), bankMat);
+      bankMesh.position.set(bankX, 0.01, 0);
+      bankMesh.receiveShadow = true;
+      scene.add(bankMesh);
+    }
+
     // Tributary Canal (Rạch Nhánh Đông) winding into the guerrilla village
     const canalPoints = [
-      new THREE.Vector3(-4, 0.015, -15),
-      new THREE.Vector3(14, 0.015, -20),
-      new THREE.Vector3(45, 0.015, -10),
-      new THREE.Vector3(75, 0.015, 15),
-      new THREE.Vector3(115, 0.015, -25)
+      new THREE.Vector3(-4, 0.018, -15),
+      new THREE.Vector3(14, 0.018, -20),
+      new THREE.Vector3(45, 0.018, -10),
+      new THREE.Vector3(75, 0.018, 15),
+      new THREE.Vector3(115, 0.018, -25)
     ];
     const canalCurve = new THREE.CatmullRomCurve3(canalPoints);
-    const canalGeo = new THREE.TubeGeometry(canalCurve, 32, 6.5, 5, false);
+    const canalGeo = new THREE.TubeGeometry(canalCurve, 36, 6.5, 6, false);
     const canalMesh = new THREE.Mesh(canalGeo, materials.water);
     canalMesh.scale.y = 0.02;
     canalMesh.receiveShadow = true;
     scene.add(canalMesh);
 
-    // Floating Mekong Water Hyacinths (Shared geometries for high FPS)
+    // Floating Mekong Water Hyacinths (Lục bình tím trôi sông Cái Sơn)
     const hyacinths = [];
-    const hyacinthLeafMat = new THREE.MeshLambertMaterial({ color: 0x247337 });
-    const hyacinthFlowerMat = new THREE.MeshLambertMaterial({ color: 0xc084fc });
-    const sharedHyacinthLeafGeo = new THREE.CylinderGeometry(0.65, 0.16, 0.08, 6);
-    const sharedHyacinthFlowerGeo = new THREE.ConeGeometry(0.24, 0.55, 5);
-    for (let h = 0; h < 24; h++) {
+    const hyacinthLeafMat = new THREE.MeshStandardMaterial({ color: 0x227034, roughness: 0.65 });
+    const hyacinthFlowerMat = new THREE.MeshStandardMaterial({ color: 0xc084fc, emissive: 0x581c87, emissiveIntensity: 0.18, roughness: 0.5 });
+    const sharedHyacinthLeafGeo = new THREE.CylinderGeometry(0.68, 0.18, 0.09, 6);
+    const sharedHyacinthFlowerGeo = new THREE.ConeGeometry(0.25, 0.58, 5);
+    for (let h = 0; h < 28; h++) {
       const clump = new THREE.Group();
-      for (let l = 0; l < 3; l++) {
+      for (let l = 0; l < 4; l++) {
         const leaf = new THREE.Mesh(sharedHyacinthLeafGeo, hyacinthLeafMat);
-        leaf.rotation.y = (l / 3) * Math.PI * 2;
+        leaf.rotation.y = (l / 4) * Math.PI * 2;
+        leaf.position.set(Math.cos(l * 1.5) * 0.35, 0, Math.sin(l * 1.5) * 0.35);
         clump.add(leaf);
       }
       const flower = new THREE.Mesh(sharedHyacinthFlowerGeo, hyacinthFlowerMat);
-      flower.position.y = 0.3;
+      flower.position.y = 0.32;
       clump.add(flower);
 
       // 80% on main river, 20% on village canal
       if (Math.random() < 0.8) {
         clump.position.set(
-          -20 + (Math.random() - 0.5) * 22,
+          -20 + (Math.random() - 0.5) * 24,
           0.08,
           (Math.random() - 0.5) * 520
         );
@@ -3194,18 +3460,81 @@
       hyacinths.push(clump);
     }
 
-    // Historical 1960 Road Milestones (5 Milestones along the provincial highway)
+    // Flock of Flying White Mekong Storks (Đàn cò trắng bay về tổ trên bầu trời hoàng hôn Cái Sơn)
+    const flyingStorks = [];
+    (function createMekongStorkFlock() {
+      const storkMat = new THREE.MeshBasicMaterial({ color: 0xfffbeb, side: THREE.DoubleSide });
+      const wingGeo = new THREE.PlaneGeometry(0.95, 0.32);
+      wingGeo.translate(0.47, 0, 0);
+      const bodyGeo = new THREE.ConeGeometry(0.12, 0.9, 5);
+      bodyGeo.rotateX(Math.PI / 2);
+
+      for (let b = 0; b < 14; b++) {
+        const bird = new THREE.Group();
+        const body = new THREE.Mesh(bodyGeo, storkMat);
+        bird.add(body);
+
+        const leftWing = new THREE.Mesh(wingGeo, storkMat);
+        leftWing.scale.x = -1;
+        bird.add(leftWing);
+
+        const rightWing = new THREE.Mesh(wingGeo, storkMat);
+        bird.add(rightWing);
+
+        bird.position.set(
+          -60 + (b % 7) * 9 + (Math.random() - 0.5) * 4,
+          28 + Math.floor(b / 7) * 6 + (Math.random() - 0.5) * 3,
+          -120 + Math.abs(b - 6) * 7
+        );
+        bird.userData = {
+          leftWing,
+          rightWing,
+          speedZ: 6.5 + Math.random() * 1.5,
+          phase: b * 0.75
+        };
+        scene.add(bird);
+        flyingStorks.push(bird);
+      }
+      window.flyingStorks = flyingStorks;
+    })();
+
+    // Historical 1960 Road Milestones with Painted Text (Cột cây số Quốc lộ 4 năm 1960)
     function createMilestone(x, z, label) {
       const postGroup = new THREE.Group();
       postGroup.position.set(x, 0, z);
 
-      const base = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.25, 0.5), new THREE.MeshLambertMaterial({ color: 0xe2e8f0 }));
-      base.position.y = 0.62;
+      const mCanvas = document.createElement('canvas');
+      mCanvas.width = 128; mCanvas.height = 256;
+      const mCtx = mCanvas.getContext('2d');
+      mCtx.fillStyle = '#f1f5f9';
+      mCtx.fillRect(0, 0, 128, 256);
+      mCtx.fillStyle = '#dc2626';
+      mCtx.fillRect(0, 0, 128, 58);
+      mCtx.fillStyle = '#ffffff';
+      mCtx.font = 'bold 20px Arial, sans-serif';
+      mCtx.textAlign = 'center';
+      mCtx.fillText('QL 4', 64, 38);
+      mCtx.fillStyle = '#0f172a';
+      mCtx.font = 'bold 17px Arial, sans-serif';
+      const parts = label.split(' ');
+      parts.forEach((word, idx) => {
+        mCtx.fillText(word, 64, 105 + idx * 28);
+      });
+      const mTex = new THREE.CanvasTexture(mCanvas);
+
+      const base = new THREE.Mesh(
+        new THREE.BoxGeometry(0.72, 1.35, 0.52),
+        new THREE.MeshStandardMaterial({ map: mTex, roughness: 0.75 })
+      );
+      base.position.y = 0.67;
       base.castShadow = true;
       postGroup.add(base);
 
-      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.35, 0.38, 8), new THREE.MeshLambertMaterial({ color: 0xdc2626 }));
-      cap.position.y = 1.4;
+      const cap = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.30, 0.38, 0.38, 8),
+        new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.6 })
+      );
+      cap.position.y = 1.48;
       postGroup.add(cap);
 
       scene.add(postGroup);
@@ -4446,19 +4775,37 @@
     const windFronds = [];
     const foliagePositions = [];
 
-    // Shared Vegetation Geometries (Eliminates 20,000+ redundant WebGL geometry allocations & draw calls)
-    const sharedNipaSpineGeo = new THREE.CylinderGeometry(0.05, 0.15, 4.8, 4);
-    const sharedNipaBladeGeo = new THREE.PlaneGeometry(1.35, 4.2, 1, 2);
+    // Helper to curve a PlaneGeometry into a natural tropical arching palm frond
+    function createCurvedFrondGeometry(width, length, segW, segL, archDroop, vFold) {
+      const geo = new THREE.PlaneGeometry(width, length, segW, segL);
+      const pos = geo.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i);
+        const y = pos.getY(i);
+        // Normalize along frond length from base (0) to tip (1)
+        const t = (y + length * 0.5) / length;
+        // Natural parabolic arch droop + slight V-fold across leaflet width
+        const zOffset = -Math.pow(t, 1.85) * archDroop - Math.abs(x) * vFold;
+        pos.setZ(i, zOffset);
+      }
+      geo.computeVertexNormals();
+      return geo;
+    }
+
+    // Shared Vegetation Geometries (Curved 3D Feathered Fronds - Zero extra draw calls)
+    const sharedNipaSpineGeo = new THREE.CylinderGeometry(0.04, 0.14, 4.6, 5);
+    const sharedNipaBladeGeo = createCurvedFrondGeometry(1.75, 4.6, 2, 5, 0.85, 0.14);
+    const sharedNipaFruitGeo = new THREE.DodecahedronGeometry(0.38, 1);
     const sharedBambooStalkGeo = new THREE.CylinderGeometry(0.06, 0.09, 6.8, 5);
-    const sharedBambooFoliageGeo = new THREE.DodecahedronGeometry(1.05, 0);
-    const sharedCocoRootGeo = new THREE.CylinderGeometry(0.38, 0.65, 1.2, 6);
-    const sharedCocoSheathGeo = new THREE.CylinderGeometry(0.42, 0.26, 0.9, 6);
-    const sharedCocoNutGeo = new THREE.SphereGeometry(0.26, 5, 5);
-    const sharedCocoBladeGeo = new THREE.PlaneGeometry(1.55, 5.2, 1, 3);
-    const sharedBushClumpGeo = new THREE.DodecahedronGeometry(0.95, 0);
-    const sharedBushFlowerGeo = new THREE.OctahedronGeometry(0.14, 0);
+    const sharedBambooFoliageGeo = new THREE.DodecahedronGeometry(1.15, 1);
+    const sharedCocoRootGeo = new THREE.CylinderGeometry(0.38, 0.68, 1.2, 7);
+    const sharedCocoSheathGeo = new THREE.CylinderGeometry(0.42, 0.26, 0.9, 7);
+    const sharedCocoNutGeo = new THREE.SphereGeometry(0.26, 6, 6);
+    const sharedCocoBladeGeo = createCurvedFrondGeometry(1.95, 5.4, 2, 6, 1.35, 0.16);
+    const sharedBushClumpGeo = new THREE.DodecahedronGeometry(0.95, 1);
+    const sharedBushFlowerGeo = new THREE.OctahedronGeometry(0.15, 0);
     const sharedBananaTrunkGeo = new THREE.CylinderGeometry(0.16, 0.26, 3.2, 6);
-    const sharedBananaLeafGeo = new THREE.PlaneGeometry(1.15, 3.1);
+    const sharedBananaLeafGeo = createCurvedFrondGeometry(1.25, 3.2, 2, 4, 0.65, 0.12);
     const sharedBananaHeartGeo = new THREE.ConeGeometry(0.22, 0.65, 6);
 
     function createNipaPalm(x, z, scale = 1) {
@@ -4469,21 +4816,27 @@
       palmGroup.position.set(x, 0, z);
       palmGroup.scale.set(scale, scale, scale);
 
-      const numFronds = 6;
+      // Muddy root bulb & dark brown Nipa fruit cluster (Quầy dừa nước miền Tây)
+      const fruitCluster = new THREE.Mesh(sharedNipaFruitGeo, materials.coconutDry);
+      fruitCluster.position.set(0, 0.42, 0);
+      palmGroup.add(fruitCluster);
+
+      const numFronds = 7;
       const isNearActionZone = Math.abs(z + 20) < 95;
       for (let i = 0; i < numFronds; i++) {
         const angle = (i / numFronds) * Math.PI * 2 + (i % 2) * 0.15;
         const frondGroup = new THREE.Group();
         frondGroup.rotation.y = angle;
 
+        const pitch = (i % 2 === 0) ? (Math.PI / 4 + 0.04) : (Math.PI / 3.2);
         const frondSpine = new THREE.Mesh(sharedNipaSpineGeo, materials.palmTrunk);
-        frondSpine.position.set(0, 1.9, 1.45);
-        frondSpine.rotation.x = Math.PI / 4 + 0.06;
+        frondSpine.position.set(0, 1.85, 1.4);
+        frondSpine.rotation.x = pitch;
         frondGroup.add(frondSpine);
 
         const blade = new THREE.Mesh(sharedNipaBladeGeo, materials.palmFrond);
         blade.position.set(0, 2.15, 1.65);
-        blade.rotation.x = Math.PI / 4 + 0.06;
+        blade.rotation.x = pitch;
         frondGroup.add(blade);
 
         palmGroup.add(frondGroup);
@@ -4500,7 +4853,7 @@
     }
 
     // Lush Nipa Palms spread along the riverbank & canals (Optimized spacing for 60FPS)
-    for (let z = -240; z <= 240; z += 20) {
+    for (let z = -240; z <= 240; z += 18) {
       const nearTower1 = Math.abs(z - 10) < 14;
       const nearTower2 = Math.abs(z - (-60)) < 14;
       const nearTower3 = Math.abs(z - 140) < 14;
@@ -4508,7 +4861,7 @@
       const nearMonument = (z >= -46 && z <= -12);
 
       if (!nearTower1 && !nearTower2 && !nearTower3) {
-        createNipaPalm(-10 + (Math.random() * 4 - 2), z, 0.95 + Math.random() * 0.35);
+        createNipaPalm(-9.5 + (Math.random() * 4 - 2), z, 0.95 + Math.random() * 0.35);
       }
       createNipaPalm(-32 + (Math.random() * 6 - 3), z + 4, 1.1 + Math.random() * 0.35);
       if (!nearBridge && !nearMonument && Math.abs(z - 35) > 10 && Math.abs(z - 75) > 12) {
@@ -4516,26 +4869,28 @@
       }
     }
 
-    // --- 4. BAMBOO THICKETS (Bụi Tre Già Nam Bộ) ---
+    // --- 4. BAMBOO THICKETS (Lũy Tre Làng Nam Bộ Xanh Mướt) ---
+    const bambooLeafMat = new THREE.MeshStandardMaterial({ color: 0x3f7d28, roughness: 0.68 });
     function createBambooThicket(x, z) {
       foliagePositions.push(new THREE.Vector3(x, 0, z));
       const bGroup = new THREE.Group();
       bGroup.position.set(x, 0, z);
-      const count = 6;
+      const count = 7;
       for (let i = 0; i < count; i++) {
-        const hScale = 0.85 + Math.random() * 0.4;
+        const hScale = 0.85 + Math.random() * 0.42;
         const stalk = new THREE.Mesh(sharedBambooStalkGeo, materials.bamboo);
-        const ox = (Math.random() - 0.5) * 2.0;
-        const oz = (Math.random() - 0.5) * 2.0;
+        const ox = (Math.random() - 0.5) * 2.2;
+        const oz = (Math.random() - 0.5) * 2.2;
         stalk.scale.set(1, hScale, 1);
         stalk.position.set(ox, 3.4 * hScale, oz);
-        stalk.rotation.x = (Math.random() - 0.5) * 0.14;
-        stalk.rotation.z = (Math.random() - 0.5) * 0.14;
+        stalk.rotation.x = (Math.random() - 0.5) * 0.16;
+        stalk.rotation.z = (Math.random() - 0.5) * 0.16;
         if (i === 0) stalk.castShadow = true;
         bGroup.add(stalk);
 
         // Bamboo Leaves cluster
-        const foliage = new THREE.Mesh(sharedBambooFoliageGeo, materials.palmFrond);
+        const foliage = new THREE.Mesh(sharedBambooFoliageGeo, bambooLeafMat);
+        foliage.scale.set(1.2, 0.85, 1.2);
         foliage.position.set(ox, 6.1 * hScale, oz);
         bGroup.add(foliage);
       }
@@ -4594,19 +4949,19 @@
       sheath.position.y = -0.3;
       crown.add(sheath);
 
-      // 8 Arching Coconut Fronds using shared geometry (Replaces 160 meshes per tree with 8 meshes!)
-      const numFronds = 8;
+      // 10 Arching Feathered Coconut Fronds using shared curved geometry
+      const numFronds = 10;
       const isNearActionZone = Math.abs(z + 20) < 95;
       for (let f = 0; f < numFronds; f++) {
-        const fAngle = (f / numFronds) * Math.PI * 2 + (f % 2) * 0.18;
+        const fAngle = (f / numFronds) * Math.PI * 2 + (f % 2) * 0.16;
         const tier = f % 2;
-        const pitch = tier === 0 ? (Math.PI / 2.6) : (Math.PI / 2.1);
+        const pitch = tier === 0 ? (Math.PI / 2.75) : (Math.PI / 2.15);
 
         const frondGroup = new THREE.Group();
         frondGroup.rotation.y = fAngle;
 
         const frondBlade = new THREE.Mesh(sharedCocoBladeGeo, materials.coconutFrond);
-        frondBlade.position.set(0, tier === 0 ? 0.35 : -0.15, 2.35);
+        frondBlade.position.set(0, tier === 0 ? 0.38 : -0.12, 2.45);
         frondBlade.rotation.x = pitch;
         frondGroup.add(frondBlade);
 
@@ -4620,12 +4975,12 @@
         }
       }
 
-      // Bunches of Coconuts (3 shared fruit meshes)
-      for (let b = 0; b < 3; b++) {
-        const bAngle = (b / 3) * Math.PI * 2 + 0.4;
+      // Bunches of Coconuts (4 shared fruit meshes)
+      for (let b = 0; b < 4; b++) {
+        const bAngle = (b / 4) * Math.PI * 2 + 0.4;
         const nut = new THREE.Mesh(sharedCocoNutGeo, materials.coconutFruit);
-        nut.scale.set(1.2, 1.4, 1.2);
-        nut.position.set(Math.cos(bAngle) * 0.42, -0.25, Math.sin(bAngle) * 0.42);
+        nut.scale.set(1.25, 1.45, 1.25);
+        nut.position.set(Math.cos(bAngle) * 0.44, -0.26, Math.sin(bAngle) * 0.44);
         crown.add(nut);
       }
 
@@ -4634,8 +4989,8 @@
 
     // Shady Roadside Trees (Cây Me Tây / Cây Bàng Ven Lộ)
     const sharedRoadTreeTrunkGeo = new THREE.CylinderGeometry(0.42, 0.72, 4.4, 6);
-    const sharedRoadTreeCrownGeo = new THREE.DodecahedronGeometry(3.3, 1);
-    const sharedRoadTreeClumpGeo = new THREE.DodecahedronGeometry(2.4, 0);
+    const sharedRoadTreeCrownGeo = new THREE.DodecahedronGeometry(3.4, 1);
+    const sharedRoadTreeClumpGeo = new THREE.DodecahedronGeometry(2.5, 1);
     function createRoadsideTree(x, z, scale = 1.0) {
       if (x >= 6 && x <= 36 && z >= -46 && z <= -12) return;
       foliagePositions.push(new THREE.Vector3(x, 0, z));
@@ -4648,14 +5003,16 @@
       trunk.castShadow = true;
       tree.add(trunk);
 
-      for (let i = 0; i < 3; i++) {
-        const bAngle = (i / 3) * Math.PI * 2 + 0.35;
+      for (let i = 0; i < 4; i++) {
+        const bAngle = (i / 4) * Math.PI * 2 + 0.35;
         const clump = new THREE.Mesh(sharedRoadTreeClumpGeo, materials.treeFoliage);
-        clump.position.set(Math.cos(bAngle) * 2.1, 5.1, Math.sin(bAngle) * 2.1);
+        clump.scale.set(1.15, 0.82, 1.15);
+        clump.position.set(Math.cos(bAngle) * 2.1, 5.0, Math.sin(bAngle) * 2.1);
         tree.add(clump);
       }
 
       const crown = new THREE.Mesh(sharedRoadTreeCrownGeo, materials.treeFoliage);
+      crown.scale.set(1.2, 0.88, 1.2);
       crown.position.set(0, 6.1, 0);
       crown.castShadow = true;
       tree.add(crown);
@@ -4668,15 +5025,16 @@
       if (x >= 6 && x <= 36 && z >= -46 && z <= -12) return;
       const bush = new THREE.Group();
       bush.position.set(x, 0, z);
-      const mainClump = new THREE.Mesh(sharedBushClumpGeo, materials.palmFrond);
-      mainClump.position.y = 0.65;
+      const mainClump = new THREE.Mesh(sharedBushClumpGeo, bambooLeafMat);
+      mainClump.scale.set(1.15, 0.85, 1.15);
+      mainClump.position.y = 0.62;
       bush.add(mainClump);
 
       const flowerMat = isRed ? materials.shrubFlowerRed : materials.shrubFlowerYellow;
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < 5; i++) {
         const fl = new THREE.Mesh(sharedBushFlowerGeo, flowerMat);
-        const ang = (i / 3) * Math.PI * 2;
-        fl.position.set(Math.cos(ang) * 0.45, 0.95, Math.sin(ang) * 0.45);
+        const ang = (i / 5) * Math.PI * 2;
+        fl.position.set(Math.cos(ang) * 0.52, 0.88 + (i % 2) * 0.14, Math.sin(ang) * 0.52);
         bush.add(fl);
       }
       scene.add(bush);
@@ -4694,7 +5052,7 @@
       trunk.castShadow = true;
       tree.add(trunk);
 
-      const numLeaves = 5;
+      const numLeaves = 6;
       for (let i = 0; i < numLeaves; i++) {
         const lAngle = (i / numLeaves) * Math.PI * 2;
         const leafGroup = new THREE.Group();
@@ -4816,17 +5174,26 @@
     }
     createFerryDock(-4, 25);
 
-    // Sampan Boat (Xuồng ba lá Nam Bộ)
+    // Sampan Boat (Xuồng ba lá Nam Bộ bồng bềnh trên sóng nước)
+    const sampanBoats = [];
     function createSampan(x, z, rotY = 0) {
       const boat = new THREE.Group();
       boat.position.set(x, 0.1, z);
       boat.rotation.y = rotY;
+      boat.userData = { baseRotY: rotY, phase: (x + z) * 0.25 };
 
       // Hull (Tapered wood canoe shape)
       const hullGeom = new THREE.BoxGeometry(1.3, 0.55, 4.6);
       const hull = new THREE.Mesh(hullGeom, materials.sampanWood);
       hull.castShadow = true;
       boat.add(hull);
+
+      // Wooden cross-benches inside sampan
+      for (let bz of [-1.2, 0, 1.2]) {
+        const seat = new THREE.Mesh(new THREE.BoxGeometry(1.22, 0.08, 0.32), materials.woodBridge);
+        seat.position.set(0, 0.24, bz);
+        boat.add(seat);
+      }
 
       // Pointed Bow & Stern
       const bow = new THREE.Mesh(new THREE.ConeGeometry(0.75, 1.2, 4), materials.sampanWood);
@@ -4857,33 +5224,67 @@
       boat.add(trap);
 
       scene.add(boat);
+      sampanBoats.push(boat);
     }
+    window.sampanBoats = sampanBoats;
     createSampan(-6, 22, 0.35);
     createSampan(-7, -75, -0.22);
     createSampan(32, 45, Math.PI / 2 + 0.15);
     createSampan(72, -88, Math.PI / 2 - 0.2);
     createSampan(-6, 125, -0.15);
 
-    // --- 8. LÀNG DU KÍCH CÁI SƠN (7 Thatched Cottages with Verandas & Water Jars) ---
+    // --- 8. LÀNG DU KÍCH CÁI SƠN (7 Thatched Cottages with Verandas, Warm Oil Lamp Windows & Water Jars) ---
+    const warmWindowMat = new THREE.MeshBasicMaterial({ color: 0xfde047 });
+    const doorWoodMat = new THREE.MeshStandardMaterial({ color: 0x3b2313, roughness: 0.85 });
     function createThatchedHouse(x, z, rotY = 0) {
       foliagePositions.push(new THREE.Vector3(x, 0, z));
       const house = new THREE.Group();
       house.position.set(x, 0, z);
       house.rotation.y = rotY;
 
+      // Earthen foundation plinth (Nền đất đắp cao chống ngập mùa nước nổi)
+      const foundation = new THREE.Mesh(
+        new THREE.BoxGeometry(9.8, 0.24, 9.2),
+        new THREE.MeshStandardMaterial({ color: 0x4a3520, roughness: 0.92 })
+      );
+      foundation.position.set(0, 0.12, 0.8);
+      foundation.receiveShadow = true;
+      house.add(foundation);
+
       // Main Bamboo Wall House
       const walls = new THREE.Mesh(new THREE.BoxGeometry(9.2, 3.6, 6.4), materials.houseWall);
       walls.position.y = 1.8;
       walls.castShadow = true;
+      walls.receiveShadow = true;
       house.add(walls);
 
-      // Thatch Gabled Roof
-      const roof = new THREE.Mesh(new THREE.ConeGeometry(7.2, 3.4, 4), materials.thatchRoof);
-      roof.position.y = 4.9;
+      // Wooden Front Door & Warm Glowing Windows (Khung cửa sổ hắt ánh đèn dầu ấm áp chiều quê)
+      const frontDoor = new THREE.Mesh(new THREE.BoxGeometry(1.45, 2.35, 0.12), doorWoodMat);
+      frontDoor.position.set(0, 1.25, 3.22);
+      house.add(frontDoor);
+
+      for (let wx of [-2.6, 2.6]) {
+        const winFrame = new THREE.Mesh(new THREE.BoxGeometry(1.35, 1.15, 0.12), doorWoodMat);
+        winFrame.position.set(wx, 1.95, 3.22);
+        house.add(winFrame);
+
+        const winGlow = new THREE.Mesh(new THREE.PlaneGeometry(1.12, 0.92), warmWindowMat);
+        winGlow.position.set(wx, 1.95, 3.29);
+        house.add(winGlow);
+      }
+
+      // Thatch Gabled Roof with Bamboo Ridge Beam (Mái lá dừa nước & đòn dông tre)
+      const roof = new THREE.Mesh(new THREE.ConeGeometry(7.3, 3.45, 4), materials.thatchRoof);
+      roof.position.y = 4.92;
       roof.rotation.y = Math.PI / 4;
-      roof.scale.set(1.45, 1, 1);
+      roof.scale.set(1.46, 1, 1);
       roof.castShadow = true;
       house.add(roof);
+
+      const ridgeBeam = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 9.8, 6), materials.bambooDry);
+      ridgeBeam.rotation.z = Math.PI / 2;
+      ridgeBeam.position.set(0, 6.42, 0);
+      house.add(ridgeBeam);
 
       // Front Porch Veranda Deck (Hiên nhà lá)
       const porch = new THREE.Mesh(new THREE.BoxGeometry(9.2, 0.3, 2.5), materials.woodBridge);
@@ -4909,12 +5310,16 @@
       bench.position.set(-2.5, 0.45, 4.2);
       house.add(bench);
 
-      // 2 Terracotta Rainwater Storage Jars (Lu Nước Mưa Đất Nung)
+      // 2 Terracotta Rainwater Storage Jars with Wooden Lids (Lu Nước Mưa Đất Nung & Nắp Gỗ)
       for (let jx of [3.2, 4.1]) {
         const jar = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.25, 0.85, 10), materials.terracotta);
         jar.position.set(jx, 0.45, 4.5);
         jar.castShadow = true;
         house.add(jar);
+
+        const lid = new THREE.Mesh(new THREE.CylinderGeometry(0.37, 0.37, 0.06, 10), materials.woodBridge);
+        lid.position.set(jx, 0.90, 4.5);
+        house.add(lid);
       }
 
       scene.add(house);
@@ -11743,6 +12148,10 @@
 
       // Living Mekong River Waves Animation (Throttled every 2 frames on lightweight 175-vertex mesh)
       const waveTime = simSeconds * 2.2;
+      if (window.waterWaveTex) {
+        window.waterWaveTex.offset.y -= delta * 0.055;
+        window.waterWaveTex.offset.x = Math.sin(simSeconds * 0.4) * 0.02;
+      }
       if (perfFrameCounter % 2 === 0) {
         const rPos = riverGeo.attributes.position;
         for (let i = 0; i < rPos.count; i++) {
@@ -11757,6 +12166,30 @@
         for (let i = 0; i < windFronds.length; i++) {
           const wf = windFronds[i];
           wf.group.rotation.z = Math.sin(waveTime * wf.speed + wf.offset) * 0.035;
+        }
+
+        // Gentle Wave Bobbing for Wooden Sampans (Xuồng Ba Lá)
+        if (window.sampanBoats) {
+          for (let i = 0; i < window.sampanBoats.length; i++) {
+            const sb = window.sampanBoats[i];
+            sb.group.rotation.x = Math.sin(waveTime * 0.9 + sb.phase) * 0.035;
+            sb.group.rotation.z = Math.cos(waveTime * 1.15 + sb.phase) * 0.045;
+          }
+        }
+      }
+
+      // Animate Mekong White Stork Flock (Đàn cò trắng bay về tổ buổi hoàng hôn)
+      if (window.flyingStorks) {
+        for (let i = 0; i < window.flyingStorks.length; i++) {
+          const st = window.flyingStorks[i];
+          const flap = Math.sin(simSeconds * st.flapSpeed + st.phase) * 0.52;
+          st.leftWing.rotation.z = flap;
+          st.rightWing.rotation.z = -flap;
+          st.mesh.position.z += delta * st.flySpeed;
+          st.mesh.position.y = st.baseY + Math.cos(simSeconds * st.flapSpeed + st.phase) * 0.14;
+          if (st.mesh.position.z > 210) {
+            st.mesh.position.z = -210;
+          }
         }
       }
 
