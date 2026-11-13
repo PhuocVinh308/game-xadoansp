@@ -607,51 +607,104 @@
     </div>
   </div>
 
-  <!-- ================= TOP HUD: STATUS & RADAR ================= -->
+  <!-- ================= TOP HUD: VIETNAM3D EXPLORATION & CAMPAIGN HYBRID HUD ================= -->
 
-  <!-- Top-Left: Compact Player Stats -->
-  <div id="top-left-player-hud" class="absolute top-3 left-3 pointer-events-auto flex items-center gap-2 select-none z-20">
-    <div class="relative w-12 h-12 rounded-xl overflow-hidden border border-emerald-500/80 shadow-lg bg-slate-900/90 shrink-0 group cursor-pointer" id="open-inspect-btn" title="Bấm để soi mô hình 3D gốc 360° [Phím B]">
-      <img src="bo_doi_avatar.jpg" alt="Bộ Đội Việt Nam" class="w-full h-full object-cover" onerror="this.src='bo_doi_face.jpg'">
-      <div class="absolute bottom-0 inset-x-0 bg-emerald-800/95 text-yellow-300 text-[7px] font-mono font-bold text-center py-0.5 uppercase">3D [B]</div>
+  <!-- Top-Left: Vietnam3D Location, Weather, Mana/HP & Exploration Checklist Stack -->
+  <div id="top-left-player-hud" class="absolute top-3 left-3 pointer-events-auto flex flex-col gap-1.5 select-none z-20 w-[235px] sm:w-[260px]">
+    <!-- Row 1: Vietnam3D Location Header Card -->
+    <div class="bg-[#1e2638]/92 backdrop-blur-md rounded-2xl px-2.5 py-2 border border-white/15 shadow-xl flex items-center gap-2">
+      <div class="relative w-9 h-9 rounded-xl overflow-hidden border border-amber-400/70 shadow bg-slate-900 shrink-0 cursor-pointer" id="open-inspect-btn" title="Bấm để soi mô hình 3D gốc 360° [Phím B]">
+        <img src="bo_doi_avatar.jpg" alt="Bộ Đội Việt Nam" class="w-full h-full object-cover" onerror="this.src='bo_doi_face.jpg'">
+        <div class="absolute bottom-0 inset-x-0 bg-emerald-900/95 text-yellow-300 text-[6px] font-mono font-bold text-center">3D [B]</div>
+      </div>
+      <i class="fa-solid fa-location-dot text-yellow-400 text-sm drop-shadow shrink-0"></i>
+      <div class="flex flex-col leading-tight min-w-0 flex-1">
+        <div class="flex items-center justify-between gap-1">
+          <span class="text-[11px] font-extrabold text-white tracking-wide uppercase truncate">VIỆT NAM</span>
+          <span id="campaign-mission-badge" class="text-[8px] font-mono bg-amber-500/20 px-1.5 py-0.5 rounded-md text-amber-300 border border-amber-400/40 shrink-0">NV 1/3</span>
+        </div>
+        <span class="text-[9px] text-slate-300 font-medium truncate">Di tích Cầu Cái Sơn • Song Phú, Vĩnh Long</span>
+      </div>
     </div>
-    <div class="hud-glass rounded-xl px-2.5 py-1.5 min-w-[148px] sm:min-w-[178px] border border-white/10 shadow-lg flex flex-col gap-1">
-      <div class="flex items-center justify-between text-[10px] text-slate-300 font-bold">
-        <span class="flex items-center gap-1 text-emerald-400">
-          <i class="fa-solid fa-person-rifle text-[10px] text-yellow-400"></i> BỘ ĐỘI VN
-        </span>
-        <span id="campaign-mission-badge" class="text-[8px] font-mono bg-amber-950/80 px-1.5 py-0.5 rounded text-amber-300 border border-amber-500/40">NV 1/3</span>
-      </div>
-      <!-- HP & Stamina Compact Bars -->
-      <div class="flex items-center gap-1.5 text-[9px] font-mono font-bold">
-        <span class="text-red-400 w-5">HP</span>
-        <div class="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden border border-red-500/30">
-          <div id="hp-bar" class="h-full bg-gradient-to-r from-red-600 to-red-400 w-full transition-all duration-200"></div>
+
+    <!-- Row 2: Vietnam3D Weather, Clock & Temperature Widget (Click to switch Daylight 27°C ↔ Sunset 16:15) -->
+    <div onclick="if(window.toggleDaylightSunsetWeather) window.toggleDaylightSunsetWeather()" class="bg-[#1e2638]/92 hover:bg-[#27324a]/95 backdrop-blur-md rounded-2xl px-3 py-1.5 border border-white/15 shadow-xl flex items-center justify-between gap-2 cursor-pointer transition-all" title="Bấm để chuyển đổi: Ban ngày Trong trẻo (27°C) ↔ Hoàng hôn Lịch sử (16:15)">
+      <div class="flex items-center gap-2.5">
+        <i id="vn3d-weather-icon" class="fa-solid fa-cloud-sun text-sky-300 text-base"></i>
+        <div class="flex flex-col leading-tight">
+          <span id="game-clock" class="text-[12px] font-extrabold text-white tracking-tight">08:07</span>
+          <span id="vn3d-weather-desc" class="text-[9px] text-slate-300">Thứ 5, 16/06 • Nắng đẹp miền Tây</span>
         </div>
-        <span id="hp-text" class="text-slate-200 text-[8px] w-11 text-right">100/100</span>
       </div>
-      <div id="player-stamina-row" class="flex items-center gap-1.5 text-[9px] font-mono font-bold">
-        <span class="text-cyan-400 w-5">TL</span>
-        <div class="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden border border-blue-500/30">
-          <div id="stamina-bar" class="h-full bg-gradient-to-r from-blue-600 to-cyan-400 w-full transition-all duration-100"></div>
+      <div class="flex items-center gap-1.5">
+        <span id="vn3d-temp-text" class="text-[13px] font-extrabold text-white">27°C</span>
+        <i class="fa-solid fa-rotate text-[9px] text-sky-300/80"></i>
+      </div>
+    </div>
+
+    <!-- Row 3: MANA / Stamina Bar + HP Bar + Bag Counter -->
+    <div class="bg-[#1e2638]/92 backdrop-blur-md rounded-2xl px-3 py-1.5 border border-white/15 shadow-xl flex flex-col gap-1">
+      <div id="player-stamina-row" class="flex items-center gap-2">
+        <span class="text-[9px] font-extrabold text-sky-300 tracking-wider uppercase w-9">MANA</span>
+        <div class="flex-1 h-2 bg-slate-900/90 rounded-full overflow-hidden border border-sky-400/30">
+          <div id="stamina-bar" class="h-full bg-gradient-to-r from-blue-600 via-sky-400 to-white w-full transition-all duration-100"></div>
         </div>
-        <span id="stamina-text" class="text-slate-300 text-[8px] w-11 text-right">100/100</span>
-      </div>
-      <!-- Stance & Camo Status -->
-      <div id="player-stance-camo-row" class="flex items-center justify-between pt-0.5 border-t border-slate-700/50 text-[9px] font-mono">
-        <button id="stance-toggle-btn" class="flex items-center gap-1 text-amber-300 font-bold hover:text-amber-200 cursor-pointer">
-          <i class="fa-solid fa-person" id="stance-icon"></i> <span id="stance-text">ĐỨNG [X]</span>
+        <span id="stamina-text" class="text-[10px] font-extrabold text-white w-8 text-right">100</span>
+        <button onclick="if(window.openVn3dModal) window.openVn3dModal('collection')" class="px-1.5 py-0.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-[9px] font-bold flex items-center gap-1 border border-white/15 cursor-pointer" title="Túi kỷ vật đã thu thập">
+          <i class="fa-solid fa-briefcase text-sky-300 text-[8px]"></i>
+          <span id="vn3d-bag-count">2</span>
         </button>
-        <span id="camo-indicator" class="flex items-center gap-1 text-emerald-400 font-bold bg-emerald-950/60 px-1.5 py-0.2 rounded border border-emerald-500/30">
-          <i class="fa-solid fa-seedling text-[8px]"></i> <span id="camo-text">ẨN 100%</span>
+      </div>
+      <!-- Compact HP + Stance & Camo Row -->
+      <div class="flex items-center gap-2 pt-0.5 border-t border-white/10 text-[9px] font-mono">
+        <span class="text-red-400 font-bold">HP</span>
+        <div class="w-14 h-1.5 bg-slate-900 rounded-full overflow-hidden border border-red-500/30">
+          <div id="hp-bar" class="h-full bg-gradient-to-r from-red-600 to-rose-400 w-full transition-all duration-200"></div>
+        </div>
+        <span id="hp-text" class="hidden">100/100</span>
+        <div id="player-stance-camo-row" class="flex items-center justify-between flex-1 gap-1">
+          <button id="stance-toggle-btn" class="flex items-center gap-1 text-amber-300 font-bold hover:text-amber-200 cursor-pointer">
+            <i class="fa-solid fa-person" id="stance-icon"></i> <span id="stance-text">ĐỨNG [X]</span>
+          </button>
+          <span id="camo-indicator" class="flex items-center gap-1 text-emerald-400 font-bold bg-emerald-950/60 px-1.5 py-0.2 rounded border border-emerald-500/30">
+            <i class="fa-solid fa-seedling text-[8px]"></i> <span id="camo-text">ẨN 100%</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 4: Vietnam3D "Khám phá Di tích Cái Sơn" Interactive Checklist Card -->
+    <div id="vn3d-explore-card" class="bg-[#1e2638]/92 backdrop-blur-md rounded-2xl p-2.5 border border-white/15 shadow-xl flex flex-col gap-1.5">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-bold text-amber-300 flex items-center gap-1.5">
+          <i class="fa-solid fa-compass text-yellow-400 text-xs"></i> Khám phá Di tích Cái Sơn
         </span>
+        <button onclick="if(window.openVn3dModal) window.openVn3dModal('quiz')" class="text-[9px] font-bold text-sky-300 hover:text-yellow-300 cursor-pointer">Mở [H] ▸</button>
+      </div>
+      <!-- Checklist 1: Câu hỏi (0/6) -->
+      <div onclick="if(window.openVn3dModal) window.openVn3dModal('quiz')" class="relative h-6 rounded-xl bg-slate-900/85 border border-white/10 overflow-hidden flex items-center justify-between px-2.5 cursor-pointer hover:border-sky-400/60 transition-all">
+        <div id="vn3d-quiz-bar" class="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-600/65 to-sky-400/65 transition-all duration-300" style="width: 0%"></div>
+        <span class="relative z-10 text-[10px] font-medium text-slate-100">Trả lời câu hỏi (<span id="vn3d-quiz-count">0</span>/6)</span>
+        <i class="relative z-10 fa-solid fa-circle-question text-sky-300 text-[10px]"></i>
+      </div>
+      <!-- Checklist 2: Vật phẩm đặc trưng (0/7) -->
+      <div onclick="if(window.openVn3dModal) window.openVn3dModal('collection')" class="relative h-6 rounded-xl bg-slate-900/85 border border-white/10 overflow-hidden flex items-center justify-between px-2.5 cursor-pointer hover:border-amber-400/60 transition-all">
+        <div id="vn3d-item-bar" class="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-600/65 to-yellow-400/65 transition-all duration-300" style="width: 0%"></div>
+        <span class="relative z-10 text-[10px] font-medium text-slate-100">Vật phẩm đặc trưng (<span id="vn3d-item-count">0</span>/7)</span>
+        <i class="relative z-10 fa-solid fa-star text-amber-300 text-[10px]"></i>
+      </div>
+      <!-- Checklist 3: Quà lưu niệm (0/1) -->
+      <div onclick="startRealIncenseCeremony(true)" class="relative h-6 rounded-xl bg-slate-900/85 border border-white/10 overflow-hidden flex items-center justify-between px-2.5 cursor-pointer hover:border-emerald-400/60 transition-all" title="Thắp hương tại Bia Chiến Thắng hoặc hoàn thành khám phá để nhận Huy hiệu lưu niệm">
+        <div id="vn3d-badge-bar" class="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-600/65 to-teal-400/65 transition-all duration-300" style="width: 0%"></div>
+        <span class="relative z-10 text-[10px] font-medium text-slate-100">Quà lưu niệm (<span id="vn3d-badge-count">0</span>/1)</span>
+        <i class="relative z-10 fa-solid fa-award text-emerald-300 text-[10px]"></i>
       </div>
     </div>
   </div>
 
-  <!-- Left Side (Below Player HUD): Compact Squad & Story Panel -->
-  <div id="squad-story-panel" class="hidden lg:flex absolute top-28 left-3 z-20 w-60 flex-col gap-1.5 pointer-events-auto select-none transition-all collapsed">
-    <div class="hud-glass rounded-xl p-2 border border-emerald-500/40 shadow-xl bg-slate-950/80 backdrop-blur-md">
+  <!-- Left Side (Below Exploration Card): Compact Squad & Story Panel -->
+  <div id="squad-story-panel" class="hidden xl:flex absolute top-[318px] left-3 z-20 w-[260px] flex-col gap-1.5 pointer-events-auto select-none transition-all collapsed">
+    <div class="bg-[#1e2638]/92 rounded-2xl p-2 border border-white/15 shadow-xl backdrop-blur-md">
       <!-- Compact Header: Formation & Expand Toggle -->
       <div class="flex items-center justify-between mb-1.5">
         <div class="flex items-center gap-1 text-[10px] font-mono font-bold text-emerald-400">
@@ -691,7 +744,7 @@
         </button>
       </div>
 
-      <!-- Collapsible Historical Storyline Box (Hidden by default to keep screen clean) -->
+      <!-- Collapsible Historical Storyline Box -->
       <div id="squad-panel-body" class="mt-2 pt-2 border-t border-slate-800">
         <div id="historical-dialogue-card" class="rounded-lg bg-slate-900/95 p-2 border border-amber-500/30">
           <div class="flex items-center justify-between mb-1">
@@ -714,72 +767,97 @@
     </div>
   </div>
 
-  <!-- Top-Center: Sleek Compact Bar -->
-  <div id="top-center-bar" class="absolute top-2.5 inset-x-0 mx-auto w-fit max-w-[96vw] pointer-events-none flex flex-col items-center z-20">
-    <div class="hud-glass px-3 py-1 rounded-full border border-amber-500/40 flex items-center gap-1.5 sm:gap-2 text-slate-200 shadow-lg pointer-events-auto text-[10px]">
-      <span id="top-clock-wrap" class="flex items-center gap-1 text-amber-400 font-bold font-military tracking-wider">
-        <i class="fa-regular fa-clock text-xs"></i> <span id="game-clock">16:14:35</span>
-      </span>
-      <span id="top-clock-sep" class="text-slate-600">|</span>
-      <button id="top-chat-btn" onclick="openComradeDialogueModal(nearestComradeIdx >= 0 ? nearestComradeIdx : currentHistoricalStoryIdx)" title="Trò chuyện cùng Đồng đội [Phím U]" class="px-2 py-0.5 rounded-full bg-emerald-800/90 hover:bg-emerald-700 active:scale-95 text-yellow-200 font-mono text-[9px] font-bold flex items-center gap-1 border border-emerald-400/50 cursor-pointer">
-        <i class="fa-solid fa-comments text-yellow-300"></i>
-        <span>TRÒ CHUYỆN</span>
+  <!-- Top-Center: Vietnam3D Prominent "📖 Sổ tay" Pill & Quick Actions -->
+  <div id="top-center-bar" class="absolute top-3 inset-x-0 mx-auto w-fit max-w-[96vw] pointer-events-none flex flex-col items-center z-20">
+    <div class="flex items-center gap-2 pointer-events-auto">
+      <button id="open-doan-btn" title="Mở Sổ Tay Lịch Sử & Tư Liệu Cầu Cái Sơn [Phím T / Y]" class="px-4 py-1.5 rounded-full bg-[#1e2638]/92 hover:bg-[#2a354d] active:scale-95 text-white font-bold text-xs flex items-center gap-2 border border-white/20 shadow-xl backdrop-blur-md cursor-pointer transition-all">
+        <i class="fa-solid fa-book-open text-amber-300 text-xs"></i>
+        <span>Sổ tay</span>
       </button>
-      <button onclick="startRealIncenseCeremony(true)" title="Đến Bia Tưởng Niệm & Thắp Hương Thật 3D [Phím K]" class="px-2 py-0.5 rounded-full bg-amber-800/90 hover:bg-amber-700 active:scale-95 text-yellow-200 font-mono text-[9px] font-bold flex items-center gap-1 border border-yellow-400/50 cursor-pointer">
-        <i class="fa-solid fa-fire-flame-simple text-yellow-300"></i>
-        <span>THẮP HƯƠNG</span>
+      <button onclick="if(window.openVn3dModal) window.openVn3dModal('quiz')" title="Câu hỏi tìm hiểu lịch sử Cái Sơn [Phím H]" class="px-3 py-1.5 rounded-full bg-[#1e2638]/92 hover:bg-[#2a354d] active:scale-95 text-sky-200 font-bold text-xs flex items-center gap-1.5 border border-white/20 shadow-xl backdrop-blur-md cursor-pointer transition-all">
+        <i class="fa-solid fa-circle-question text-sky-400 text-xs"></i>
+        <span class="hidden sm:inline">Đố vui</span>
       </button>
-      <button id="open-doan-btn" title="Mở Sách Tư Liệu Lịch Sử Cầu Cái Sơn [Phím T / Y]" class="px-2 py-0.5 rounded-full bg-red-900/90 hover:bg-red-800 active:scale-95 text-amber-100 font-mono text-[9px] font-bold flex items-center gap-1 border border-amber-400/60 cursor-pointer">
-        <i class="fa-solid fa-book-open text-yellow-300"></i>
-        <span>SÁCH SỬ</span>
+      <button onclick="startRealIncenseCeremony(true)" title="Đến Bia Tưởng Niệm & Thắp Hương Thật 3D [Phím K]" class="px-3 py-1.5 rounded-full bg-[#1e2638]/92 hover:bg-[#2a354d] active:scale-95 text-amber-200 font-bold text-xs flex items-center gap-1.5 border border-white/20 shadow-xl backdrop-blur-md cursor-pointer transition-all">
+        <i class="fa-solid fa-fire-flame-simple text-amber-400 text-xs"></i>
+        <span class="hidden sm:inline">Thắp hương</span>
       </button>
-      <button id="top-cam-btn" onclick="cycleCameraMode()" title="Đổi góc nhìn Vai Phải / Vai Trái / Thứ Nhất [Phím V] • Toàn cảnh [Phím C]" class="hidden sm:flex px-2 py-0.5 rounded-full bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 font-mono text-[9px] font-bold items-center gap-1 border border-slate-600 cursor-pointer">
-        <i class="fa-solid fa-camera text-amber-400"></i>
-        <span>GÓC NHÌN</span>
+      <button id="top-chat-btn" onclick="openComradeDialogueModal(nearestComradeIdx >= 0 ? nearestComradeIdx : currentHistoricalStoryIdx)" title="Trò chuyện cùng Đồng đội [Phím U]" class="hidden md:flex px-3 py-1.5 rounded-full bg-[#1e2638]/92 hover:bg-[#2a354d] active:scale-95 text-emerald-200 font-bold text-xs items-center gap-1.5 border border-white/20 shadow-xl backdrop-blur-md cursor-pointer transition-all">
+        <i class="fa-solid fa-comments text-emerald-400 text-xs"></i>
+        <span>Đồng đội</span>
       </button>
-      <button id="perf-toggle-btn" onclick="togglePerformanceMode()" title="Bật / Tắt chế độ Siêu Mượt 60FPS (Giảm tải bóng đổ GPU cho máy yếu & điện thoại)" class="px-2 py-0.5 rounded-full bg-cyan-950/90 hover:bg-cyan-800 active:scale-95 text-cyan-300 font-mono text-[9px] font-bold flex items-center gap-1 border border-cyan-400/60 cursor-pointer">
+      <button id="top-cam-btn" onclick="cycleCameraMode()" title="Đổi góc nhìn [Phím V / C]" class="hidden lg:flex px-2.5 py-1.5 rounded-full bg-[#1e2638]/92 hover:bg-[#2a354d] active:scale-95 text-slate-200 font-bold text-xs items-center gap-1 border border-white/20 shadow-xl backdrop-blur-md cursor-pointer">
+        <i class="fa-solid fa-camera text-amber-400 text-xs"></i>
+      </button>
+      <button id="perf-toggle-btn" onclick="togglePerformanceMode()" title="Bật / Tắt chế độ Siêu Mượt 60FPS" class="px-2.5 py-1.5 rounded-full bg-[#1e2638]/92 hover:bg-[#2a354d] active:scale-95 text-cyan-300 font-mono text-[10px] font-bold flex items-center gap-1 border border-white/20 shadow-xl backdrop-blur-md cursor-pointer">
         <i class="fa-solid fa-bolt text-yellow-300"></i>
         <span id="perf-toggle-label">60FPS</span>
       </button>
       <button id="open-before-after-btn" class="hidden"></button>
     </div>
     <div id="ambush-alert" class="mt-1.5 hidden px-4 py-1.5 rounded-xl text-white font-military text-xs uppercase tracking-wider shadow-xl border transition-all"></div>
-    <!-- Floating Comrade Proximity Prompt (Compact Pill - Tappable on Mobile) -->
+    <!-- Floating Comrade Proximity Prompt -->
     <div id="comrade-prompt" onclick="interactWithNearestComrade()" class="hidden mt-1.5 pointer-events-auto transition-all select-none">
-      <div class="hud-glass px-3 py-1.5 rounded-full border border-emerald-400/90 bg-slate-950/90 shadow-xl flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 transition-all">
+      <div class="bg-[#1e2638]/95 px-3.5 py-1.5 rounded-full border border-emerald-400/90 shadow-xl flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 transition-all">
         <span class="text-xs">💬</span>
         <span class="text-[10px] font-mono font-bold text-yellow-300">CHẠM / [E] TRÒ CHUYỆN:</span>
         <span id="comrade-prompt-name" class="text-[10px] font-bold text-white uppercase">ĐỒNG CHÍ ÚT HOA</span>
         <span id="comrade-prompt-desc" class="hidden"></span>
       </div>
     </div>
-    <!-- Floating Monument Interaction Prompt (Compact Pill - Tappable on Mobile) -->
+    <!-- Floating Monument Interaction Prompt -->
     <div id="monument-prompt" class="hidden mt-1.5 pointer-events-auto transition-all select-none">
-      <div id="monument-prompt-inner" class="hud-glass px-3 py-1.5 rounded-full border border-amber-400/90 bg-slate-950/90 shadow-xl flex items-center gap-2 transition-all">
+      <div id="monument-prompt-inner" class="bg-[#1e2638]/95 px-3.5 py-1.5 rounded-full border border-amber-400/90 shadow-xl flex items-center gap-2 transition-all">
         <span class="text-xs">🏛️</span>
         <span class="text-[10px] font-mono font-bold text-amber-300">BIA CHIẾN THẮNG CÁI SƠN:</span>
         <button onclick="startRealIncenseCeremony(false)" class="px-2.5 py-0.5 rounded-full bg-red-600 hover:bg-red-500 active:scale-95 text-white font-mono text-[9px] font-bold border border-yellow-300 cursor-pointer">
           🔥 THẮP HƯƠNG [E]
         </button>
         <button onclick="openBeforeAfterModal()" class="px-2.5 py-0.5 rounded-full bg-slate-800 hover:bg-slate-700 active:scale-95 text-amber-200 font-mono text-[9px] font-bold border border-amber-500/40 cursor-pointer">
-          📖 SÁCH SỬ [Y]
+          📖 SỔ TAY [Y]
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Top-Right: Compact Circular Radar -->
-  <div id="radar-container-box" class="radar-container absolute top-3 right-3 pointer-events-auto flex flex-col items-end select-none z-20">
-    <div class="relative w-32 h-32 rounded-full p-0.5 hud-glass border border-emerald-500/60 shadow-lg flex items-center justify-center overflow-hidden">
+  <!-- Top-Right: Vietnam3D Wallet, Puzzle Pieces, Collection & Compact Radar -->
+  <div id="radar-container-box" class="radar-container absolute top-3 right-3 pointer-events-auto flex flex-col items-end gap-2 select-none z-20">
+    <!-- Vietnam3D Top-Right Gamification Bar -->
+    <div class="hidden sm:flex items-center gap-1.5">
+      <!-- Wallet / Points Pill -->
+      <div onclick="if(window.openVn3dModal) window.openVn3dModal('collection')" class="bg-[#1e2638]/92 hover:bg-[#28334a] backdrop-blur-md rounded-2xl px-3 py-1.5 border border-white/15 shadow-xl flex items-center gap-2 cursor-pointer transition-all" title="Điểm Tự Hào Lịch Sử (Nhận thêm khi giải đố & thu thập kỷ vật)">
+        <div class="w-6 h-6 rounded-full bg-amber-500/20 border border-amber-400/60 flex items-center justify-center text-yellow-400 text-xs font-black">🪙</div>
+        <div class="flex flex-col leading-tight">
+          <span class="text-[9px] text-slate-300 font-medium">Ví • Cửa hàng</span>
+          <span id="vn3d-wallet-text" class="text-[11px] font-extrabold text-yellow-400 tracking-tight">51.100.000 GVNĐ</span>
+        </div>
+      </div>
+      <!-- Puzzle Pieces Pill -->
+      <div onclick="if(window.openVn3dModal) window.openVn3dModal('puzzle')" class="bg-[#1e2638]/92 hover:bg-[#28334a] backdrop-blur-md rounded-2xl px-3 py-1.5 border border-white/15 shadow-xl flex items-center gap-2 cursor-pointer transition-all" title="Mảnh ghép bức tranh lịch sử Chiến thắng Cái Sơn">
+        <i class="fa-solid fa-puzzle-piece text-yellow-400 text-sm"></i>
+        <div class="flex flex-col leading-tight">
+          <span class="text-[9px] text-slate-300 font-medium">Mảnh ghép</span>
+          <span class="text-[11px] font-extrabold text-white"><span id="vn3d-puzzle-count">0</span>/6</span>
+        </div>
+      </div>
+      <!-- Collection Grid Button -->
+      <button onclick="if(window.openVn3dModal) window.openVn3dModal('collection')" class="bg-[#1e2638]/92 hover:bg-[#28334a] backdrop-blur-md rounded-2xl px-2.5 py-1.5 border border-white/15 shadow-xl flex flex-col items-center justify-center cursor-pointer transition-all" title="Bộ sưu tập Kỷ vật Kháng chiến">
+        <i class="fa-solid fa-grip text-pink-400 text-xs"></i>
+        <span class="text-[8px] text-slate-200 font-semibold mt-0.5">Bộ sưu tập</span>
+      </button>
+    </div>
+
+    <!-- Compact Circular Radar -->
+    <div class="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full p-0.5 bg-[#1e2638]/90 border border-white/20 shadow-xl flex items-center justify-center overflow-hidden">
       <canvas id="radar-canvas" width="160" height="160" class="w-full h-full rounded-full bg-slate-950/90"></canvas>
-      <div class="absolute top-0.5 text-[8px] font-mono font-black text-emerald-400">N</div>
-      <div class="absolute bottom-0.5 text-[8px] font-mono font-black text-emerald-400">S</div>
-      <div class="absolute left-1 text-[8px] font-mono font-black text-emerald-400">W</div>
-      <div class="absolute right-1 text-[8px] font-mono font-black text-emerald-400">E</div>
+      <div class="absolute top-0.5 text-[8px] font-mono font-black text-sky-300">N</div>
+      <div class="absolute bottom-0.5 text-[8px] font-mono font-black text-sky-300">S</div>
+      <div class="absolute left-1 text-[8px] font-mono font-black text-sky-300">W</div>
+      <div class="absolute right-1 text-[8px] font-mono font-black text-sky-300">E</div>
     </div>
 
     <!-- Compact Tactical Convoy Target Card -->
-    <div id="convoy-target-card" class="mt-1.5 w-48 rounded-xl hud-glass border border-red-500/80 p-2 shadow-xl flex flex-col gap-1 transition-all select-none hidden bg-slate-950/85">
+    <div id="convoy-target-card" class="w-48 rounded-xl bg-[#1e2638]/92 border border-red-500/80 p-2 shadow-xl flex flex-col gap-1 transition-all select-none hidden">
       <div class="flex items-center justify-between">
         <span class="text-[9px] font-mono font-bold text-red-400 uppercase"><i class="fa-solid fa-car-side text-amber-400 mr-1"></i>XE KHƯU VĂN BA</span>
         <span id="convoy-status-badge" class="px-1.5 py-0.2 rounded bg-red-900/90 text-yellow-300 text-[8px] font-mono font-bold animate-pulse">TIẾN VÀO</span>
@@ -2534,17 +2612,72 @@
       tex.mapping = THREE.EquirectangularReflectionMapping;
       return tex;
     }
+
+    // Vietnam3D Crisp Natural Daylight Skybox (Clear Blue Sky & Fluffy Cumulus Clouds - 27°C)
+    function createDaylightSkyTexture() {
+      const c = document.createElement('canvas');
+      c.width = 2048;
+      c.height = 1024;
+      const ctx = c.getContext('2d');
+      const grad = ctx.createLinearGradient(0, 0, 0, 1024);
+      grad.addColorStop(0.00, '#1d4ed8'); // Deep azure zenith
+      grad.addColorStop(0.22, '#3b82f6'); // Clear Vietnamese sky blue
+      grad.addColorStop(0.46, '#7dd3fc'); // Soft cerulean mid-sky
+      grad.addColorStop(0.66, '#bae6fd'); // Bright airy horizon
+      grad.addColorStop(0.75, '#e0f2fe'); // Soft atmospheric mist
+      grad.addColorStop(0.84, '#65a30d'); // Lush green delta bounce
+      grad.addColorStop(1.00, '#15803d'); // Deep foliage ground bounce
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 2048, 1024);
+
+      // Soft Daylight Sun Halo
+      const sunRadial = ctx.createRadialGradient(1480, 390, 15, 1480, 390, 380);
+      sunRadial.addColorStop(0.0, 'rgba(255, 255, 255, 0.96)');
+      sunRadial.addColorStop(0.2, 'rgba(254, 249, 195, 0.55)');
+      sunRadial.addColorStop(1.0, 'rgba(186, 230, 253, 0)');
+      ctx.fillStyle = sunRadial;
+      ctx.fillRect(0, 0, 2048, 1024);
+
+      // Soft Fluffy White Cumulus Clouds (Vietnam3D style)
+      for (let i = 0; i < 52; i++) {
+        const y = 240 + Math.random() * 380;
+        const x = Math.random() * 2048;
+        const w = 90 + Math.random() * 240;
+        const h = 14 + Math.random() * 32;
+        const cGrad = ctx.createLinearGradient(x, y - h, x, y + h);
+        cGrad.addColorStop(0, 'rgba(255, 255, 255, 0.72)');
+        cGrad.addColorStop(0.65, 'rgba(241, 245, 249, 0.48)');
+        cGrad.addColorStop(1, 'rgba(148, 163, 184, 0.18)');
+        ctx.fillStyle = cGrad;
+        ctx.beginPath();
+        ctx.ellipse(x, y, w, h, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.mapping = THREE.EquirectangularReflectionMapping;
+      return tex;
+    }
+
     const sunsetSkyTex = createSunsetSkyTexture();
-    scene.background = sunsetSkyTex;
+    const daylightSkyTex = createDaylightSkyTexture();
+    let sunsetEnvTex = null;
+    let daylightEnvTex = null;
     try {
       if (typeof THREE.PMREMGenerator !== 'undefined') {
         const pmremGen = new THREE.PMREMGenerator(renderer);
         pmremGen.compileEquirectangularShader();
-        scene.environment = pmremGen.fromEquirectangular(sunsetSkyTex).texture;
+        sunsetEnvTex = pmremGen.fromEquirectangular(sunsetSkyTex).texture;
+        daylightEnvTex = pmremGen.fromEquirectangular(daylightSkyTex).texture;
         pmremGen.dispose();
       }
     } catch (err) {}
-    scene.fog = new THREE.FogExp2(0xd98a54, 0.0024);
+
+    // Default to Crisp Vietnam3D Daylight Mode so architecture, river & foliage look ultra-clean
+    let isDaylightWeather = true;
+    scene.background = daylightSkyTex;
+    if (daylightEnvTex) scene.environment = daylightEnvTex;
+    scene.fog = new THREE.FogExp2(0xdbeafe, 0.0014);
 
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 750);
 
@@ -2565,12 +2698,12 @@
       window.visualViewport.addEventListener('resize', handleScreenResize);
     }
 
-    // Rich Golden Sunlight & Ambient Lighting
-    const hemiLight = new THREE.HemisphereLight(0xfff2d6, 0x2a4822, 0.92);
+    // Crisp Natural Daylight & Golden Sunset Lighting
+    const hemiLight = new THREE.HemisphereLight(0xf0f9ff, 0x365314, 1.08);
     scene.add(hemiLight);
 
-    const dirLight = new THREE.DirectionalLight(0xffe4b5, 1.95);
-    dirLight.position.set(75, 105, 50);
+    const dirLight = new THREE.DirectionalLight(0xfffbeb, 1.85);
+    dirLight.position.set(75, 115, 50);
     dirLight.castShadow = !ultraSmoothMode;
     dirLight.shadow.mapSize.width = 1536;
     dirLight.shadow.mapSize.height = 1536;
@@ -2584,6 +2717,42 @@
     dirLight.shadow.normalBias = 0.02;
     scene.add(dirLight);
 
+    window.toggleDaylightSunsetWeather = function() {
+      isDaylightWeather = !isDaylightWeather;
+      const iconEl = document.getElementById('vn3d-weather-icon');
+      const descEl = document.getElementById('vn3d-weather-desc');
+      const tempEl = document.getElementById('vn3d-temp-text');
+      if (isDaylightWeather) {
+        scene.background = daylightSkyTex;
+        if (daylightEnvTex) scene.environment = daylightEnvTex;
+        scene.fog.color.setHex(0xdbeafe);
+        scene.fog.density = 0.0014;
+        hemiLight.color.setHex(0xf0f9ff);
+        hemiLight.groundColor.setHex(0x365314);
+        hemiLight.intensity = 1.08;
+        dirLight.color.setHex(0xfffbeb);
+        dirLight.intensity = 1.85;
+        if (typeof godRayGroup !== 'undefined') godRayGroup.visible = false;
+        if (iconEl) iconEl.className = 'fa-solid fa-cloud-sun text-sky-300 text-base';
+        if (descEl) descEl.innerText = 'Thứ 5, 16/06 • Nắng đẹp miền Tây';
+        if (tempEl) tempEl.innerText = '27°C';
+      } else {
+        scene.background = sunsetSkyTex;
+        if (sunsetEnvTex) scene.environment = sunsetEnvTex;
+        scene.fog.color.setHex(0xd98a54);
+        scene.fog.density = 0.0022;
+        hemiLight.color.setHex(0xfff2d6);
+        hemiLight.groundColor.setHex(0x2a4822);
+        hemiLight.intensity = 0.92;
+        dirLight.color.setHex(0xffe4b5);
+        dirLight.intensity = 1.95;
+        if (typeof godRayGroup !== 'undefined') godRayGroup.visible = true;
+        if (iconEl) iconEl.className = 'fa-solid fa-sun text-amber-400 text-base';
+        if (descEl) descEl.innerText = '16/06/1960 • Hoàng hôn lịch sử';
+        if (tempEl) tempEl.innerText = '29°C';
+      }
+    };
+
     window.togglePerformanceMode = function() {
       ultraSmoothMode = !ultraSmoothMode;
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, ultraSmoothMode ? 1.35 : 1.75));
@@ -2593,11 +2762,6 @@
       const lbl = document.getElementById('perf-toggle-label');
       const btn = document.getElementById('perf-toggle-btn');
       if (lbl) lbl.innerText = ultraSmoothMode ? 'SIÊU MƯỢT' : '60FPS HD';
-      if (btn) {
-        btn.className = ultraSmoothMode
-          ? 'px-2 py-0.5 rounded-full bg-emerald-700 hover:bg-emerald-600 active:scale-95 text-yellow-200 font-mono text-[9px] font-bold flex items-center gap-1 border border-yellow-300 cursor-pointer'
-          : 'px-2 py-0.5 rounded-full bg-cyan-950/90 hover:bg-cyan-800 active:scale-95 text-cyan-300 font-mono text-[9px] font-bold flex items-center gap-1 border border-cyan-400/60 cursor-pointer';
-      }
       if (typeof showTacticalBanner === 'function') {
         showTacticalBanner(
           ultraSmoothMode
@@ -2608,12 +2772,12 @@
       }
     };
 
-    // River Water Bounce Light (Phản quang mặt nước sông Cái Sơn phù sa ấm áp)
-    const riverBounceLight = new THREE.DirectionalLight(0xfbbf24, 0.48);
+    // River Water Bounce Light (Phản quang mặt nước sông Cái Sơn)
+    const riverBounceLight = new THREE.DirectionalLight(0x93c5fd, 0.45);
     riverBounceLight.position.set(-80, 28, -20);
     scene.add(riverBounceLight);
 
-    const ambientLight = new THREE.AmbientLight(0xffeedd, 0.42);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.48);
     scene.add(ambientLight);
 
     // Visible Golden Sun & Corona Rays
@@ -2654,6 +2818,7 @@
 
     // Atmospheric Sunset Volumetric God Rays (16:15 PM Golden Light Shafts)
     const godRayGroup = new THREE.Group();
+    godRayGroup.visible = !isDaylightWeather;
     const godRayMeshList = [];
     const rayGeo = new THREE.CylinderGeometry(1.2, 22, 180, 12, 1, true);
     rayGeo.translate(0, 90, 0);
@@ -2686,14 +2851,14 @@
     scene.add(godRayGroup);
     window.godRayMeshList = godRayMeshList;
 
-    // Procedural Sunset Clouds drifting gently in the sky
+    // Procedural Cumulus Clouds drifting gently in the sky
     const clouds = [];
     const cloudMat = new THREE.MeshLambertMaterial({
-      color: 0xffedd5,
-      emissive: 0x7c2d12,
-      emissiveIntensity: 0.22,
+      color: 0xffffff,
+      emissive: 0x38bdf8,
+      emissiveIntensity: 0.14,
       transparent: true,
-      opacity: 0.88
+      opacity: 0.90
     });
     for (let c = 0; c < 24; c++) {
       const cloud = new THREE.Group();
@@ -5074,6 +5239,197 @@
       window.caiSonMonument = g;
     }
     createCaiSonVictoryMonument();
+
+    // ==========================================================================
+    // VIETNAM3D HERITAGE PLAZA DETAILS, PEACE PIGEONS & 3D COLLECTIBLES
+    // (Vạch qua đường, Bó vỉa đỏ trắng, Chậu kiểng trắng cắt tỉa, Đàn chim bồ câu & Vật phẩm 3D)
+    // ==========================================================================
+    const plazaPigeons = [];
+    const vn3dArtifactMeshes = [];
+    const vn3dPuzzleMeshes = [];
+    (function createVietnam3DPlazaAndCollectibles() {
+      const plazaExtraGroup = new THREE.Group();
+
+      // 1. Zebra Crosswalk Stripes across the road leading to Monument entrance (z = -18.5)
+      const stripeMat = new THREE.MeshBasicMaterial({ color: 0xf8fafc });
+      const stripeGeo = new THREE.BoxGeometry(0.65, 0.03, 2.8);
+      const roadCenterAtMonument = Math.sin(-18.5 * 0.015) * 12 + 10;
+      for (let sx = -3.6; sx <= 3.6; sx += 1.2) {
+        const stripe = new THREE.Mesh(stripeGeo, stripeMat);
+        stripe.position.set(roadCenterAtMonument + sx, 0.06, -18.5);
+        plazaExtraGroup.add(stripe);
+      }
+
+      // 2. Red-and-White Painted Sidewalk Curbs along the Monument Boulevard (x = 12.2, z = -34..-17)
+      const curbRedMat = new THREE.MeshLambertMaterial({ color: 0xdc2626 });
+      const curbWhiteMat = new THREE.MeshLambertMaterial({ color: 0xf8fafc });
+      const curbSegGeo = new THREE.BoxGeometry(0.28, 0.22, 1.0);
+      for (let i = 0; i < 18; i++) {
+        const seg = new THREE.Mesh(curbSegGeo, (i % 2 === 0) ? curbRedMat : curbWhiteMat);
+        seg.position.set(12.2, 0.11, -34.5 + i * 1.0);
+        plazaExtraGroup.add(seg);
+      }
+
+      // 3. White Classical Chalice Planters with Lush Trimmed Green Shrubs & Green Park Bins (Vietnam3D style)
+      const whitePotMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.35 });
+      const trimmedBushMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.72 });
+      const greenBinMat = new THREE.MeshStandardMaterial({ color: 0x166534, roughness: 0.55 });
+      const planterCoords = [
+        { x: 13.4, z: -21.0 },
+        { x: 13.4, z: -26.5 },
+        { x: 13.4, z: -32.0 },
+        { x: 23.6, z: -21.0 },
+        { x: 23.6, z: -26.5 }
+      ];
+      planterCoords.forEach((pc, idx) => {
+        const pGrp = new THREE.Group();
+        pGrp.position.set(pc.x, 0, pc.z);
+        const base = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.48, 0.32, 12), whitePotMat);
+        base.position.y = 0.16;
+        const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.78, 0.38, 0.52, 14), whitePotMat);
+        bowl.position.y = 0.55;
+        const rim = new THREE.Mesh(new THREE.TorusGeometry(0.76, 0.06, 8, 16), whitePotMat);
+        rim.rotation.x = Math.PI / 2;
+        rim.position.y = 0.80;
+        const domeBush = new THREE.Mesh(new THREE.SphereGeometry(0.74, 12, 10), trimmedBushMat);
+        domeBush.scale.set(1.05, 0.72, 1.05);
+        domeBush.position.y = 0.98;
+        domeBush.castShadow = true;
+        pGrp.add(base, bowl, rim, domeBush);
+
+        // Add green park bin beside the first two planters (like in Vietnam3D screenshot)
+        if (idx < 2) {
+          const bin = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.78, 0.46), greenBinMat);
+          bin.position.set(0, 0.39, 1.15);
+          bin.castShadow = true;
+          pGrp.add(bin);
+        }
+        plazaExtraGroup.add(pGrp);
+      });
+
+      // 4. Flock of 18 Interactive Peace Pigeons / Doves on the Plaza (Tung cánh bay khi người chơi lại gần)
+      const pigeonBodyMat = new THREE.MeshLambertMaterial({ color: 0x94a3b8 });
+      const pigeonWingMat = new THREE.MeshLambertMaterial({ color: 0xe2e8f0, side: THREE.DoubleSide });
+      const pBodyGeo = new THREE.SphereGeometry(0.11, 8, 8);
+      pBodyGeo.scale(0.85, 0.85, 1.45);
+      const pHeadGeo = new THREE.SphereGeometry(0.065, 6, 6);
+      const pWingGeo = new THREE.PlaneGeometry(0.24, 0.14);
+      pWingGeo.translate(0.12, 0, 0);
+
+      for (let p = 0; p < 18; p++) {
+        const pg = new THREE.Group();
+        const body = new THREE.Mesh(pBodyGeo, pigeonBodyMat);
+        body.position.y = 0.12;
+        pg.add(body);
+
+        const head = new THREE.Mesh(pHeadGeo, pigeonBodyMat);
+        head.position.set(0, 0.20, 0.12);
+        pg.add(head);
+
+        const lWing = new THREE.Mesh(pWingGeo, pigeonWingMat);
+        lWing.scale.x = -1;
+        lWing.position.set(-0.04, 0.15, 0);
+        pg.add(lWing);
+
+        const rWing = new THREE.Mesh(pWingGeo, pigeonWingMat);
+        rWing.position.set(0.04, 0.15, 0);
+        pg.add(rWing);
+
+        const homeX = 14.2 + (p % 6) * 0.75 + (Math.random() - 0.5) * 0.5;
+        const homeZ = -20.5 + Math.floor(p / 6) * 0.85 + (Math.random() - 0.5) * 0.5;
+        pg.position.set(homeX, 0.05, homeZ);
+        pg.rotation.y = Math.random() * Math.PI * 2;
+        pg.userData = {
+          homeX,
+          homeZ,
+          lWing,
+          rWing,
+          head,
+          body,
+          flying: false,
+          flyTimer: 0,
+          phase: p * 0.65,
+          vx: 0,
+          vz: 0
+        };
+        plazaExtraGroup.add(pg);
+        plazaPigeons.push(pg);
+      }
+      window.plazaPigeons = plazaPigeons;
+
+      // 5. 7 Glowing 3D Historical Artifacts (Vật phẩm đặc trưng 0/7) in the 3D World
+      const artifactSpots = [
+        { id: 0, name: 'Nón lá Du kích Cái Sơn', x: 15.0, z: -22.5, color: 0xfacc15 },
+        { id: 1, name: 'Khăn rằn Nam Bộ kháng chiến', x: 21.5, z: -25.0, color: 0x38bdf8 },
+        { id: 2, name: 'Mìn tự tạo đánh xe bọc thép', x: 10.5, z: -42.0, color: 0xf97316 },
+        { id: 3, name: 'Súng trường K-44 chiến lợi phẩm', x: 12.5, z: -53.0, color: 0x4ade80 },
+        { id: 4, name: 'Đèn bão mật lệnh 16h15', x: -3.5, z: 24.0, color: 0xfbbf24 },
+        { id: 5, name: 'Ống nhòm trinh sát Đại đội 250', x: -11.0, z: 10.0, color: 0xa855f7 },
+        { id: 6, name: 'Bằng Tổ Quốc Ghi Công Cái Sơn', x: 18.5, z: -27.5, color: 0xef4444 }
+      ];
+      const orbGeo = new THREE.OctahedronGeometry(0.36, 0);
+      const ringHaloGeo = new THREE.RingGeometry(0.45, 0.62, 16);
+      ringHaloGeo.rotateX(-Math.PI / 2);
+
+      artifactSpots.forEach(sp => {
+        const grp = new THREE.Group();
+        grp.position.set(sp.x, 0.85, sp.z);
+        const orbMat = new THREE.MeshStandardMaterial({
+          color: sp.color,
+          emissive: sp.color,
+          emissiveIntensity: 0.65,
+          roughness: 0.2,
+          metalness: 0.8
+        });
+        const orb = new THREE.Mesh(orbGeo, orbMat);
+        grp.add(orb);
+
+        const halo = new THREE.Mesh(ringHaloGeo, new THREE.MeshBasicMaterial({
+          color: sp.color,
+          side: THREE.DoubleSide,
+          transparent: true,
+          opacity: 0.65
+        }));
+        halo.position.y = -0.78;
+        grp.add(halo);
+
+        grp.userData = { id: sp.id, name: sp.name, collected: false, orb };
+        plazaExtraGroup.add(grp);
+        vn3dArtifactMeshes.push(grp);
+      });
+      window.vn3dArtifactMeshes = vn3dArtifactMeshes;
+
+      // 6. 6 Rotating 3D Golden Puzzle Pieces (Mảnh ghép lịch sử 0/6)
+      const puzzleSpots = [
+        { id: 0, name: 'Mảnh ghép 1: Mật lệnh Phục kích 16h15', x: 16.0, z: -18.0 },
+        { id: 1, name: 'Mảnh ghép 2: Khóa đầu - Khóa đuôi Cầu Cái Sơn', x: 8.5, z: -36.5 },
+        { id: 2, name: 'Mảnh ghép 3: Bến Đò Cái Sơn lịch sử', x: -2.0, z: 18.0 },
+        { id: 3, name: 'Mảnh ghép 4: Cánh đồng lúa xã Song Phú', x: 28.0, z: -18.0 },
+        { id: 4, name: 'Mảnh ghép 5: Lũy tre làng du kích', x: 22.0, z: 12.0 },
+        { id: 5, name: 'Mảnh ghép 6: Bia Chiến Thắng Cầu Cái Sơn', x: 21.0, z: -31.5 }
+      ];
+      const puzGeo = new THREE.BoxGeometry(0.48, 0.48, 0.12);
+      const puzMat = new THREE.MeshStandardMaterial({
+        color: 0xfde047,
+        emissive: 0xd97706,
+        emissiveIntensity: 0.55,
+        metalness: 0.85,
+        roughness: 0.2
+      });
+      puzzleSpots.forEach(ps => {
+        const pGrp = new THREE.Group();
+        pGrp.position.set(ps.x, 1.05, ps.z);
+        const pMesh = new THREE.Mesh(puzGeo, puzMat);
+        pMesh.rotation.z = Math.PI / 4;
+        pGrp.add(pMesh);
+        pGrp.userData = { id: ps.id, name: ps.name, collected: false, mesh: pMesh };
+        plazaExtraGroup.add(pGrp);
+        vn3dPuzzleMeshes.push(pGrp);
+      });
+      window.vn3dPuzzleMeshes = vn3dPuzzleMeshes;
+
+      scene.add(plazaExtraGroup);
+    })();
 
     // --- 2. DEFENSIVE WATCHTOWERS (3 Outposts guarding the riverway & road) ---
     function createWatchtower(x, z) {
@@ -13212,13 +13568,97 @@
         }
       }
 
+      // Update Vietnam3D Plaza Pigeons (Scatter & fly when player runs near) + 3D Collectibles
+      if (window.plazaPigeons && player && player.mesh) {
+        const px = player.mesh.position.x;
+        const pz = player.mesh.position.z;
+        for (let i = 0; i < window.plazaPigeons.length; i++) {
+          const pg = window.plazaPigeons[i];
+          const ud = pg.userData;
+          if (!ud) continue;
+          const dx = pg.position.x - px;
+          const dz = pg.position.z - pz;
+          const distSq = dx * dx + dz * dz;
+          if (!ud.flying && distSq < 28.0) {
+            ud.flying = true;
+            ud.flyTimer = 4.2 + Math.random() * 1.5;
+            const len = Math.max(0.1, Math.sqrt(distSq));
+            ud.vx = (dx / len) * (4.2 + Math.random() * 2.0);
+            ud.vz = (dz / len) * (4.2 + Math.random() * 2.0);
+          }
+          if (ud.flying) {
+            ud.flyTimer -= delta;
+            const flap = Math.sin(simSeconds * 22.0 + ud.phase) * 0.75;
+            ud.lWing.rotation.z = flap;
+            ud.rWing.rotation.z = -flap;
+            if (ud.flyTimer > 1.8) {
+              pg.position.x += ud.vx * delta;
+              pg.position.z += ud.vz * delta;
+              pg.position.y = Math.min(7.5, pg.position.y + delta * 3.8);
+              pg.rotation.y = Math.atan2(ud.vx, ud.vz);
+            } else if (ud.flyTimer > 0) {
+              pg.position.x = THREE.MathUtils.lerp(pg.position.x, ud.homeX, delta * 1.8);
+              pg.position.z = THREE.MathUtils.lerp(pg.position.z, ud.homeZ, delta * 1.8);
+              pg.position.y = Math.max(0.05, pg.position.y - delta * 3.2);
+            } else {
+              ud.flying = false;
+              pg.position.set(ud.homeX, 0.05, ud.homeZ);
+              ud.lWing.rotation.z = 0;
+              ud.rWing.rotation.z = 0;
+            }
+          } else {
+            // Gentle ground pecking animation
+            ud.head.position.y = 0.19 + Math.sin(simSeconds * 6.5 + ud.phase) * 0.035;
+          }
+        }
+      }
+
+      // Spin & Check Proximity Pickup for 3D Artifacts & Puzzle Pieces
+      if (player && player.mesh && (perfFrameCounter % 2 === 0)) {
+        const px = player.mesh.position.x;
+        const pz = player.mesh.position.z;
+        if (window.vn3dArtifactMeshes) {
+          for (let i = 0; i < window.vn3dArtifactMeshes.length; i++) {
+            const am = window.vn3dArtifactMeshes[i];
+            if (am.visible && am.userData && !am.userData.collected) {
+              am.userData.orb.rotation.y += delta * 2.4;
+              am.position.y = 0.85 + Math.sin(simSeconds * 2.5 + i) * 0.12;
+              const dx = px - am.position.x;
+              const dz = pz - am.position.z;
+              if (dx * dx + dz * dz < 11.5 && window.collectVn3dArtifact) {
+                window.collectVn3dArtifact(am.userData.id);
+              }
+            }
+          }
+        }
+        if (window.vn3dPuzzleMeshes) {
+          for (let i = 0; i < window.vn3dPuzzleMeshes.length; i++) {
+            const pm = window.vn3dPuzzleMeshes[i];
+            if (pm.visible && pm.userData && !pm.userData.collected) {
+              pm.userData.mesh.rotation.y += delta * 2.6;
+              pm.position.y = 1.05 + Math.cos(simSeconds * 2.5 + i) * 0.12;
+              const dx = px - pm.position.x;
+              const dz = pz - pm.position.z;
+              if (dx * dx + dz * dz < 11.5 && window.collectVn3dPuzzle) {
+                window.collectVn3dPuzzle(pm.userData.id);
+              }
+            }
+          }
+        }
+      }
+
+      // Unlock Souvenir Badge automatically when Incense Ceremony is active
+      if (typeof incenseCeremony !== 'undefined' && incenseCeremony.active && window.unlockVn3dSouvenirBadge) {
+        window.unlockVn3dSouvenirBadge();
+      }
+
       // Alternate HUD / Target Markers & Radar updates across even/odd frames to maintain 60FPS
       if (perfFrameCounter % 2 === 0) {
         updateTargetMarkers();
         const sBar = document.getElementById('stamina-bar');
         const sTxt = document.getElementById('stamina-text');
         if (sBar) sBar.style.width = `${player.stamina}%`;
-        if (sTxt) sTxt.innerText = `${Math.round(player.stamina)}/100`;
+        if (sTxt) sTxt.innerText = `${Math.round(player.stamina)}`;
       } else if (perfFrameCounter % 3 === 0) {
         renderRadar();
       }
@@ -13229,6 +13669,310 @@
     initShootingFX();
     updateAmmoHUD();
     animate();
+  </script>
+
+  <!-- ================= VIETNAM3D EXPLORATION MODAL (QUIZ, ARTIFACTS & PUZZLE) ================= -->
+  <div id="vn3d-modal-overlay" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/80 backdrop-blur-md p-3 select-none">
+    <div class="bg-[#1e2638] border border-white/20 rounded-3xl max-w-2xl w-full max-h-[88vh] flex flex-col shadow-2xl overflow-hidden text-white">
+      <!-- Modal Header -->
+      <div class="px-5 py-3.5 bg-[#151b29] border-b border-white/10 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <i class="fa-solid fa-location-dot text-yellow-400 text-lg"></i>
+          <div>
+            <h3 class="text-sm font-extrabold uppercase tracking-wide text-white">Khám Phá Di Tích Chiến Thắng Cái Sơn</h3>
+            <p class="text-[11px] text-slate-300">Xã Song Phú, Huyện Tam Bình, Tỉnh Vĩnh Long • Hệ thống Du lịch & Lịch sử Số 3D</p>
+          </div>
+        </div>
+        <button onclick="window.closeVn3dModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-red-600 text-white flex items-center justify-center cursor-pointer transition-all">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Modal Tabs -->
+      <div class="flex items-center gap-2 px-5 pt-3 bg-[#192030] border-b border-white/10">
+        <button id="vn3d-tab-quiz" onclick="window.switchVn3dTab('quiz')" class="px-3.5 py-2 rounded-t-xl text-xs font-bold border-b-2 border-sky-400 text-sky-300 bg-white/5 cursor-pointer">
+          ❓ Câu hỏi lịch sử (<span id="vn3d-modal-quiz-cnt">0</span>/6)
+        </button>
+        <button id="vn3d-tab-collection" onclick="window.switchVn3dTab('collection')" class="px-3.5 py-2 rounded-t-xl text-xs font-bold border-b-2 border-transparent text-slate-300 hover:text-white cursor-pointer">
+          ⭐ Vật phẩm đặc trưng (<span id="vn3d-modal-item-cnt">0</span>/7)
+        </button>
+        <button id="vn3d-tab-puzzle" onclick="window.switchVn3dTab('puzzle')" class="px-3.5 py-2 rounded-t-xl text-xs font-bold border-b-2 border-transparent text-slate-300 hover:text-white cursor-pointer">
+          🧩 Mảnh ghép & Lưu niệm (<span id="vn3d-modal-puz-cnt">0</span>/6)
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div id="vn3d-modal-content" class="p-5 overflow-y-auto space-y-3 flex-1 text-xs"></div>
+
+      <!-- Modal Footer -->
+      <div class="px-5 py-3 bg-[#151b29] border-t border-white/10 flex items-center justify-between text-[11px] text-slate-300">
+        <span>💡 Mẹo: Đi bộ quanh Bia Chiến Thắng & Cầu Cái Sơn để nhặt vật phẩm 3D phát sáng!</span>
+        <button onclick="window.closeVn3dModal()" class="px-4 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold cursor-pointer">Tiếp tục Khám phá 3D</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function initVietnam3DExplorationSystem() {
+      const state = {
+        wallet: 51100000,
+        quizAnswered: [false, false, false, false, false, false],
+        artifacts: [
+          { id: 0, name: 'Nón lá Du kích Cái Sơn', desc: 'Chiếc nón lá ngụy trang bình dị của nữ du kích xã Song Phú năm 1960.', icon: '👒', x: 15.0, z: -22.5, collected: false },
+          { id: 1, name: 'Khăn rằn Nam Bộ kháng chiến', desc: 'Biểu tượng kiên cường của quân và dân miền Tây sông nước.', icon: '🧣', x: 21.5, z: -25.0, collected: false },
+          { id: 2, name: 'Mìn tự tạo đánh xe bọc thép', desc: 'Vũ khí công binh mở màn trận phục kích khóa đầu đoàn xe tại Cầu Cái Sơn.', icon: '💣', x: 10.5, z: -42.0, collected: false },
+          { id: 3, name: 'Súng trường K-44 chiến lợi phẩm', desc: 'Khẩu súng trường thiện xạ lập công xuất sắc chiều 16/06/1960.', icon: '🎯', x: 12.5, z: -53.0, collected: false },
+          { id: 4, name: 'Đèn bão mật lệnh 16h15', desc: 'Chiếc đèn dầu báo hiệu giờ nổ súng hợp đồng tác chiến bên bến đò Cái Sơn.', icon: '🏮', x: -3.5, z: 24.0, collected: false },
+          { id: 5, name: 'Ống nhòm trinh sát Đại đội 250', desc: 'Dùng theo dõi lộ trình đoàn xe Tỉnh trưởng từ Vĩnh Long xuống Bình Minh.', icon: '🔭', x: -11.0, z: 10.0, collected: false },
+          { id: 6, name: 'Bằng Tổ Quốc Ghi Công Cái Sơn', desc: 'Tưởng niệm công lao bất diệt của các Anh hùng Liệt sĩ tại Khu di tích.', icon: '📜', x: 18.5, z: -27.5, collected: false }
+        ],
+        puzzles: [
+          { id: 0, title: 'Mảnh ghép 1: Mật lệnh Phục kích 16h15', collected: false },
+          { id: 1, title: 'Mảnh ghép 2: Khóa đầu - Khóa đuôi Cầu Cái Sơn', collected: false },
+          { id: 2, title: 'Mảnh ghép 3: Bến Đò Cái Sơn lịch sử', collected: false },
+          { id: 3, title: 'Mảnh ghép 4: Cánh đồng lúa xã Song Phú', collected: false },
+          { id: 4, title: 'Mảnh ghép 5: Lũy tre làng du kích', collected: false },
+          { id: 5, title: 'Mảnh ghép 6: Bia Chiến Thắng Cầu Cái Sơn', collected: false }
+        ],
+        souvenirBadge: false,
+        currentTab: 'quiz'
+      };
+
+      const questions = [
+        {
+          q: 'Câu 1: Trận phục kích lịch sử tại Cầu Cái Sơn (xã Song Phú, Tam Bình, Vĩnh Long) diễn ra vào thời gian nào?',
+          opts: ['16 giờ 15 phút ngày 16/06/1960', 'Ngày 30/04/1975', 'Ngày 19/08/1945'],
+          ans: 0
+        },
+        {
+          q: 'Câu 2: Đơn vị bộ đội địa phương nào chủ công phối hợp cùng Du kích xã Song Phú làm nên Chiến thắng Cái Sơn?',
+          opts: ['Đại đội 250 Tỉnh Vĩnh Long', 'Tiểu đoàn 307', 'Trung đoàn U Minh'],
+          ans: 0
+        },
+        {
+          q: 'Câu 3: Chiến thuật nổi tiếng nào đã được áp dụng để chặn đứng đoàn xe cơ giới của địch ngay trên Cầu Cái Sơn?',
+          opts: ['Khóa đầu - Khóa đuôi, đánh chính diện tốc chiến', 'Vây thành diệt viện', 'Đánh lấn từng bước'],
+          ans: 0
+        },
+        {
+          q: 'Câu 4: Tên Tỉnh trưởng khét tiếng nào của địch đã bị tiêu diệt tại trận Cầu Cái Sơn ngày 16/06/1960?',
+          opts: ['Tỉnh trưởng Khưu Văn Ba', 'Ngô Đình Cẩn', 'Nguyễn Văn Thiệu'],
+          ans: 0
+        },
+        {
+          q: 'Câu 5: Chiến thắng Cầu Cái Sơn năm 1960 gắn liền với phong trào cách mạng lịch sử nào của miền Nam?',
+          opts: ['Phong trào Đồng Khởi 1960', 'Chiến dịch Điện Biên Phủ', 'Chiến dịch Hồ Chí Minh'],
+          ans: 0
+        },
+        {
+          q: 'Câu 6: Khu Di tích Lịch sử Chiến thắng Cầu Cái Sơn hiện nay tọa lạc tại địa phương nào?',
+          opts: ['Xã Song Phú, huyện Tam Bình, tỉnh Vĩnh Long', 'Thành phố Cần Thơ', 'Tỉnh Bến Tre'],
+          ans: 0
+        }
+      ];
+
+      function formatVND(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' GVNĐ';
+      }
+
+      function updateHUD() {
+        const qCnt = state.quizAnswered.filter(Boolean).length;
+        const iCnt = state.artifacts.filter(a => a.collected).length;
+        const pCnt = state.puzzles.filter(p => p.collected).length;
+        const bCnt = state.souvenirBadge ? 1 : 0;
+
+        const setEl = (id, txt) => { const el = document.getElementById(id); if (el) el.innerText = txt; };
+        const setBar = (id, pct) => { const el = document.getElementById(id); if (el) el.style.width = pct + '%'; };
+
+        setEl('vn3d-quiz-count', qCnt);
+        setEl('vn3d-modal-quiz-cnt', qCnt);
+        setBar('vn3d-quiz-bar', (qCnt / 6) * 100);
+
+        setEl('vn3d-item-count', iCnt);
+        setEl('vn3d-modal-item-cnt', iCnt);
+        setBar('vn3d-item-bar', (iCnt / 7) * 100);
+
+        setEl('vn3d-puzzle-count', pCnt);
+        setEl('vn3d-modal-puz-cnt', pCnt);
+
+        setEl('vn3d-badge-count', bCnt);
+        setBar('vn3d-badge-bar', bCnt * 100);
+
+        setEl('vn3d-bag-count', iCnt + pCnt + bCnt);
+        setEl('vn3d-wallet-text', formatVND(state.wallet));
+      }
+
+      window.collectVn3dArtifact = function(id) {
+        const art = state.artifacts[id];
+        if (!art || art.collected) return;
+        art.collected = true;
+        state.wallet += 1500000;
+        if (window.vn3dArtifactMeshes && window.vn3dArtifactMeshes[id]) {
+          window.vn3dArtifactMeshes[id].userData.collected = true;
+          window.vn3dArtifactMeshes[id].visible = false;
+        }
+        if (typeof audio !== 'undefined' && audio.playCeremonialBell) audio.playCeremonialBell();
+        if (typeof showTacticalBanner === 'function') {
+          showTacticalBanner(`⭐ ĐÃ THU THẬP VẬT PHẨM ĐẶC TRƯNG: ${art.name} (+1.500.000 GVNĐ)`, 'bg-amber-700/95 border-yellow-300 text-white');
+        }
+        updateHUD();
+        renderModalContent();
+      };
+
+      window.collectVn3dPuzzle = function(id) {
+        const puz = state.puzzles[id];
+        if (!puz || puz.collected) return;
+        puz.collected = true;
+        state.wallet += 1000000;
+        if (window.vn3dPuzzleMeshes && window.vn3dPuzzleMeshes[id]) {
+          window.vn3dPuzzleMeshes[id].userData.collected = true;
+          window.vn3dPuzzleMeshes[id].visible = false;
+        }
+        if (typeof audio !== 'undefined' && audio.playCeremonialBell) audio.playCeremonialBell();
+        if (typeof showTacticalBanner === 'function') {
+          showTacticalBanner(`🧩 ĐÃ NHẶT MẢNH GHÉP LỊCH SỬ (${state.puzzles.filter(p => p.collected).length}/6): ${puz.title}`, 'bg-sky-700/95 border-yellow-300 text-white');
+        }
+        updateHUD();
+        renderModalContent();
+      };
+
+      window.unlockVn3dSouvenirBadge = function() {
+        if (state.souvenirBadge) return;
+        state.souvenirBadge = true;
+        state.wallet += 5000000;
+        updateHUD();
+      };
+
+      window.answerVn3dQuiz = function(qIdx, optIdx) {
+        if (state.quizAnswered[qIdx]) return;
+        if (optIdx === questions[qIdx].ans) {
+          state.quizAnswered[qIdx] = true;
+          state.wallet += 2000000;
+          if (state.quizAnswered.every(Boolean)) {
+            state.souvenirBadge = true;
+          }
+          if (typeof audio !== 'undefined' && audio.playCeremonialBell) audio.playCeremonialBell();
+          updateHUD();
+          renderModalContent();
+        } else {
+          alert('Chưa chính xác! Bạn hãy thử chọn lại đáp án lịch sử đúng nhé.');
+        }
+      };
+
+      window.teleportToArtifact = function(id) {
+        const art = state.artifacts[id];
+        if (!art) return;
+        if (typeof player !== 'undefined' && player && player.mesh) {
+          player.mesh.position.set(art.x, 0, art.z + 1.5);
+        }
+        window.collectVn3dArtifact(id);
+        window.closeVn3dModal();
+      };
+
+      function renderModalContent() {
+        const box = document.getElementById('vn3d-modal-content');
+        if (!box) return;
+        if (state.currentTab === 'quiz') {
+          box.innerHTML = questions.map((item, qIdx) => {
+            const done = state.quizAnswered[qIdx];
+            return `
+              <div class="p-3.5 rounded-2xl border ${done ? 'bg-emerald-950/40 border-emerald-500/50' : 'bg-slate-900/80 border-white/10'} space-y-2">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="font-bold text-amber-300">${item.q}</span>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${done ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-300'}">${done ? '✓ Đã trả lời (+2M)' : 'Chưa làm'}</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                  ${item.opts.map((opt, oIdx) => `
+                    <button onclick="window.answerVn3dQuiz(${qIdx}, ${oIdx})" class="px-3 py-2 rounded-xl text-left text-[11px] font-medium border transition-all cursor-pointer ${done && oIdx === item.ans ? 'bg-emerald-600 border-yellow-300 text-white font-bold' : 'bg-slate-800/90 hover:bg-sky-900/80 border-white/10 text-slate-200'}">
+                      ${opt}
+                    </button>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+          }).join('');
+        } else if (state.currentTab === 'collection') {
+          box.innerHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">` + state.artifacts.map(art => `
+            <div class="p-3 rounded-2xl border ${art.collected ? 'bg-amber-950/35 border-amber-400/60' : 'bg-slate-900/80 border-white/10'} flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-xl shrink-0">${art.icon}</div>
+                <div>
+                  <div class="font-bold text-white">${art.name}</div>
+                  <div class="text-[10px] text-slate-300">${art.desc}</div>
+                </div>
+              </div>
+              <button onclick="window.teleportToArtifact(${art.id})" class="px-2.5 py-1.5 rounded-xl text-[10px] font-bold shrink-0 cursor-pointer ${art.collected ? 'bg-emerald-600 text-white' : 'bg-amber-500 hover:bg-amber-400 text-slate-950'}">
+                ${art.collected ? '✓ Đã sở hữu' : '📍 Thu thập'}
+              </button>
+            </div>
+          `).join('') + `</div>`;
+        } else {
+          box.innerHTML = `
+            <div class="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-950/60 to-slate-900 border border-emerald-400/40 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="text-2xl">🏅</div>
+                <div>
+                  <div class="font-bold text-emerald-300">Huy Hiệu Lưu Niệm Chiến Thắng Cái Sơn (16/06/1960)</div>
+                  <div class="text-[11px] text-slate-300">Dâng hương tại Bia Chiến Thắng hoặc trả lời đủ 6 câu hỏi lịch sử để nhận huy hiệu danh dự.</div>
+                </div>
+              </div>
+              <span class="px-3 py-1 rounded-full text-[10px] font-bold ${state.souvenirBadge ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-400'}">${state.souvenirBadge ? '✓ ĐÃ NHẬN (1/1)' : 'Chưa mở (0/1)'}</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+              ${state.puzzles.map(p => `
+                <div class="p-3 rounded-2xl border ${p.collected ? 'bg-sky-950/40 border-sky-400/60' : 'bg-slate-900/80 border-white/10'} flex items-center justify-between gap-2">
+                  <span class="font-semibold text-slate-100">🧩 ${p.title}</span>
+                  <button onclick="window.collectVn3dPuzzle(${p.id})" class="px-2.5 py-1 rounded-lg text-[10px] font-bold shrink-0 cursor-pointer ${p.collected ? 'bg-emerald-600 text-white' : 'bg-sky-500 hover:bg-sky-400 text-slate-950'}">
+                    ${p.collected ? '✓ Đã ghép' : 'Ghép ngay'}
+                  </button>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
+      }
+
+      window.switchVn3dTab = function(tab) {
+        state.currentTab = tab;
+        ['quiz', 'collection', 'puzzle'].forEach(t => {
+          const btn = document.getElementById('vn3d-tab-' + t);
+          if (btn) {
+            btn.className = (t === tab)
+              ? 'px-3.5 py-2 rounded-t-xl text-xs font-bold border-b-2 border-sky-400 text-sky-300 bg-white/5 cursor-pointer'
+              : 'px-3.5 py-2 rounded-t-xl text-xs font-bold border-b-2 border-transparent text-slate-300 hover:text-white cursor-pointer';
+          }
+        });
+        renderModalContent();
+      };
+
+      window.openVn3dModal = function(tab = 'quiz') {
+        if (document.pointerLockElement) document.exitPointerLock();
+        const modal = document.getElementById('vn3d-modal-overlay');
+        if (modal) {
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+        }
+        window.switchVn3dTab(tab);
+      };
+
+      window.closeVn3dModal = function() {
+        const modal = document.getElementById('vn3d-modal-overlay');
+        if (modal) {
+          modal.classList.add('hidden');
+          modal.classList.remove('flex');
+        }
+      };
+
+      window.addEventListener('keydown', e => {
+        if (e.code === 'KeyH') {
+          const modal = document.getElementById('vn3d-modal-overlay');
+          if (modal && !modal.classList.contains('hidden')) window.closeVn3dModal();
+          else window.openVn3dModal('quiz');
+        }
+      });
+
+      updateHUD();
+    })();
   </script>
 </body>
 </html>
