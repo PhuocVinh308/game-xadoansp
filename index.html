@@ -610,10 +610,10 @@
   <!-- ================= TOP HUD: VIETNAM3D EXPLORATION & CAMPAIGN HYBRID HUD ================= -->
 
   <!-- Top-Left: Vietnam3D Location, Weather, Mana/HP & Exploration Checklist Stack -->
-  <div id="top-left-player-hud" class="absolute top-3 left-3 pointer-events-auto flex flex-col gap-1.5 select-none z-20 w-[235px] sm:w-[260px]">
+  <div id="top-left-player-hud" class="absolute top-3 left-3 pointer-events-none flex flex-col gap-1.5 select-none z-20 w-[235px] sm:w-[255px]">
     <!-- Row 1: Vietnam3D Location Header Card -->
     <div class="bg-[#1e2638]/92 backdrop-blur-md rounded-2xl px-2.5 py-2 border border-white/15 shadow-xl flex items-center gap-2">
-      <div class="relative w-9 h-9 rounded-xl overflow-hidden border border-amber-400/70 shadow bg-slate-900 shrink-0 cursor-pointer" id="open-inspect-btn" title="Bấm để soi mô hình 3D gốc 360° [Phím B]">
+      <div class="relative w-9 h-9 rounded-xl overflow-hidden border border-amber-400/70 shadow bg-slate-900 shrink-0 cursor-pointer pointer-events-auto" id="open-inspect-btn" title="Bấm để soi mô hình 3D gốc 360° [Phím B]">
         <img src="bo_doi_avatar.jpg" alt="Bộ Đội Việt Nam" class="w-full h-full object-cover" onerror="this.src='bo_doi_face.jpg'">
         <div class="absolute bottom-0 inset-x-0 bg-emerald-900/95 text-yellow-300 text-[6px] font-mono font-bold text-center">3D [B]</div>
       </div>
@@ -628,7 +628,7 @@
     </div>
 
     <!-- Row 2: Vietnam3D Weather, Clock & Temperature Widget (Click to switch Daylight 27°C ↔ Sunset 16:15) -->
-    <div onclick="if(window.toggleDaylightSunsetWeather) window.toggleDaylightSunsetWeather()" class="bg-[#1e2638]/92 hover:bg-[#27324a]/95 backdrop-blur-md rounded-2xl px-3 py-1.5 border border-white/15 shadow-xl flex items-center justify-between gap-2 cursor-pointer transition-all" title="Bấm để chuyển đổi: Ban ngày Trong trẻo (27°C) ↔ Hoàng hôn Lịch sử (16:15)">
+    <div onclick="if(window.toggleDaylightSunsetWeather) window.toggleDaylightSunsetWeather()" class="bg-[#1e2638]/92 hover:bg-[#27324a]/95 backdrop-blur-md rounded-2xl px-3 py-1.5 border border-white/15 shadow-xl flex items-center justify-between gap-2 cursor-pointer pointer-events-auto transition-all" title="Bấm để chuyển đổi: Ban ngày Trong trẻo (27°C) ↔ Hoàng hôn Lịch sử (16:15)">
       <div class="flex items-center gap-2.5">
         <i id="vn3d-weather-icon" class="fa-solid fa-cloud-sun text-sky-300 text-base"></i>
         <div class="flex flex-col leading-tight">
@@ -650,10 +650,10 @@
           <div id="stamina-bar" class="h-full bg-gradient-to-r from-blue-600 via-sky-400 to-white w-full transition-all duration-100"></div>
         </div>
         <span id="stamina-text" class="text-[10px] font-extrabold text-white w-8 text-right">100</span>
-        <button onclick="if(window.openVn3dModal) window.openVn3dModal('collection')" class="px-1.5 py-0.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-[9px] font-bold flex items-center gap-1 border border-white/15 cursor-pointer" title="Túi kỷ vật đã thu thập">
+        <div class="px-1.5 py-0.5 rounded-lg bg-white/10 text-white text-[9px] font-bold flex items-center gap-1 border border-white/15" title="Túi kỷ vật đã thu thập">
           <i class="fa-solid fa-briefcase text-sky-300 text-[8px]"></i>
           <span id="vn3d-bag-count">2</span>
-        </button>
+        </div>
       </div>
       <!-- Compact HP + Stance & Camo Row -->
       <div class="flex items-center gap-2 pt-0.5 border-t border-white/10 text-[9px] font-mono">
@@ -663,7 +663,7 @@
         </div>
         <span id="hp-text" class="hidden">100/100</span>
         <div id="player-stance-camo-row" class="flex items-center justify-between flex-1 gap-1">
-          <button id="stance-toggle-btn" class="flex items-center gap-1 text-amber-300 font-bold hover:text-amber-200 cursor-pointer">
+          <button tabindex="-1" id="stance-toggle-btn" class="flex items-center gap-1 text-amber-300 font-bold hover:text-amber-200 cursor-pointer pointer-events-auto">
             <i class="fa-solid fa-person" id="stance-icon"></i> <span id="stance-text">ĐỨNG [X]</span>
           </button>
           <span id="camo-indicator" class="flex items-center gap-1 text-emerald-400 font-bold bg-emerald-950/60 px-1.5 py-0.2 rounded border border-emerald-500/30">
@@ -673,37 +673,39 @@
       </div>
     </div>
 
-    <!-- Row 4: Vietnam3D "Khám phá Di tích Cái Sơn" Interactive Checklist Card -->
+    <!-- Row 4: Vietnam3D "Khám phá Di tích Cái Sơn" Passive Progress Card (No accidental modal popups) -->
     <div id="vn3d-explore-card" class="bg-[#1e2638]/92 backdrop-blur-md rounded-2xl p-2.5 border border-white/15 shadow-xl flex flex-col gap-1.5">
       <div class="flex items-center justify-between">
         <span class="text-[11px] font-bold text-amber-300 flex items-center gap-1.5">
           <i class="fa-solid fa-compass text-yellow-400 text-xs"></i> Khám phá Di tích Cái Sơn
         </span>
-        <button onclick="if(window.openVn3dModal) window.openVn3dModal('quiz')" class="text-[9px] font-bold text-sky-300 hover:text-yellow-300 cursor-pointer">Mở [H] ▸</button>
+        <button tabindex="-1" onclick="this.blur(); const b = document.getElementById('vn3d-explore-bars'); if(b) b.classList.toggle('hidden');" class="text-[9px] font-bold text-slate-300 hover:text-yellow-300 cursor-pointer pointer-events-auto px-1">Ẩn/Hiện</button>
       </div>
-      <!-- Checklist 1: Câu hỏi (0/6) -->
-      <div onclick="if(window.openVn3dModal) window.openVn3dModal('quiz')" class="relative h-6 rounded-xl bg-slate-900/85 border border-white/10 overflow-hidden flex items-center justify-between px-2.5 cursor-pointer hover:border-sky-400/60 transition-all">
-        <div id="vn3d-quiz-bar" class="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-600/65 to-sky-400/65 transition-all duration-300" style="width: 0%"></div>
-        <span class="relative z-10 text-[10px] font-medium text-slate-100">Trả lời câu hỏi (<span id="vn3d-quiz-count">0</span>/6)</span>
-        <i class="relative z-10 fa-solid fa-circle-question text-sky-300 text-[10px]"></i>
-      </div>
-      <!-- Checklist 2: Vật phẩm đặc trưng (0/7) -->
-      <div onclick="if(window.openVn3dModal) window.openVn3dModal('collection')" class="relative h-6 rounded-xl bg-slate-900/85 border border-white/10 overflow-hidden flex items-center justify-between px-2.5 cursor-pointer hover:border-amber-400/60 transition-all">
-        <div id="vn3d-item-bar" class="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-600/65 to-yellow-400/65 transition-all duration-300" style="width: 0%"></div>
-        <span class="relative z-10 text-[10px] font-medium text-slate-100">Vật phẩm đặc trưng (<span id="vn3d-item-count">0</span>/7)</span>
-        <i class="relative z-10 fa-solid fa-star text-amber-300 text-[10px]"></i>
-      </div>
-      <!-- Checklist 3: Quà lưu niệm (0/1) -->
-      <div onclick="startRealIncenseCeremony(true)" class="relative h-6 rounded-xl bg-slate-900/85 border border-white/10 overflow-hidden flex items-center justify-between px-2.5 cursor-pointer hover:border-emerald-400/60 transition-all" title="Thắp hương tại Bia Chiến Thắng hoặc hoàn thành khám phá để nhận Huy hiệu lưu niệm">
-        <div id="vn3d-badge-bar" class="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-600/65 to-teal-400/65 transition-all duration-300" style="width: 0%"></div>
-        <span class="relative z-10 text-[10px] font-medium text-slate-100">Quà lưu niệm (<span id="vn3d-badge-count">0</span>/1)</span>
-        <i class="relative z-10 fa-solid fa-award text-emerald-300 text-[10px]"></i>
+      <div id="vn3d-explore-bars" class="flex flex-col gap-1.5">
+        <!-- Checklist 1: Câu hỏi (0/6) -->
+        <div class="relative h-5 rounded-xl bg-slate-900/85 border border-white/10 overflow-hidden flex items-center justify-between px-2.5">
+          <div id="vn3d-quiz-bar" class="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-600/65 to-sky-400/65 transition-all duration-300" style="width: 0%"></div>
+          <span class="relative z-10 text-[10px] font-medium text-slate-100">Trả lời câu hỏi (<span id="vn3d-quiz-count">0</span>/6)</span>
+          <i class="relative z-10 fa-solid fa-circle-question text-sky-300 text-[10px]"></i>
+        </div>
+        <!-- Checklist 2: Vật phẩm đặc trưng (0/7) -->
+        <div class="relative h-5 rounded-xl bg-slate-900/85 border border-white/10 overflow-hidden flex items-center justify-between px-2.5">
+          <div id="vn3d-item-bar" class="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-600/65 to-yellow-400/65 transition-all duration-300" style="width: 0%"></div>
+          <span class="relative z-10 text-[10px] font-medium text-slate-100">Vật phẩm đặc trưng (<span id="vn3d-item-count">0</span>/7)</span>
+          <i class="relative z-10 fa-solid fa-star text-amber-300 text-[10px]"></i>
+        </div>
+        <!-- Checklist 3: Quà lưu niệm (0/1) -->
+        <div class="relative h-5 rounded-xl bg-slate-900/85 border border-white/10 overflow-hidden flex items-center justify-between px-2.5">
+          <div id="vn3d-badge-bar" class="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-600/65 to-teal-400/65 transition-all duration-300" style="width: 0%"></div>
+          <span class="relative z-10 text-[10px] font-medium text-slate-100">Quà lưu niệm (<span id="vn3d-badge-count">0</span>/1)</span>
+          <i class="relative z-10 fa-solid fa-award text-emerald-300 text-[10px]"></i>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- Left Side (Below Exploration Card): Compact Squad & Story Panel -->
-  <div id="squad-story-panel" class="hidden xl:flex absolute top-[318px] left-3 z-20 w-[260px] flex-col gap-1.5 pointer-events-auto select-none transition-all collapsed">
+  <div id="squad-story-panel" class="hidden xl:flex absolute top-[318px] left-3 z-20 w-[255px] flex-col gap-1.5 pointer-events-auto select-none transition-all collapsed">
     <div class="bg-[#1e2638]/92 rounded-2xl p-2 border border-white/15 shadow-xl backdrop-blur-md">
       <!-- Compact Header: Formation & Expand Toggle -->
       <div class="flex items-center justify-between mb-1.5">
@@ -711,10 +713,10 @@
           <i class="fa-solid fa-comments text-yellow-400"></i> ĐỒNG ĐỘI [U]
         </div>
         <div class="flex items-center gap-1">
-          <button id="squad-formation-btn" title="Đổi đội hình đồng đội [Phím M]" class="px-1.5 py-0.5 rounded bg-emerald-900/90 hover:bg-emerald-700 text-[8px] font-mono font-bold text-yellow-300 border border-emerald-400/50 cursor-pointer flex items-center gap-1">
+          <button tabindex="-1" id="squad-formation-btn" title="Đổi đội hình đồng đội [Phím M]" class="px-1.5 py-0.5 rounded bg-emerald-900/90 hover:bg-emerald-700 text-[8px] font-mono font-bold text-yellow-300 border border-emerald-400/50 cursor-pointer flex items-center gap-1">
             <span id="squad-formation-text">CƠ ĐỘNG [M]</span>
           </button>
-          <button onclick="document.getElementById('squad-story-panel').classList.toggle('collapsed')" title="Mở / Thu gọn hộp thoại cốt truyện" class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[8px] font-mono text-slate-300 border border-slate-700 cursor-pointer">
+          <button tabindex="-1" onclick="this.blur(); document.getElementById('squad-story-panel').classList.toggle('collapsed')" title="Mở / Thu gọn hộp thoại cốt truyện" class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[8px] font-mono text-slate-300 border border-slate-700 cursor-pointer">
             <i class="fa-solid fa-book-open text-amber-400"></i>
           </button>
         </div>
@@ -722,22 +724,22 @@
 
       <!-- 4 Compact Comrade Pills (Click to talk with comrades) -->
       <div class="grid grid-cols-4 gap-1">
-        <button onclick="openComradeDialogueModal(0)" class="comrade-story-btn rounded-lg py-1 bg-slate-900/90 hover:bg-emerald-950 border border-emerald-500/30 hover:border-yellow-400 flex flex-col items-center transition-all cursor-pointer" title="Trò chuyện cùng Út Hoa - Quân y & Bắn tỉa">
+        <button tabindex="-1" onclick="this.blur(); openComradeDialogueModal(0)" class="comrade-story-btn rounded-lg py-1 bg-slate-900/90 hover:bg-emerald-950 border border-emerald-500/30 hover:border-yellow-400 flex flex-col items-center transition-all cursor-pointer" title="Trò chuyện cùng Út Hoa - Quân y & Bắn tỉa">
           <span class="text-[10px]">🎯</span>
           <span class="text-[8px] font-bold text-emerald-300 leading-none mt-0.5">Út Hoa</span>
           <span id="comrade-state-0" class="hidden">Tuần tra</span>
         </button>
-        <button onclick="openComradeDialogueModal(1)" class="comrade-story-btn rounded-lg py-1 bg-slate-900/90 hover:bg-emerald-950 border border-emerald-500/30 hover:border-yellow-400 flex flex-col items-center transition-all cursor-pointer" title="Trò chuyện cùng Ba Đen - Tổ trưởng ĐĐ 250">
+        <button tabindex="-1" onclick="this.blur(); openComradeDialogueModal(1)" class="comrade-story-btn rounded-lg py-1 bg-slate-900/90 hover:bg-emerald-950 border border-emerald-500/30 hover:border-yellow-400 flex flex-col items-center transition-all cursor-pointer" title="Trò chuyện cùng Ba Đen - Tổ trưởng ĐĐ 250">
           <span class="text-[10px]">⭐</span>
           <span class="text-[8px] font-bold text-emerald-300 leading-none mt-0.5">Ba Đen</span>
           <span id="comrade-state-1" class="hidden">Bọc sườn</span>
         </button>
-        <button onclick="openComradeDialogueModal(2)" class="comrade-story-btn rounded-lg py-1 bg-slate-900/90 hover:bg-emerald-950 border border-emerald-500/30 hover:border-yellow-400 flex flex-col items-center transition-all cursor-pointer" title="Trò chuyện cùng Hai Dũng - Công binh mìn cầu">
+        <button tabindex="-1" onclick="this.blur(); openComradeDialogueModal(2)" class="comrade-story-btn rounded-lg py-1 bg-slate-900/90 hover:bg-emerald-950 border border-emerald-500/30 hover:border-yellow-400 flex flex-col items-center transition-all cursor-pointer" title="Trò chuyện cùng Hai Dũng - Công binh mìn cầu">
           <span class="text-[10px]">💥</span>
           <span class="text-[8px] font-bold text-emerald-300 leading-none mt-0.5">Hai Dũng</span>
           <span id="comrade-state-2" class="hidden">Chặn đầu</span>
         </button>
-        <button onclick="openComradeDialogueModal(3)" class="comrade-story-btn rounded-lg py-1 bg-slate-900/90 hover:bg-emerald-950 border border-emerald-500/30 hover:border-yellow-400 flex flex-col items-center transition-all cursor-pointer" title="Trò chuyện cùng Anh Năm - Cờ Mặt trận">
+        <button tabindex="-1" onclick="this.blur(); openComradeDialogueModal(3)" class="comrade-story-btn rounded-lg py-1 bg-slate-900/90 hover:bg-emerald-950 border border-emerald-500/30 hover:border-yellow-400 flex flex-col items-center transition-all cursor-pointer" title="Trò chuyện cùng Anh Năm - Cờ Mặt trận">
           <span class="text-[10px]">🚩</span>
           <span class="text-[8px] font-bold text-emerald-300 leading-none mt-0.5">Anh Năm</span>
           <span id="comrade-state-3" class="hidden">Giữ cờ</span>
@@ -751,7 +753,7 @@
             <span id="story-chapter-badge" class="text-[8px] font-mono font-bold text-amber-300 uppercase">
               KÝ ỨC 16/06/1960
             </span>
-            <button id="next-story-btn" onclick="cycleNextHistoricalStory()" class="text-[8px] font-mono text-cyan-300 hover:text-yellow-300 underline cursor-pointer">
+            <button tabindex="-1" id="next-story-btn" onclick="this.blur(); cycleNextHistoricalStory()" class="text-[8px] font-mono text-cyan-300 hover:text-yellow-300 underline cursor-pointer">
               Tiếp ▸
             </button>
           </div>
@@ -770,26 +772,26 @@
   <!-- Top-Center: Vietnam3D Prominent "📖 Sổ tay" Pill & Quick Actions -->
   <div id="top-center-bar" class="absolute top-3 inset-x-0 mx-auto w-fit max-w-[96vw] pointer-events-none flex flex-col items-center z-20">
     <div class="flex items-center gap-2 pointer-events-auto">
-      <button id="open-doan-btn" title="Mở Sổ Tay Lịch Sử & Tư Liệu Cầu Cái Sơn [Phím T / Y]" class="px-4 py-1.5 rounded-full bg-[#1e2638]/92 hover:bg-[#2a354d] active:scale-95 text-white font-bold text-xs flex items-center gap-2 border border-white/20 shadow-xl backdrop-blur-md cursor-pointer transition-all">
+      <button tabindex="-1" id="open-doan-btn" title="Mở Sổ Tay Lịch Sử & Tư Liệu Cầu Cái Sơn [Phím T / Y]" class="px-4 py-1.5 rounded-full bg-[#1e2638]/92 hover:bg-[#2a354d] active:scale-95 text-white font-bold text-xs flex items-center gap-2 border border-white/20 shadow-xl backdrop-blur-md cursor-pointer transition-all">
         <i class="fa-solid fa-book-open text-amber-300 text-xs"></i>
         <span>Sổ tay</span>
       </button>
-      <button onclick="if(window.openVn3dModal) window.openVn3dModal('quiz')" title="Câu hỏi tìm hiểu lịch sử Cái Sơn [Phím H]" class="px-3 py-1.5 rounded-full bg-[#1e2638]/92 hover:bg-[#2a354d] active:scale-95 text-sky-200 font-bold text-xs flex items-center gap-1.5 border border-white/20 shadow-xl backdrop-blur-md cursor-pointer transition-all">
+      <button tabindex="-1" onclick="this.blur(); if(window.openVn3dModal) window.openVn3dModal('quiz')" title="Câu hỏi tìm hiểu lịch sử Cái Sơn" class="px-3 py-1.5 rounded-full bg-[#1e2638]/92 hover:bg-[#2a354d] active:scale-95 text-sky-200 font-bold text-xs flex items-center gap-1.5 border border-white/20 shadow-xl backdrop-blur-md cursor-pointer transition-all">
         <i class="fa-solid fa-circle-question text-sky-400 text-xs"></i>
         <span class="hidden sm:inline">Đố vui</span>
       </button>
-      <button onclick="startRealIncenseCeremony(true)" title="Đến Bia Tưởng Niệm & Thắp Hương Thật 3D [Phím K]" class="px-3 py-1.5 rounded-full bg-[#1e2638]/92 hover:bg-[#2a354d] active:scale-95 text-amber-200 font-bold text-xs flex items-center gap-1.5 border border-white/20 shadow-xl backdrop-blur-md cursor-pointer transition-all">
+      <button tabindex="-1" onclick="this.blur(); startRealIncenseCeremony(true)" title="Đến Bia Tưởng Niệm & Thắp Hương Thật 3D [Phím K]" class="px-3 py-1.5 rounded-full bg-[#1e2638]/92 hover:bg-[#2a354d] active:scale-95 text-amber-200 font-bold text-xs flex items-center gap-1.5 border border-white/20 shadow-xl backdrop-blur-md cursor-pointer transition-all">
         <i class="fa-solid fa-fire-flame-simple text-amber-400 text-xs"></i>
         <span class="hidden sm:inline">Thắp hương</span>
       </button>
-      <button id="top-chat-btn" onclick="openComradeDialogueModal(nearestComradeIdx >= 0 ? nearestComradeIdx : currentHistoricalStoryIdx)" title="Trò chuyện cùng Đồng đội [Phím U]" class="hidden md:flex px-3 py-1.5 rounded-full bg-[#1e2638]/92 hover:bg-[#2a354d] active:scale-95 text-emerald-200 font-bold text-xs items-center gap-1.5 border border-white/20 shadow-xl backdrop-blur-md cursor-pointer transition-all">
+      <button tabindex="-1" id="top-chat-btn" onclick="this.blur(); openComradeDialogueModal(nearestComradeIdx >= 0 ? nearestComradeIdx : currentHistoricalStoryIdx)" title="Trò chuyện cùng Đồng đội [Phím U]" class="hidden md:flex px-3 py-1.5 rounded-full bg-[#1e2638]/92 hover:bg-[#2a354d] active:scale-95 text-emerald-200 font-bold text-xs items-center gap-1.5 border border-white/20 shadow-xl backdrop-blur-md cursor-pointer transition-all">
         <i class="fa-solid fa-comments text-emerald-400 text-xs"></i>
         <span>Đồng đội</span>
       </button>
-      <button id="top-cam-btn" onclick="cycleCameraMode()" title="Đổi góc nhìn [Phím V / C]" class="hidden lg:flex px-2.5 py-1.5 rounded-full bg-[#1e2638]/92 hover:bg-[#2a354d] active:scale-95 text-slate-200 font-bold text-xs items-center gap-1 border border-white/20 shadow-xl backdrop-blur-md cursor-pointer">
+      <button tabindex="-1" id="top-cam-btn" onclick="this.blur(); cycleCameraMode()" title="Đổi góc nhìn [Phím V / C]" class="hidden lg:flex px-2.5 py-1.5 rounded-full bg-[#1e2638]/92 hover:bg-[#2a354d] active:scale-95 text-slate-200 font-bold text-xs items-center gap-1 border border-white/20 shadow-xl backdrop-blur-md cursor-pointer">
         <i class="fa-solid fa-camera text-amber-400 text-xs"></i>
       </button>
-      <button id="perf-toggle-btn" onclick="togglePerformanceMode()" title="Bật / Tắt chế độ Siêu Mượt 60FPS" class="px-2.5 py-1.5 rounded-full bg-[#1e2638]/92 hover:bg-[#2a354d] active:scale-95 text-cyan-300 font-mono text-[10px] font-bold flex items-center gap-1 border border-white/20 shadow-xl backdrop-blur-md cursor-pointer">
+      <button tabindex="-1" id="perf-toggle-btn" onclick="this.blur(); togglePerformanceMode()" title="Bật / Tắt chế độ Siêu Mượt 60FPS" class="px-2.5 py-1.5 rounded-full bg-[#1e2638]/92 hover:bg-[#2a354d] active:scale-95 text-cyan-300 font-mono text-[10px] font-bold flex items-center gap-1 border border-white/20 shadow-xl backdrop-blur-md cursor-pointer">
         <i class="fa-solid fa-bolt text-yellow-300"></i>
         <span id="perf-toggle-label">60FPS</span>
       </button>
@@ -810,10 +812,10 @@
       <div id="monument-prompt-inner" class="bg-[#1e2638]/95 px-3.5 py-1.5 rounded-full border border-amber-400/90 shadow-xl flex items-center gap-2 transition-all">
         <span class="text-xs">🏛️</span>
         <span class="text-[10px] font-mono font-bold text-amber-300">BIA CHIẾN THẮNG CÁI SƠN:</span>
-        <button onclick="startRealIncenseCeremony(false)" class="px-2.5 py-0.5 rounded-full bg-red-600 hover:bg-red-500 active:scale-95 text-white font-mono text-[9px] font-bold border border-yellow-300 cursor-pointer">
+        <button tabindex="-1" onclick="this.blur(); startRealIncenseCeremony(false)" class="px-2.5 py-0.5 rounded-full bg-red-600 hover:bg-red-500 active:scale-95 text-white font-mono text-[9px] font-bold border border-yellow-300 cursor-pointer">
           🔥 THẮP HƯƠNG [E]
         </button>
-        <button onclick="openBeforeAfterModal()" class="px-2.5 py-0.5 rounded-full bg-slate-800 hover:bg-slate-700 active:scale-95 text-amber-200 font-mono text-[9px] font-bold border border-amber-500/40 cursor-pointer">
+        <button tabindex="-1" onclick="this.blur(); openBeforeAfterModal()" class="px-2.5 py-0.5 rounded-full bg-slate-800 hover:bg-slate-700 active:scale-95 text-amber-200 font-mono text-[9px] font-bold border border-amber-500/40 cursor-pointer">
           📖 SỔ TAY [Y]
         </button>
       </div>
@@ -821,19 +823,19 @@
   </div>
 
   <!-- Top-Right: Vietnam3D Wallet, Puzzle Pieces, Collection & Compact Radar -->
-  <div id="radar-container-box" class="radar-container absolute top-3 right-3 pointer-events-auto flex flex-col items-end gap-2 select-none z-20">
+  <div id="radar-container-box" class="radar-container absolute top-3 right-3 pointer-events-none flex flex-col items-end gap-2 select-none z-20">
     <!-- Vietnam3D Top-Right Gamification Bar -->
     <div class="hidden sm:flex items-center gap-1.5">
-      <!-- Wallet / Points Pill -->
-      <div onclick="if(window.openVn3dModal) window.openVn3dModal('collection')" class="bg-[#1e2638]/92 hover:bg-[#28334a] backdrop-blur-md rounded-2xl px-3 py-1.5 border border-white/15 shadow-xl flex items-center gap-2 cursor-pointer transition-all" title="Điểm Tự Hào Lịch Sử (Nhận thêm khi giải đố & thu thập kỷ vật)">
+      <!-- Wallet / Points Pill (Passive display - no accidental popup) -->
+      <div class="bg-[#1e2638]/92 backdrop-blur-md rounded-2xl px-3 py-1.5 border border-white/15 shadow-xl flex items-center gap-2" title="Điểm Tự Hào Lịch Sử (Nhận thêm khi giải đố & thu thập kỷ vật)">
         <div class="w-6 h-6 rounded-full bg-amber-500/20 border border-amber-400/60 flex items-center justify-center text-yellow-400 text-xs font-black">🪙</div>
         <div class="flex flex-col leading-tight">
           <span class="text-[9px] text-slate-300 font-medium">Ví • Cửa hàng</span>
           <span id="vn3d-wallet-text" class="text-[11px] font-extrabold text-yellow-400 tracking-tight">51.100.000 GVNĐ</span>
         </div>
       </div>
-      <!-- Puzzle Pieces Pill -->
-      <div onclick="if(window.openVn3dModal) window.openVn3dModal('puzzle')" class="bg-[#1e2638]/92 hover:bg-[#28334a] backdrop-blur-md rounded-2xl px-3 py-1.5 border border-white/15 shadow-xl flex items-center gap-2 cursor-pointer transition-all" title="Mảnh ghép bức tranh lịch sử Chiến thắng Cái Sơn">
+      <!-- Puzzle Pieces Pill (Passive display - no accidental popup) -->
+      <div class="bg-[#1e2638]/92 backdrop-blur-md rounded-2xl px-3 py-1.5 border border-white/15 shadow-xl flex items-center gap-2" title="Mảnh ghép bức tranh lịch sử Chiến thắng Cái Sơn">
         <i class="fa-solid fa-puzzle-piece text-yellow-400 text-sm"></i>
         <div class="flex flex-col leading-tight">
           <span class="text-[9px] text-slate-300 font-medium">Mảnh ghép</span>
@@ -841,7 +843,7 @@
         </div>
       </div>
       <!-- Collection Grid Button -->
-      <button onclick="if(window.openVn3dModal) window.openVn3dModal('collection')" class="bg-[#1e2638]/92 hover:bg-[#28334a] backdrop-blur-md rounded-2xl px-2.5 py-1.5 border border-white/15 shadow-xl flex flex-col items-center justify-center cursor-pointer transition-all" title="Bộ sưu tập Kỷ vật Kháng chiến">
+      <button tabindex="-1" onclick="this.blur(); if(window.openVn3dModal) window.openVn3dModal('collection')" class="pointer-events-auto bg-[#1e2638]/92 hover:bg-[#28334a] backdrop-blur-md rounded-2xl px-2.5 py-1.5 border border-white/15 shadow-xl flex flex-col items-center justify-center cursor-pointer transition-all" title="Bộ sưu tập Kỷ vật Kháng chiến">
         <i class="fa-solid fa-grip text-pink-400 text-xs"></i>
         <span class="text-[8px] text-slate-200 font-semibold mt-0.5">Bộ sưu tập</span>
       </button>
@@ -8893,6 +8895,11 @@
     let lastMonumentBannerTime = 0;
 
     window.addEventListener('keydown', (e) => {
+      // Prevent Space / Enter from accidentally clicking any focused HUD button during gameplay
+      if ((e.code === 'Space' || e.code === 'Enter') && document.activeElement && document.activeElement.tagName === 'BUTTON') {
+        document.activeElement.blur();
+        if (e.code === 'Space') e.preventDefault();
+      }
       keys[e.code] = true;
       if (e.code === 'KeyR') reloadWeapon();
 
@@ -8987,6 +8994,7 @@
 
       // Escape: Close any open modal
       if (e.code === 'Escape') {
+        if (typeof window.closeVn3dModal === 'function') window.closeVn3dModal();
         if (typeof closeComradeDialogueModal === 'function') closeComradeDialogueModal();
         closeCharacterInspect();
         closeSettingsModal();
@@ -13672,7 +13680,7 @@
   </script>
 
   <!-- ================= VIETNAM3D EXPLORATION MODAL (QUIZ, ARTIFACTS & PUZZLE) ================= -->
-  <div id="vn3d-modal-overlay" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/80 backdrop-blur-md p-3 select-none">
+  <div id="vn3d-modal-overlay" onclick="if(event.target === this) window.closeVn3dModal()" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/80 backdrop-blur-md p-3 select-none">
     <div class="bg-[#1e2638] border border-white/20 rounded-3xl max-w-2xl w-full max-h-[88vh] flex flex-col shadow-2xl overflow-hidden text-white">
       <!-- Modal Header -->
       <div class="px-5 py-3.5 bg-[#151b29] border-b border-white/10 flex items-center justify-between">
@@ -13683,20 +13691,20 @@
             <p class="text-[11px] text-slate-300">Xã Song Phú, Huyện Tam Bình, Tỉnh Vĩnh Long • Hệ thống Du lịch & Lịch sử Số 3D</p>
           </div>
         </div>
-        <button onclick="window.closeVn3dModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-red-600 text-white flex items-center justify-center cursor-pointer transition-all">
+        <button tabindex="-1" onclick="this.blur(); window.closeVn3dModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-red-600 text-white flex items-center justify-center cursor-pointer transition-all">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
       <!-- Modal Tabs -->
       <div class="flex items-center gap-2 px-5 pt-3 bg-[#192030] border-b border-white/10">
-        <button id="vn3d-tab-quiz" onclick="window.switchVn3dTab('quiz')" class="px-3.5 py-2 rounded-t-xl text-xs font-bold border-b-2 border-sky-400 text-sky-300 bg-white/5 cursor-pointer">
+        <button tabindex="-1" id="vn3d-tab-quiz" onclick="this.blur(); window.switchVn3dTab('quiz')" class="px-3.5 py-2 rounded-t-xl text-xs font-bold border-b-2 border-sky-400 text-sky-300 bg-white/5 cursor-pointer">
           ❓ Câu hỏi lịch sử (<span id="vn3d-modal-quiz-cnt">0</span>/6)
         </button>
-        <button id="vn3d-tab-collection" onclick="window.switchVn3dTab('collection')" class="px-3.5 py-2 rounded-t-xl text-xs font-bold border-b-2 border-transparent text-slate-300 hover:text-white cursor-pointer">
+        <button tabindex="-1" id="vn3d-tab-collection" onclick="this.blur(); window.switchVn3dTab('collection')" class="px-3.5 py-2 rounded-t-xl text-xs font-bold border-b-2 border-transparent text-slate-300 hover:text-white cursor-pointer">
           ⭐ Vật phẩm đặc trưng (<span id="vn3d-modal-item-cnt">0</span>/7)
         </button>
-        <button id="vn3d-tab-puzzle" onclick="window.switchVn3dTab('puzzle')" class="px-3.5 py-2 rounded-t-xl text-xs font-bold border-b-2 border-transparent text-slate-300 hover:text-white cursor-pointer">
+        <button tabindex="-1" id="vn3d-tab-puzzle" onclick="this.blur(); window.switchVn3dTab('puzzle')" class="px-3.5 py-2 rounded-t-xl text-xs font-bold border-b-2 border-transparent text-slate-300 hover:text-white cursor-pointer">
           🧩 Mảnh ghép & Lưu niệm (<span id="vn3d-modal-puz-cnt">0</span>/6)
         </button>
       </div>
@@ -13707,7 +13715,7 @@
       <!-- Modal Footer -->
       <div class="px-5 py-3 bg-[#151b29] border-t border-white/10 flex items-center justify-between text-[11px] text-slate-300">
         <span>💡 Mẹo: Đi bộ quanh Bia Chiến Thắng & Cầu Cái Sơn để nhặt vật phẩm 3D phát sáng!</span>
-        <button onclick="window.closeVn3dModal()" class="px-4 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold cursor-pointer">Tiếp tục Khám phá 3D</button>
+        <button tabindex="-1" onclick="this.blur(); window.closeVn3dModal()" class="px-4 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold cursor-pointer">Đóng [ESC]</button>
       </div>
     </div>
   </div>
@@ -13883,7 +13891,7 @@
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
                   ${item.opts.map((opt, oIdx) => `
-                    <button onclick="window.answerVn3dQuiz(${qIdx}, ${oIdx})" class="px-3 py-2 rounded-xl text-left text-[11px] font-medium border transition-all cursor-pointer ${done && oIdx === item.ans ? 'bg-emerald-600 border-yellow-300 text-white font-bold' : 'bg-slate-800/90 hover:bg-sky-900/80 border-white/10 text-slate-200'}">
+                    <button tabindex="-1" onclick="this.blur(); window.answerVn3dQuiz(${qIdx}, ${oIdx})" class="px-3 py-2 rounded-xl text-left text-[11px] font-medium border transition-all cursor-pointer ${done && oIdx === item.ans ? 'bg-emerald-600 border-yellow-300 text-white font-bold' : 'bg-slate-800/90 hover:bg-sky-900/80 border-white/10 text-slate-200'}">
                       ${opt}
                     </button>
                   `).join('')}
@@ -13901,7 +13909,7 @@
                   <div class="text-[10px] text-slate-300">${art.desc}</div>
                 </div>
               </div>
-              <button onclick="window.teleportToArtifact(${art.id})" class="px-2.5 py-1.5 rounded-xl text-[10px] font-bold shrink-0 cursor-pointer ${art.collected ? 'bg-emerald-600 text-white' : 'bg-amber-500 hover:bg-amber-400 text-slate-950'}">
+              <button tabindex="-1" onclick="this.blur(); window.teleportToArtifact(${art.id})" class="px-2.5 py-1.5 rounded-xl text-[10px] font-bold shrink-0 cursor-pointer ${art.collected ? 'bg-emerald-600 text-white' : 'bg-amber-500 hover:bg-amber-400 text-slate-950'}">
                 ${art.collected ? '✓ Đã sở hữu' : '📍 Thu thập'}
               </button>
             </div>
@@ -13922,7 +13930,7 @@
               ${state.puzzles.map(p => `
                 <div class="p-3 rounded-2xl border ${p.collected ? 'bg-sky-950/40 border-sky-400/60' : 'bg-slate-900/80 border-white/10'} flex items-center justify-between gap-2">
                   <span class="font-semibold text-slate-100">🧩 ${p.title}</span>
-                  <button onclick="window.collectVn3dPuzzle(${p.id})" class="px-2.5 py-1 rounded-lg text-[10px] font-bold shrink-0 cursor-pointer ${p.collected ? 'bg-emerald-600 text-white' : 'bg-sky-500 hover:bg-sky-400 text-slate-950'}">
+                  <button tabindex="-1" onclick="this.blur(); window.collectVn3dPuzzle(${p.id})" class="px-2.5 py-1 rounded-lg text-[10px] font-bold shrink-0 cursor-pointer ${p.collected ? 'bg-emerald-600 text-white' : 'bg-sky-500 hover:bg-sky-400 text-slate-950'}">
                     ${p.collected ? '✓ Đã ghép' : 'Ghép ngay'}
                   </button>
                 </div>
@@ -13946,7 +13954,8 @@
       };
 
       window.openVn3dModal = function(tab = 'quiz') {
-        if (document.pointerLockElement) document.exitPointerLock();
+        if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+        if (document.pointerLockElement && document.exitPointerLock) document.exitPointerLock();
         const modal = document.getElementById('vn3d-modal-overlay');
         if (modal) {
           modal.classList.remove('hidden');
@@ -13956,20 +13965,18 @@
       };
 
       window.closeVn3dModal = function() {
+        if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
         const modal = document.getElementById('vn3d-modal-overlay');
-        if (modal) {
-          modal.classList.add('hidden');
-          modal.classList.remove('flex');
+        if (!modal || modal.classList.contains('hidden')) return;
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        const c = document.getElementById('game-canvas');
+        const briefing = document.getElementById('briefing-modal');
+        const isBriefingOpen = briefing && !briefing.classList.contains('hidden');
+        if (c && c.requestPointerLock && !isBriefingOpen && !('ontouchstart' in window)) {
+          try { c.requestPointerLock(); } catch (err) {}
         }
       };
-
-      window.addEventListener('keydown', e => {
-        if (e.code === 'KeyH') {
-          const modal = document.getElementById('vn3d-modal-overlay');
-          if (modal && !modal.classList.contains('hidden')) window.closeVn3dModal();
-          else window.openVn3dModal('quiz');
-        }
-      });
 
       updateHUD();
     })();
