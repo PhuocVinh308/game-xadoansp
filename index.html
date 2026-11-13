@@ -2536,7 +2536,14 @@
     }
     const sunsetSkyTex = createSunsetSkyTexture();
     scene.background = sunsetSkyTex;
-    scene.environment = sunsetSkyTex;
+    try {
+      if (typeof THREE.PMREMGenerator !== 'undefined') {
+        const pmremGen = new THREE.PMREMGenerator(renderer);
+        pmremGen.compileEquirectangularShader();
+        scene.environment = pmremGen.fromEquirectangular(sunsetSkyTex).texture;
+        pmremGen.dispose();
+      }
+    } catch (err) {}
     scene.fog = new THREE.FogExp2(0xd98a54, 0.0024);
 
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 750);
@@ -12172,8 +12179,10 @@
         if (window.sampanBoats) {
           for (let i = 0; i < window.sampanBoats.length; i++) {
             const sb = window.sampanBoats[i];
-            sb.group.rotation.x = Math.sin(waveTime * 0.9 + sb.phase) * 0.035;
-            sb.group.rotation.z = Math.cos(waveTime * 1.15 + sb.phase) * 0.045;
+            if (sb && sb.userData) {
+              sb.rotation.x = Math.sin(waveTime * 0.9 + sb.userData.phase) * 0.035;
+              sb.rotation.z = Math.cos(waveTime * 1.15 + sb.userData.phase) * 0.045;
+            }
           }
         }
       }
@@ -12182,13 +12191,15 @@
       if (window.flyingStorks) {
         for (let i = 0; i < window.flyingStorks.length; i++) {
           const st = window.flyingStorks[i];
-          const flap = Math.sin(simSeconds * st.flapSpeed + st.phase) * 0.52;
-          st.leftWing.rotation.z = flap;
-          st.rightWing.rotation.z = -flap;
-          st.mesh.position.z += delta * st.flySpeed;
-          st.mesh.position.y = st.baseY + Math.cos(simSeconds * st.flapSpeed + st.phase) * 0.14;
-          if (st.mesh.position.z > 210) {
-            st.mesh.position.z = -210;
+          if (st && st.userData && st.userData.leftWing && st.userData.rightWing) {
+            const ud = st.userData;
+            const flap = Math.sin(simSeconds * 8.2 + ud.phase) * 0.52;
+            ud.leftWing.rotation.z = flap;
+            ud.rightWing.rotation.z = -flap;
+            st.position.z += delta * ud.speedZ;
+            if (st.position.z > 210) {
+              st.position.z = -210;
+            }
           }
         }
       }
