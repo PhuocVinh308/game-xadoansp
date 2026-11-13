@@ -2813,70 +2813,59 @@
         const c = document.createElement('canvas');
         c.width = 1024; c.height = 1024;
         const ctx = c.getContext('2d');
-        
-        // Rich alluvial soil base for Mekong Delta field bunds
-        ctx.fillStyle = '#3b2614';
+
+        // Seamless organic Mekong Delta lush grass & alluvial earth base
+        const baseGrad = ctx.createRadialGradient(512, 512, 80, 512, 512, 720);
+        baseGrad.addColorStop(0.0, '#2d5a27');
+        baseGrad.addColorStop(0.5, '#254d20');
+        baseGrad.addColorStop(1.0, '#1e421a');
+        ctx.fillStyle = baseGrad;
         ctx.fillRect(0, 0, 1024, 1024);
 
-        // Authentic Mekong Delta patchwork rice paddies & orchards
-        const paddyColors = [
-          '#d97706', '#ca8a04', '#eab308', '#b45309', // Lúa chín vàng óng mùa gặt
-          '#15803d', '#166534', '#2e7d32', '#1b5e20', // Lúa xanh thì con gái
-          '#3f6212', '#4d7c0f', '#365314', '#14532d'  // Vườn cây ăn trái & cỏ mật
+        // Organic sunlit meadow patches, alluvial soil blotches & wild grass variations
+        const patchPalette = [
+          'rgba(63, 114, 34, 0.28)',
+          'rgba(46, 98, 30, 0.32)',
+          'rgba(101, 140, 38, 0.22)',
+          'rgba(148, 118, 45, 0.18)',
+          'rgba(78, 56, 32, 0.20)',
+          'rgba(28, 68, 24, 0.30)'
         ];
-
-        const cols = 8;
-        const rows = 8;
-        const cellW = 1024 / cols;
-        const cellH = 1024 / rows;
-
-        for (let r = 0; r < rows; r++) {
-          for (let col = 0; col < cols; col++) {
-            const x = col * cellW;
-            const y = r * cellH;
-            const pad = 6; // Bund path border
-            const colorIdx = (col * 3 + r * 7 + (col ^ r) * 2) % paddyColors.length;
-            const pGrad = ctx.createLinearGradient(x, y, x + cellW, y + cellH);
-            pGrad.addColorStop(0, paddyColors[colorIdx]);
-            pGrad.addColorStop(1, paddyColors[(colorIdx + 2) % paddyColors.length]);
-            ctx.fillStyle = pGrad;
-            ctx.fillRect(x + pad, y + pad, cellW - pad * 2, cellH - pad * 2);
-
-            // Soft grassy bund edge bevel
-            ctx.strokeStyle = 'rgba(46, 125, 50, 0.55)';
-            ctx.lineWidth = 4;
-            ctx.strokeRect(x + pad, y + pad, cellW - pad * 2, cellH - pad * 2);
-
-            // Subtle irrigation rows & golden water glint inside paddy
-            ctx.fillStyle = 'rgba(254, 240, 138, 0.09)';
-            for (let f = pad + 8; f < cellH - pad; f += 8) {
-              ctx.fillRect(x + pad + 4, y + f, cellW - pad * 2 - 8, 2);
-            }
-          }
+        for (let p = 0; p < 220; p++) {
+          const px = Math.random() * 1024;
+          const py = Math.random() * 1024;
+          const pr = 28 + Math.random() * 95;
+          const pGrad = ctx.createRadialGradient(px, py, 4, px, py, pr);
+          pGrad.addColorStop(0, patchPalette[p % patchPalette.length]);
+          pGrad.addColorStop(1, 'rgba(37, 77, 32, 0)');
+          ctx.fillStyle = pGrad;
+          ctx.beginPath();
+          ctx.arc(px, py, pr, 0, Math.PI * 2);
+          ctx.fill();
         }
 
-        // Rich organic micro-detail for grass blades, wildflowers, and soil
-        for (let i = 0; i < 18000; i++) {
+        // Fine individual grass blade strokes & golden clover specks
+        for (let i = 0; i < 24000; i++) {
           const sx = Math.random() * 1024;
           const sy = Math.random() * 1024;
           const t = Math.random();
-          if (t < 0.38) ctx.fillStyle = 'rgba(254, 240, 138, 0.30)';
-          else if (t < 0.72) ctx.fillStyle = 'rgba(20, 83, 45, 0.35)';
-          else if (t < 0.90) ctx.fillStyle = 'rgba(132, 204, 22, 0.28)';
-          else ctx.fillStyle = 'rgba(59, 38, 20, 0.40)';
-          ctx.fillRect(sx, sy, 2 + Math.random() * 3, 2 + Math.random() * 3);
+          if (t < 0.35) ctx.fillStyle = 'rgba(132, 184, 42, 0.28)';
+          else if (t < 0.70) ctx.fillStyle = 'rgba(22, 62, 24, 0.34)';
+          else if (t < 0.90) ctx.fillStyle = 'rgba(234, 179, 8, 0.22)';
+          else ctx.fillStyle = 'rgba(68, 46, 24, 0.32)';
+          ctx.fillRect(sx, sy, 2, 3 + Math.random() * 4);
         }
 
         const tex = new THREE.CanvasTexture(c);
         tex.wrapS = THREE.RepeatWrapping;
         tex.wrapT = THREE.RepeatWrapping;
-        tex.repeat.set(14, 18);
+        tex.repeat.set(22, 28);
         return new THREE.MeshStandardMaterial({
           map: tex,
           bumpMap: tex,
-          bumpScale: 0.04,
-          roughness: 0.86,
-          metalness: 0.05
+          bumpScale: 0.045,
+          roughness: 0.88,
+          metalness: 0.04
         });
       })(),
       dirtRoad: (function() {
@@ -2885,13 +2874,13 @@
         const ctx = c.getContext('2d');
         // Warm laterite & alluvial compacted dirt road (Lộ đất đỏ phù sa Nam Bộ)
         const rGrad = ctx.createLinearGradient(0, 0, 512, 0);
-        rGrad.addColorStop(0.00, '#365314'); // Grassy shoulder left
-        rGrad.addColorStop(0.08, '#78350f');
+        rGrad.addColorStop(0.00, '#254d20'); // Seamless blend into grass shoulder left
+        rGrad.addColorStop(0.09, '#654321');
         rGrad.addColorStop(0.22, '#9a4e24');
-        rGrad.addColorStop(0.50, '#b46232'); // Crown of road
+        rGrad.addColorStop(0.50, '#b86635'); // Sunlit crown of road
         rGrad.addColorStop(0.78, '#9a4e24');
-        rGrad.addColorStop(0.92, '#78350f');
-        rGrad.addColorStop(1.00, '#365314'); // Grassy shoulder right
+        rGrad.addColorStop(0.91, '#654321');
+        rGrad.addColorStop(1.00, '#254d20'); // Seamless blend into grass shoulder right
         ctx.fillStyle = rGrad;
         ctx.fillRect(0, 0, 512, 512);
 
@@ -2920,23 +2909,24 @@
           map: tex,
           bumpMap: tex,
           bumpScale: 0.05,
-          roughness: 0.88,
+          roughness: 0.86,
           metalness: 0.05
         });
       })(),
       water: (function() {
-        const c = document.createElement('canvas');
-        c.width = 512; c.height = 512;
-        const ctx = c.getContext('2d');
-        const imgData = ctx.createImageData(512, 512);
+        // 1. Procedural Normal/Bump Wave Heightmap (512x512)
+        const cBump = document.createElement('canvas');
+        cBump.width = 512; cBump.height = 512;
+        const ctxBump = cBump.getContext('2d');
+        const imgData = ctxBump.createImageData(512, 512);
         const data = imgData.data;
         for (let y = 0; y < 512; y++) {
           for (let x = 0; x < 512; x++) {
             const nx = (x / 512) * Math.PI * 2;
             const ny = (y / 512) * Math.PI * 2;
-            const w1 = Math.sin(nx * 6 + Math.cos(ny * 4)) * 0.45;
-            const w2 = Math.cos(ny * 10 - Math.sin(nx * 8)) * 0.35;
-            const w3 = Math.sin((nx + ny) * 16) * 0.20;
+            const w1 = Math.sin(nx * 6 + Math.cos(ny * 5)) * 0.42;
+            const w2 = Math.cos(ny * 12 - Math.sin(nx * 9)) * 0.34;
+            const w3 = Math.sin((nx * 14 + ny * 18)) * 0.24;
             const val = Math.floor(((w1 + w2 + w3) * 0.5 + 0.5) * 255);
             const idx = (y * 512 + x) * 4;
             data[idx] = val;
@@ -2945,21 +2935,125 @@
             data[idx + 3] = 255;
           }
         }
-        ctx.putImageData(imgData, 0, 0);
+        ctxBump.putImageData(imgData, 0, 0);
+        const bumpTex = new THREE.CanvasTexture(cBump);
+        bumpTex.wrapS = THREE.RepeatWrapping;
+        bumpTex.wrapT = THREE.RepeatWrapping;
+        bumpTex.repeat.set(3, 20);
+        window.waterWaveTex = bumpTex;
+
+        // 2. Realistic Mekong River Color, Depth Gradient, Silt Currents & Shoreline Foam Map (512x512)
+        const cCol = document.createElement('canvas');
+        cCol.width = 512; cCol.height = 512;
+        const ctxCol = cCol.getContext('2d');
+        const bankGrad = ctxCol.createLinearGradient(0, 0, 512, 0);
+        bankGrad.addColorStop(0.00, '#4a3520'); // Shallow muddy bank edge
+        bankGrad.addColorStop(0.07, '#3d4c38'); // Reedy shallow water reflection
+        bankGrad.addColorStop(0.20, '#6e472b'); // Warm Mekong alluvial silt water
+        bankGrad.addColorStop(0.42, '#5c3d28'); // Deep mid-stream channel
+        bankGrad.addColorStop(0.58, '#7c4d2b'); // Sun-kissed golden-brown current
+        bankGrad.addColorStop(0.80, '#6e472b'); // Warm alluvial silt water
+        bankGrad.addColorStop(0.93, '#3d4c38'); // Reedy shallow water reflection
+        bankGrad.addColorStop(1.00, '#4a3520'); // Shallow muddy bank edge
+        ctxCol.fillStyle = bankGrad;
+        ctxCol.fillRect(0, 0, 512, 512);
+
+        // Flowing alluvial current ribbons & golden sunset water glints
+        for (let i = 0; i < 320; i++) {
+          const cx = 24 + Math.random() * 464;
+          const cy = Math.random() * 512;
+          const cw = 3 + Math.random() * 14;
+          const ch = 28 + Math.random() * 90;
+          const isGold = Math.random() < 0.42;
+          ctxCol.fillStyle = isGold
+            ? 'rgba(251, 191, 36, 0.16)'
+            : 'rgba(30, 58, 58, 0.18)';
+          ctxCol.beginPath();
+          ctxCol.ellipse(cx, cy, cw, ch, 0, 0, Math.PI * 2);
+          ctxCol.fill();
+        }
+
+        // Soft white shoreline foam & ripples along both riverbanks
+        for (let y = 0; y < 512; y += 4) {
+          const foamW = 8 + Math.sin(y * 0.12) * 5;
+          ctxCol.fillStyle = 'rgba(255, 248, 231, 0.35)';
+          ctxCol.fillRect(6, y, foamW, 2.5);
+          ctxCol.fillRect(506 - foamW, y, foamW, 2.5);
+        }
+
+        const colorTex = new THREE.CanvasTexture(cCol);
+        colorTex.wrapS = THREE.RepeatWrapping;
+        colorTex.wrapT = THREE.RepeatWrapping;
+        colorTex.repeat.set(1, 14);
+        window.waterColorTex = colorTex;
+
+        return new THREE.MeshStandardMaterial({
+          map: colorTex,
+          bumpMap: bumpTex,
+          bumpScale: 0.11,
+          roughness: 0.08,
+          metalness: 0.36,
+          envMapIntensity: 1.85,
+          transparent: true,
+          opacity: 0.96
+        });
+      })(),
+      waterShimmer: (function() {
+        // Golden Sunset Caustics & Sparkling Wave Crest Layer
+        const c = document.createElement('canvas');
+        c.width = 512; c.height = 512;
+        const ctx = c.getContext('2d');
+        ctx.clearRect(0, 0, 512, 512);
+        for (let i = 0; i < 420; i++) {
+          const x = 35 + Math.random() * 442;
+          const y = Math.random() * 512;
+          const w = 6 + Math.random() * 24;
+          const h = 1.5 + Math.random() * 3.5;
+          const alpha = 0.12 + Math.random() * 0.28;
+          ctx.fillStyle = (Math.random() < 0.7)
+            ? `rgba(254, 240, 138, ${alpha})`
+            : `rgba(251, 146, 60, ${alpha * 0.85})`;
+          ctx.beginPath();
+          ctx.ellipse(x, y, w, h, (Math.random() - 0.5) * 0.25, 0, Math.PI * 2);
+          ctx.fill();
+        }
         const tex = new THREE.CanvasTexture(c);
         tex.wrapS = THREE.RepeatWrapping;
         tex.wrapT = THREE.RepeatWrapping;
-        tex.repeat.set(4, 22);
-        window.waterWaveTex = tex;
-        return new THREE.MeshStandardMaterial({
-          color: 0x7c4a2b, // Sông Cái Sơn nặng đỏ phù sa phản chiếu hoàng hôn vàng rực
-          bumpMap: tex,
-          bumpScale: 0.09,
-          roughness: 0.11,
-          metalness: 0.28,
-          envMapIntensity: 1.45,
+        tex.repeat.set(2, 18);
+        window.waterShimmerTex = tex;
+        return new THREE.MeshBasicMaterial({
+          map: tex,
           transparent: true,
-          opacity: 0.95
+          opacity: 0.52,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false
+        });
+      })(),
+      wetMudBank: (function() {
+        const c = document.createElement('canvas');
+        c.width = 256; c.height = 256;
+        const ctx = c.getContext('2d');
+        const g = ctx.createLinearGradient(0, 0, 256, 0);
+        g.addColorStop(0.0, '#2b1b10'); // Wet glossy river mud
+        g.addColorStop(0.5, '#422a17'); // Moist alluvial silt
+        g.addColorStop(1.0, '#29461e'); // Grassy upper bank transition
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, 256, 256);
+        for (let i = 0; i < 1800; i++) {
+          ctx.fillStyle = (Math.random() < 0.5) ? 'rgba(20, 12, 6, 0.35)' : 'rgba(120, 82, 45, 0.25)';
+          ctx.fillRect(Math.random() * 256, Math.random() * 256, 3, 3);
+        }
+        const tex = new THREE.CanvasTexture(c);
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.RepeatWrapping;
+        tex.repeat.set(1, 24);
+        return new THREE.MeshStandardMaterial({
+          map: tex,
+          bumpMap: tex,
+          bumpScale: 0.04,
+          roughness: 0.28,
+          metalness: 0.12
         });
       })(),
       // Vật Liệu Tôn Nghiêm Cho Khu Di Tích Lịch Sử Chiến Thắng Cầu Cái Sơn
@@ -3288,8 +3382,42 @@
     const dustParticles = new THREE.Points(dustGeo, dustMat);
     scene.add(dustParticles);
 
-    // --- 1. VAST MEKONG DELTA BATTLEFIELD TERRAIN (680m x 840m) ---
-    const ground = new THREE.Mesh(new THREE.PlaneGeometry(680, 840, 16, 16), materials.grass);
+    // --- 1. VAST MEKONG DELTA BATTLEFIELD TERRAIN WITH CARVED 3D RIVERBEDS (680m x 840m) ---
+    const groundGeo = new THREE.PlaneGeometry(680, 840, 140, 172);
+    (function carveMekongRiverbeds() {
+      const pos = groundGeo.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        const vx = pos.getX(i);
+        const vy = pos.getY(i);
+        const wx = vx;
+        const wz = -vy; // After rotation.x = -Math.PI / 2, world Z is -vy
+        let h = 0;
+
+        // 1. Carve Main Sông Cái Sơn Channel (x from -41.5 to +0.5) so grass never pokes through river waves
+        const distRiver = Math.abs(wx - (-20.5));
+        if (distRiver < 19.5) {
+          h = -2.4;
+        } else if (distRiver < 22.8) {
+          const tBank = (distRiver - 19.5) / 3.3;
+          h = -2.4 * (1 - tBank) + 0.14 * Math.sin(tBank * Math.PI);
+        }
+
+        // 2. Carve Kênh Cái Sơn flowing directly underneath Cầu Cái Sơn (x from -2 to 23, z from -53.8 to -36.2)
+        if (wx >= -4.0 && wx <= 23.5) {
+          const distCanalZ = Math.abs(wz - (-45.0));
+          if (distCanalZ < 7.8) {
+            h = Math.min(h, -2.15);
+          } else if (distCanalZ < 9.6) {
+            const tC = (distCanalZ - 7.8) / 1.8;
+            h = Math.min(h, -2.15 * (1 - tC));
+          }
+        }
+
+        pos.setZ(i, h);
+      }
+      groundGeo.computeVertexNormals();
+    })();
+    const ground = new THREE.Mesh(groundGeo, materials.grass);
     ground.rotation.x = -Math.PI / 2;
     ground.receiveShadow = true;
     scene.add(ground);
@@ -3335,18 +3463,29 @@
 
     // Expanded Dirt Road (520m total length connecting Vĩnh Long - Cái Sơn - Bình Minh)
     function createRoadMesh() {
-      const points = [];
+      const fullPoints = [];
+      const southPoints = [];
+      const northPoints = [];
       for (let z = -260; z <= 260; z += 8) {
         const x = Math.sin(z * 0.015) * 12 + 10;
-        points.push(new THREE.Vector3(x, 0.04, z));
+        fullPoints.push(new THREE.Vector3(x, 0.04, z));
+        if (z <= -54) southPoints.push(new THREE.Vector3(x, 0.04, z));
+        if (z >= -36) northPoints.push(new THREE.Vector3(x, 0.04, z));
       }
-      const curve = new THREE.CatmullRomCurve3(points);
-      const roadGeo = new THREE.TubeGeometry(curve, 95, 5.1, 6, false);
-      const roadMesh = new THREE.Mesh(roadGeo, materials.dirtRoad);
-      roadMesh.scale.y = 0.045;
-      roadMesh.receiveShadow = true;
-      scene.add(roadMesh);
-      return curve;
+      southPoints.push(new THREE.Vector3(Math.sin(-54.5 * 0.015) * 12 + 10, 0.04, -54.5));
+      northPoints.unshift(new THREE.Vector3(Math.sin(-35.5 * 0.015) * 12 + 10, 0.04, -35.5));
+
+      // Split road mesh cleanly at Cầu Cái Sơn abutments so the canal flows openly under the timber bridge
+      for (let segPts of [southPoints, northPoints]) {
+        const segCurve = new THREE.CatmullRomCurve3(segPts);
+        const segGeo = new THREE.TubeGeometry(segCurve, 48, 5.1, 6, false);
+        const segMesh = new THREE.Mesh(segGeo, materials.dirtRoad);
+        segMesh.scale.y = 0.045;
+        segMesh.receiveShadow = true;
+        scene.add(segMesh);
+      }
+
+      return new THREE.CatmullRomCurve3(fullPoints);
     }
     const roadCurve = createRoadMesh();
 
@@ -3400,37 +3539,229 @@
       }
     })();
 
-    // Main Cái Sơn River (Wide alluvial canal with wave physics & sloped muddy riverbanks)
-    const riverGeo = new THREE.PlaneGeometry(42, 840, 8, 28);
+    // ==========================================================================
+    // HỆ THỐNG SÔNG CÁI SƠN & KÊNH CẦU CÁI SƠN ĐA TẦNG CHÂN THỰC
+    // ==========================================================================
+    // 1. Main Cái Sơn River (High-resolution 3D wave mesh over carved -2.4m riverbed)
+    const riverGeo = new THREE.PlaneGeometry(43, 840, 24, 112);
     const river = new THREE.Mesh(riverGeo, materials.water);
     river.rotation.x = -Math.PI / 2;
-    river.position.set(-20, 0.03, 0);
+    river.position.set(-20.5, -0.10, 0);
     river.receiveShadow = true;
     scene.add(river);
 
-    // Alluvial Muddy Riverbanks & Grassy Embankments flanking Cái Sơn River
-    const bankMat = new THREE.MeshStandardMaterial({ color: 0x4a3520, roughness: 0.92, metalness: 0.05 });
-    for (let bankX of [-41.2, 1.2]) {
-      const bankMesh = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.22, 840), bankMat);
-      bankMesh.position.set(bankX, 0.01, 0);
-      bankMesh.receiveShadow = true;
-      scene.add(bankMesh);
+    // 2. Golden Sunset Caustic & Wave-Crest Shimmer Layer over Main River
+    const riverShimmer = new THREE.Mesh(new THREE.PlaneGeometry(39, 840, 1, 1), materials.waterShimmer);
+    riverShimmer.rotation.x = -Math.PI / 2;
+    riverShimmer.position.set(-20.5, -0.02, 0);
+    scene.add(riverShimmer);
+
+    // 3. Sloped Wet Alluvial Mud Riverbanks flanking Sông Cái Sơn
+    for (let side of [-1, 1]) {
+      const bankX = side === -1 ? -41.6 : 0.6;
+      const bankSlope = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.65, 840), materials.wetMudBank);
+      bankSlope.position.set(bankX, -0.18, 0);
+      bankSlope.rotation.z = side * -0.18;
+      bankSlope.receiveShadow = true;
+      scene.add(bankSlope);
     }
 
-    // Tributary Canal (Rạch Nhánh Đông) winding into the guerrilla village
+    // 4. Kênh Cái Sơn Flowing Directly Underneath Cầu Cái Sơn (x = -20..24, z = -45)
+    const bridgeCanalWater = new THREE.Mesh(new THREE.PlaneGeometry(45, 17.6, 16, 8), materials.water);
+    bridgeCanalWater.rotation.x = -Math.PI / 2;
+    bridgeCanalWater.position.set(1.5, -0.12, -45.0);
+    bridgeCanalWater.receiveShadow = true;
+    scene.add(bridgeCanalWater);
+
+    const bridgeCanalShimmer = new THREE.Mesh(new THREE.PlaneGeometry(44, 15.6, 1, 1), materials.waterShimmer);
+    bridgeCanalShimmer.rotation.x = -Math.PI / 2;
+    bridgeCanalShimmer.position.set(1.5, -0.04, -45.0);
+    scene.add(bridgeCanalShimmer);
+
+    // Wet Muddy Embankments along Kênh Cầu Cái Sơn (North & South banks under Bridge)
+    for (let czSide of [-1, 1]) {
+      const cBank = new THREE.Mesh(new THREE.BoxGeometry(28, 0.75, 2.4), materials.wetMudBank);
+      cBank.position.set(10.0, -0.22, -45.0 + czSide * 8.6);
+      cBank.rotation.x = czSide * 0.22;
+      cBank.receiveShadow = true;
+      scene.add(cBank);
+    }
+
+    // 5. Tributary Canal (Rạch Nhánh Đông) connecting from Kênh Cầu Cái Sơn into the Guerrilla Village
     const canalPoints = [
-      new THREE.Vector3(-4, 0.018, -15),
-      new THREE.Vector3(14, 0.018, -20),
-      new THREE.Vector3(45, 0.018, -10),
-      new THREE.Vector3(75, 0.018, 15),
-      new THREE.Vector3(115, 0.018, -25)
+      new THREE.Vector3(21, -0.06, -45),
+      new THREE.Vector3(32, -0.06, -42),
+      new THREE.Vector3(45, -0.04, -10),
+      new THREE.Vector3(75, -0.04, 15),
+      new THREE.Vector3(115, -0.04, -25)
     ];
     const canalCurve = new THREE.CatmullRomCurve3(canalPoints);
-    const canalGeo = new THREE.TubeGeometry(canalCurve, 36, 6.5, 6, false);
+    const canalGeo = new THREE.TubeGeometry(canalCurve, 44, 6.8, 8, false);
     const canalMesh = new THREE.Mesh(canalGeo, materials.water);
-    canalMesh.scale.y = 0.02;
+    canalMesh.scale.y = 0.025;
     canalMesh.receiveShadow = true;
     scene.add(canalMesh);
+
+    // 6. Animated Water Ripple Rings around Bridge Timber Piles & Ferry Dock (Vòng sóng vỗ chân cầu & bến đò)
+    const waterRippleRings = [];
+    (function createWaterRippleRings() {
+      const ringGeo = new THREE.RingGeometry(0.28, 0.44, 18);
+      ringGeo.rotateX(-Math.PI / 2);
+      const rippleCoords = [];
+      // 12 timber piles of Cầu Cái Sơn
+      for (let tz of [-50, -45, -40]) {
+        for (let px of [-4.8, -1.6, 1.6, 4.8]) {
+          rippleCoords.push({ x: 10.5 + px, z: tz });
+        }
+      }
+      // Ferry Dock mooring posts & sampans
+      rippleCoords.push({ x: -8.2, z: 21 }, { x: -8.2, z: 25 }, { x: -8.2, z: 29 });
+      rippleCoords.push({ x: -6, z: 22 }, { x: -7, z: -75 }, { x: -6, z: 125 });
+
+      rippleCoords.forEach((rc, idx) => {
+        const rMat = new THREE.MeshBasicMaterial({
+          color: 0xfffaeb,
+          transparent: true,
+          opacity: 0.45,
+          side: THREE.DoubleSide,
+          depthWrite: false
+        });
+        const rMesh = new THREE.Mesh(ringGeo, rMat);
+        rMesh.position.set(rc.x, -0.03, rc.z);
+        scene.add(rMesh);
+        waterRippleRings.push({
+          mesh: rMesh,
+          mat: rMat,
+          phase: idx * 0.42
+        });
+      });
+      window.waterRippleRings = waterRippleRings;
+    })();
+
+    // 7. River Reeds, Cattails & Wooden Erosion Stakes (Đám cỏ lác, sậy bông trắng & hàng cừ tràm ven sông)
+    (function createRiverbankEcosystem() {
+      const reedStemMat = new THREE.MeshLambertMaterial({ color: 0x3f6212 });
+      const reedPlumeMat = new THREE.MeshBasicMaterial({ color: 0xfef3c7 });
+      const stakeMat = new THREE.MeshStandardMaterial({ color: 0x3b2616, roughness: 0.92 });
+      const stemGeo = new THREE.CylinderGeometry(0.02, 0.035, 1.55, 4);
+      const plumeGeo = new THREE.CylinderGeometry(0.04, 0.02, 0.38, 4);
+      const stakeGeo = new THREE.CylinderGeometry(0.07, 0.09, 1.4, 5);
+
+      // Lush River Reeds along Sông Cái Sơn & Kênh Cầu Cái Sơn banks
+      for (let i = 0; i < 56; i++) {
+        const clump = new THREE.Group();
+        const isEastBank = (i % 2 === 0);
+        const rz = -220 + i * 8.0 + (Math.random() - 0.5) * 4;
+        const rx = isEastBank ? (-0.8 + (Math.random() - 0.5) * 1.2) : (-39.8 + (Math.random() - 0.5) * 1.2);
+        clump.position.set(rx, -0.15, rz);
+
+        for (let s = 0; s < 5; s++) {
+          const stem = new THREE.Mesh(stemGeo, reedStemMat);
+          const ox = (Math.random() - 0.5) * 0.65;
+          const oz = (Math.random() - 0.5) * 0.65;
+          const hScale = 0.8 + Math.random() * 0.45;
+          stem.scale.set(1, hScale, 1);
+          stem.position.set(ox, 0.75 * hScale, oz);
+          stem.rotation.z = (Math.random() - 0.5) * 0.25;
+          clump.add(stem);
+
+          if (s < 3) {
+            const plume = new THREE.Mesh(plumeGeo, reedPlumeMat);
+            plume.position.set(ox, 1.55 * hScale, oz);
+            clump.add(plume);
+          }
+        }
+        scene.add(clump);
+      }
+
+      // Traditional Wooden Erosion Stakes (Hàng cừ tràm giữ đất bờ kênh Cầu Cái Sơn & Bến Đò)
+      for (let z = -34; z <= 36; z += 1.4) {
+        if (Math.abs(z - (-45)) < 8.5) continue;
+        const stake = new THREE.Mesh(stakeGeo, stakeMat);
+        stake.position.set(-1.2 + Math.sin(z * 0.5) * 0.15, -0.15, z);
+        stake.rotation.z = (Math.random() - 0.5) * 0.12;
+        scene.add(stake);
+      }
+
+      // Traditional Mekong River Fish Weir / Trap (Hàng cọc đáy & đăng bắt cá trên sông Cái Sơn)
+      const weirGroup = new THREE.Group();
+      weirGroup.position.set(-26, -0.1, -18);
+      const poleGeo = new THREE.CylinderGeometry(0.07, 0.10, 3.6, 5);
+      const netMat = new THREE.MeshBasicMaterial({
+        color: 0xd6d3d1,
+        transparent: true,
+        opacity: 0.32,
+        side: THREE.DoubleSide,
+        wireframe: true
+      });
+      for (let p = 0; p < 7; p++) {
+        const px = (p - 3) * 1.8;
+        const pz = Math.abs(p - 3) * 1.4;
+        const pole = new THREE.Mesh(poleGeo, materials.bambooDry);
+        pole.position.set(px, 1.2, pz);
+        weirGroup.add(pole);
+      }
+      const netMesh = new THREE.Mesh(new THREE.PlaneGeometry(10.5, 1.8, 12, 4), netMat);
+      netMesh.position.set(0, 1.35, 2.1);
+      weirGroup.add(netMesh);
+      scene.add(weirGroup);
+    })();
+
+    // 8. 3D Golden Ripe Rice Paddy Fields with Earthen Bund Levees (Cánh đồng lúa chín vàng 3D xã Song Phú)
+    (function create3DRicePaddyFields() {
+      const paddyGroup = new THREE.Group();
+      const bundMat = new THREE.MeshStandardMaterial({ color: 0x3f5e24, roughness: 0.9 });
+      const paddyWaterMat = new THREE.MeshStandardMaterial({
+        color: 0x5c4728,
+        roughness: 0.16,
+        metalness: 0.30,
+        envMapIntensity: 1.3
+      });
+      const ripeRiceMat = new THREE.MeshLambertMaterial({ color: 0xeab308 });
+      const greenRiceMat = new THREE.MeshLambertMaterial({ color: 0x4d7c0f });
+      const riceClumpGeo = new THREE.ConeGeometry(0.42, 0.72, 5);
+      riceClumpGeo.rotateX(Math.PI); // Fanning upward like rice panicles
+
+      const paddyPlots = [
+        { x: 42, z: -85, w: 22, d: 28, ripe: true },
+        { x: 42, z: -53, w: 22, d: 26, ripe: false },
+        { x: 44, z: 68, w: 24, d: 30, ripe: true },
+        { x: 44, z: 102, w: 24, d: 28, ripe: true },
+        { x: -58, z: -30, w: 24, d: 36, ripe: true },
+        { x: -58, z: 15, w: 24, d: 36, ripe: false }
+      ];
+
+      paddyPlots.forEach(plot => {
+        // Flooded paddy water bed
+        const pBed = new THREE.Mesh(new THREE.PlaneGeometry(plot.w - 1.2, plot.d - 1.2), paddyWaterMat);
+        pBed.rotation.x = -Math.PI / 2;
+        pBed.position.set(plot.x, 0.02, plot.z);
+        paddyGroup.add(pBed);
+
+        // 4 Raised Earthen Bund Levees (Bờ mẫu ruộng lúa)
+        const bN = new THREE.Mesh(new THREE.BoxGeometry(plot.w, 0.24, 0.9), bundMat);
+        bN.position.set(plot.x, 0.12, plot.z - plot.d / 2);
+        const bS = new THREE.Mesh(new THREE.BoxGeometry(plot.w, 0.24, 0.9), bundMat);
+        bS.position.set(plot.x, 0.12, plot.z + plot.d / 2);
+        const bW = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.24, plot.d), bundMat);
+        bW.position.set(plot.x - plot.w / 2, 0.12, plot.z);
+        const bE = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.24, plot.d), bundMat);
+        bE.position.set(plot.x + plot.w / 2, 0.12, plot.z);
+        paddyGroup.add(bN, bS, bW, bE);
+
+        // 3D Rice Stalk Rows inside plot
+        const mat = plot.ripe ? ripeRiceMat : greenRiceMat;
+        for (let rx = plot.x - plot.w / 2 + 2.2; rx <= plot.x + plot.w / 2 - 2.2; rx += 2.6) {
+          for (let rz = plot.z - plot.d / 2 + 2.2; rz <= plot.z + plot.d / 2 - 2.2; rz += 2.6) {
+            const stalk = new THREE.Mesh(riceClumpGeo, mat);
+            stalk.position.set(rx + (Math.random() - 0.5) * 0.4, 0.36, rz + (Math.random() - 0.5) * 0.4);
+            stalk.rotation.y = Math.random() * Math.PI;
+            paddyGroup.add(stalk);
+          }
+        }
+      });
+      scene.add(paddyGroup);
+    })();
 
     // Floating Mekong Water Hyacinths (Lục bình tím trôi sông Cái Sơn)
     const hyacinths = [];
@@ -3438,7 +3769,7 @@
     const hyacinthFlowerMat = new THREE.MeshStandardMaterial({ color: 0xc084fc, emissive: 0x581c87, emissiveIntensity: 0.18, roughness: 0.5 });
     const sharedHyacinthLeafGeo = new THREE.CylinderGeometry(0.68, 0.18, 0.09, 6);
     const sharedHyacinthFlowerGeo = new THREE.ConeGeometry(0.25, 0.58, 5);
-    for (let h = 0; h < 28; h++) {
+    for (let h = 0; h < 34; h++) {
       const clump = new THREE.Group();
       for (let l = 0; l < 4; l++) {
         const leaf = new THREE.Mesh(sharedHyacinthLeafGeo, hyacinthLeafMat);
@@ -3453,14 +3784,14 @@
       // 80% on main river, 20% on village canal
       if (Math.random() < 0.8) {
         clump.position.set(
-          -20 + (Math.random() - 0.5) * 24,
-          0.08,
+          -20.5 + (Math.random() - 0.5) * 28,
+          -0.02,
           (Math.random() - 0.5) * 520
         );
       } else {
         const t = Math.random();
         const cp = canalCurve.getPoint(t);
-        clump.position.set(cp.x + (Math.random() - 0.5) * 3, 0.08, cp.z + (Math.random() - 0.5) * 3);
+        clump.position.set(cp.x + (Math.random() - 0.5) * 3, 0.02, cp.z + (Math.random() - 0.5) * 3);
       }
       clump.userData = { driftSpeed: 1.6 + Math.random() * 1.8 };
       scene.add(clump);
@@ -5181,13 +5512,28 @@
     }
     createFerryDock(-4, 25);
 
-    // Sampan Boat (Xuồng ba lá Nam Bộ bồng bềnh trên sóng nước)
+    // Sampan Boat (Xuồng ba lá Nam Bộ bồng bềnh & trôi nhẹ trên sóng nước sông Cái Sơn)
     const sampanBoats = [];
-    function createSampan(x, z, rotY = 0) {
+    const sampanWakeGeo = new THREE.RingGeometry(0.85, 1.35, 16);
+    sampanWakeGeo.rotateX(-Math.PI / 2);
+    sampanWakeGeo.scale(1.0, 1.0, 2.4);
+    const sampanWakeMat = new THREE.MeshBasicMaterial({
+      color: 0xfffaeb,
+      transparent: true,
+      opacity: 0.32,
+      side: THREE.DoubleSide,
+      depthWrite: false
+    });
+    function createSampan(x, z, rotY = 0, driftSpeed = 0) {
       const boat = new THREE.Group();
-      boat.position.set(x, 0.1, z);
+      boat.position.set(x, 0.02, z);
       boat.rotation.y = rotY;
-      boat.userData = { baseRotY: rotY, phase: (x + z) * 0.25 };
+      boat.userData = { baseRotY: rotY, phase: (x + z) * 0.25, driftSpeed: driftSpeed };
+
+      // Subtle white water wake ring around hull
+      const wake = new THREE.Mesh(sampanWakeGeo, sampanWakeMat);
+      wake.position.set(0, -0.02, 0);
+      boat.add(wake);
 
       // Hull (Tapered wood canoe shape)
       const hullGeom = new THREE.BoxGeometry(1.3, 0.55, 4.6);
@@ -5234,11 +5580,16 @@
       sampanBoats.push(boat);
     }
     window.sampanBoats = sampanBoats;
-    createSampan(-6, 22, 0.35);
-    createSampan(-7, -75, -0.22);
-    createSampan(32, 45, Math.PI / 2 + 0.15);
-    createSampan(72, -88, Math.PI / 2 - 0.2);
-    createSampan(-6, 125, -0.15);
+    // Moored sampans near docks & canals
+    createSampan(-6, 22, 0.35, 0);
+    createSampan(-7, -75, -0.22, 0);
+    createSampan(32, -41, Math.PI / 2 + 0.15, 0);
+    createSampan(72, -88, Math.PI / 2 - 0.2, 0);
+    createSampan(-6, 125, -0.15, 0);
+    // Drifting sampans gliding along Sông Cái Sơn
+    createSampan(-19, -25, 0.04, 2.4);
+    createSampan(-27, 55, Math.PI - 0.05, -2.1);
+    createSampan(-16, -135, 0.02, 2.8);
 
     // --- 8. LÀNG DU KÍCH CÁI SƠN (7 Thatched Cottages with Verandas, Warm Oil Lamp Windows & Water Jars) ---
     const warmWindowMat = new THREE.MeshBasicMaterial({ color: 0xfde047 });
@@ -12153,21 +12504,48 @@
         }
       }
 
-      // Living Mekong River Waves Animation (Throttled every 2 frames on lightweight 175-vertex mesh)
+      // Living Mekong River Multi-Layer Waves, Shimmer & Ripple Animation
       const waveTime = simSeconds * 2.2;
       if (window.waterWaveTex) {
-        window.waterWaveTex.offset.y -= delta * 0.055;
-        window.waterWaveTex.offset.x = Math.sin(simSeconds * 0.4) * 0.02;
+        window.waterWaveTex.offset.y -= delta * 0.065;
+        window.waterWaveTex.offset.x = Math.sin(simSeconds * 0.45) * 0.025;
+      }
+      if (window.waterColorTex) {
+        window.waterColorTex.offset.y -= delta * 0.028;
+      }
+      if (window.waterShimmerTex) {
+        window.waterShimmerTex.offset.y += delta * 0.042;
+        window.waterShimmerTex.offset.x = Math.cos(simSeconds * 0.55) * 0.035;
       }
       if (perfFrameCounter % 2 === 0) {
         const rPos = riverGeo.attributes.position;
         for (let i = 0; i < rPos.count; i++) {
           const u = rPos.getX(i);
           const v = rPos.getY(i);
-          const w = Math.sin(v * 0.12 + waveTime) * 0.13 + Math.cos(u * 0.35 + waveTime * 1.5) * 0.07;
+          // Dampen wave amplitude right at shoreline edges so banks meet water seamlessly
+          const bankAtten = Math.max(0.15, 1.0 - Math.pow(Math.abs(u) / 21.5, 2.2));
+          const w = (
+            Math.sin(v * 0.14 + waveTime) * 0.11 +
+            Math.cos(u * 0.38 + waveTime * 1.45) * 0.065 +
+            Math.sin((u + v) * 0.22 - waveTime * 1.8) * 0.04
+          ) * bankAtten;
           rPos.setZ(i, w);
         }
         rPos.needsUpdate = true;
+        if (perfFrameCounter % 4 === 0) {
+          riverGeo.computeVertexNormals();
+        }
+
+        // Pulse Water Ripple Rings around Cầu Cái Sơn timber piles & Ferry Dock
+        if (window.waterRippleRings) {
+          for (let i = 0; i < window.waterRippleRings.length; i++) {
+            const rr = window.waterRippleRings[i];
+            const cycle = (simSeconds * 0.85 + rr.phase) % 1.0;
+            const s = 1.0 + cycle * 2.1;
+            rr.mesh.scale.set(s, 1, s);
+            rr.mat.opacity = (1.0 - cycle) * 0.44;
+          }
+        }
 
         // Wind Swaying Palms (Capped at <=90 nearby fronds)
         for (let i = 0; i < windFronds.length; i++) {
@@ -12175,13 +12553,18 @@
           wf.group.rotation.z = Math.sin(waveTime * wf.speed + wf.offset) * 0.035;
         }
 
-        // Gentle Wave Bobbing for Wooden Sampans (Xuồng Ba Lá)
+        // Gentle Wave Bobbing & River Gliding for Wooden Sampans (Xuồng Ba Lá)
         if (window.sampanBoats) {
           for (let i = 0; i < window.sampanBoats.length; i++) {
             const sb = window.sampanBoats[i];
             if (sb && sb.userData) {
               sb.rotation.x = Math.sin(waveTime * 0.9 + sb.userData.phase) * 0.035;
               sb.rotation.z = Math.cos(waveTime * 1.15 + sb.userData.phase) * 0.045;
+              if (sb.userData.driftSpeed) {
+                sb.position.z += delta * 2.0 * sb.userData.driftSpeed;
+                if (sb.position.z > 210) sb.position.z = -210;
+                if (sb.position.z < -210) sb.position.z = 210;
+              }
             }
           }
         }
